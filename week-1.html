@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Week 1: Orientation — Learn Vibe Build</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        midnight: '#0a0a0f',
+                        charcoal: '#12121a',
+                        slate: '#1a1a24',
+                        accent: '#6366f1',
+                        accentLight: '#818cf8',
+                        glow: '#4f46e5',
+                    },
+                    fontFamily: {
+                        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #0a0a0f;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Slide styles */
+        .slide {
+            min-height: 100vh;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .slide.active {
+            display: flex;
+        }
+
+        /* Progress bar */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #6366f1, #a855f7);
+            transition: width 0.3s ease;
+            z-index: 100;
+        }
+
+        /* Navigation hints */
+        .nav-hint {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: #4b5563;
+        }
+
+        /* Slide counter */
+        .slide-counter {
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            color: #6366f1;
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* List animations */
+        .slide.active .reveal-item {
+            opacity: 0;
+            transform: translateX(-20px);
+            animation: revealItem 0.4s ease-out forwards;
+        }
+        .slide.active .reveal-item:nth-child(1) { animation-delay: 0.1s; }
+        .slide.active .reveal-item:nth-child(2) { animation-delay: 0.2s; }
+        .slide.active .reveal-item:nth-child(3) { animation-delay: 0.3s; }
+        .slide.active .reveal-item:nth-child(4) { animation-delay: 0.4s; }
+        .slide.active .reveal-item:nth-child(5) { animation-delay: 0.5s; }
+        .slide.active .reveal-item:nth-child(6) { animation-delay: 0.6s; }
+        .slide.active .reveal-item:nth-child(7) { animation-delay: 0.7s; }
+        .slide.active .reveal-item:nth-child(8) { animation-delay: 0.8s; }
+
+        @keyframes revealItem {
+            to { opacity: 1; transform: translateX(0); }
+        }
+    </style>
+</head>
+<body class="font-sans text-gray-300 antialiased">
+
+    <!-- Progress Bar -->
+    <div class="progress-bar" id="progress"></div>
+
+    <!-- Slide Counter -->
+    <div class="slide-counter">
+        <span id="current-slide">1</span> / <span id="total-slides">24</span>
+    </div>
+
+    <!-- Navigation Hint -->
+    <div class="nav-hint">
+        ← → or click to navigate
+    </div>
+
+    <!-- ==================== SLIDES ==================== -->
+
+    <!-- Slide 1: Title -->
+    <section class="slide active" data-slide="1">
+        <div class="max-w-4xl mx-auto text-center fade-in">
+            <p class="font-mono text-accent text-sm mb-6">// week_01</p>
+            <h1 class="text-6xl md:text-8xl font-bold text-white mb-6">
+                Orientation<br>
+                <span class="gradient-text">& Play</span>
+            </h1>
+            <p class="text-2xl text-gray-400 mt-8">Learn Vibe Build — Cohort 1</p>
+        </div>
+    </section>
+
+    <!-- Slide 2: Welcome -->
+    <section class="slide" data-slide="2">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// welcome</p>
+            <h2 class="text-5xl font-bold text-white mb-12">Let's get a feel for the room</h2>
+
+            <div class="space-y-6 text-2xl">
+                <p class="reveal-item flex items-center gap-4">
+                    <span class="text-accent">✋</span>
+                    <span>Who has used AI at all?</span>
+                </p>
+                <p class="reveal-item flex items-center gap-4">
+                    <span class="text-accent">✋</span>
+                    <span>Who uses ChatGPT regularly? Claude? Gemini?</span>
+                </p>
+                <p class="reveal-item flex items-center gap-4">
+                    <span class="text-accent">✋</span>
+                    <span>Who has tried vibecoding? (Lovable, Cursor, Claude Code)</span>
+                </p>
+                <p class="reveal-item flex items-center gap-4">
+                    <span class="text-accent">✋</span>
+                    <span>Who has shipped something with AI assistance?</span>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 3: Tonight's Journey -->
+    <section class="slide" data-slide="3">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// tonight</p>
+            <h2 class="text-5xl font-bold text-white mb-12">Our journey today</h2>
+
+            <div class="space-y-5 text-xl">
+                <p class="reveal-item flex items-center gap-4">
+                    <span class="text-accent font-mono">01</span>
+                    <span>The landscape — LLMs, agents, where we are</span>
+                </p>
+                <p class="reveal-item flex items-center gap-4">
+                    <span class="text-accent font-mono">02</span>
+                    <span>How building can change — lived examples</span>
+                </p>
+                <p class="reveal-item flex items-center gap-4">
+                    <span class="text-accent font-mono">03</span>
+                    <span>Three modes of thinking — self, AI, others</span>
+                </p>
+                <p class="reveal-item flex items-center gap-4">
+                    <span class="text-accent font-mono">04</span>
+                    <span>Hands-on — build a quick website from your idea</span>
+                </p>
+                <p class="reveal-item flex items-center gap-4">
+                    <span class="text-accent font-mono">05</span>
+                    <span>Breakouts — share and get feedback</span>
+                </p>
+                <p class="reveal-item flex items-center gap-4">
+                    <span class="text-accent font-mono">06</span>
+                    <span>Demo — Claude Code building something complex</span>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 4: What is an LLM -->
+    <section class="slide" data-slide="4">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// the_landscape</p>
+            <h2 class="text-5xl font-bold text-white mb-12">What is an LLM?</h2>
+
+            <div class="space-y-8 text-xl">
+                <p class="reveal-item text-gray-400">
+                    <strong class="text-white">Pattern matching on human knowledge at scale.</strong><br>
+                    Trained on billions of documents, conversations, code.
+                </p>
+                <p class="reveal-item text-gray-400">
+                    <strong class="text-white">Good at:</strong> language, reasoning, code generation, creative tasks
+                </p>
+                <p class="reveal-item text-gray-400">
+                    <strong class="text-white">The chat interface is just the beginning.</strong><br>
+                    It's the simplest way to interact, but not the most powerful.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 5: What is an Agent -->
+    <section class="slide" data-slide="5">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// the_landscape</p>
+            <h2 class="text-5xl font-bold text-white mb-12">What is an Agent?</h2>
+
+            <div class="bg-slate/50 rounded-xl p-8 mb-8">
+                <p class="text-3xl text-white font-mono text-center">
+                    LLM + Tools + Loop = Agent
+                </p>
+            </div>
+
+            <div class="space-y-6 text-xl">
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Tools:</strong> ability to take actions (read files, browse web, run code)</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Loop:</strong> can iterate until the task is done</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Autonomy:</strong> makes decisions, recovers from errors</span>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 6: The Arc -->
+    <section class="slide" data-slide="6">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// the_arc</p>
+            <h2 class="text-5xl font-bold text-white mb-10">Where we are in the story</h2>
+
+            <div class="space-y-3 text-lg">
+                <div class="reveal-item flex items-center gap-4">
+                    <div class="w-20 text-right font-mono text-gray-600">Nov 2022</div>
+                    <div class="w-3 h-3 rounded-full bg-gray-700"></div>
+                    <div>ChatGPT launches — AI goes mainstream</div>
+                </div>
+                <div class="reveal-item flex items-center gap-4">
+                    <div class="w-20 text-right font-mono text-gray-600">2023</div>
+                    <div class="w-3 h-3 rounded-full bg-gray-600"></div>
+                    <div>GPT-4, Claude 2 — capabilities leap forward</div>
+                </div>
+                <div class="reveal-item flex items-center gap-4">
+                    <div class="w-20 text-right font-mono text-gray-600">Early 2024</div>
+                    <div class="w-3 h-3 rounded-full bg-gray-500"></div>
+                    <div>Cursor, Copilot — AI in the IDE</div>
+                </div>
+                <div class="reveal-item flex items-center gap-4">
+                    <div class="w-20 text-right font-mono text-gray-500">Late 2024</div>
+                    <div class="w-3 h-3 rounded-full bg-accent/60"></div>
+                    <div>Claude Code, Computer Use — agents arrive</div>
+                </div>
+                <div class="reveal-item flex items-center gap-4">
+                    <div class="w-20 text-right font-mono text-gray-400">2025</div>
+                    <div class="w-3 h-3 rounded-full bg-accent"></div>
+                    <div>Agent SDKs, MCPs — build your own agents</div>
+                </div>
+                <div class="reveal-item flex items-center gap-4">
+                    <div class="w-20 text-right font-mono text-accent">Now</div>
+                    <div class="w-3 h-3 rounded-full bg-accent animate-pulse"></div>
+                    <div class="text-white">Explosion of agentic applications</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 7: What's Emerging -->
+    <section class="slide" data-slide="7">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// emerging</p>
+            <h2 class="text-5xl font-bold text-white mb-12">What's emerging</h2>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="reveal-item bg-slate/50 rounded-lg p-6">
+                    <h3 class="text-xl font-semibold text-white mb-2">Computer Use</h3>
+                    <p class="text-gray-400">AI controlling your screen directly</p>
+                </div>
+                <div class="reveal-item bg-slate/50 rounded-lg p-6">
+                    <h3 class="text-xl font-semibold text-white mb-2">Claude Cowork</h3>
+                    <p class="text-gray-400">AI as thinking/working partner</p>
+                </div>
+                <div class="reveal-item bg-slate/50 rounded-lg p-6">
+                    <h3 class="text-xl font-semibold text-white mb-2">Claude Code</h3>
+                    <p class="text-gray-400">Agentic coding in your terminal</p>
+                </div>
+                <div class="reveal-item bg-slate/50 rounded-lg p-6">
+                    <h3 class="text-xl font-semibold text-white mb-2">MCP Ecosystem</h3>
+                    <p class="text-gray-400">Tools that let AI talk to anything</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 8: Beyond Code -->
+    <section class="slide" data-slide="8">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <p class="font-mono text-accent text-sm mb-4">// bigger_picture</p>
+            <h2 class="text-5xl font-bold text-white mb-8">This isn't just about building apps</h2>
+
+            <div class="space-y-6 text-2xl text-gray-400 max-w-2xl mx-auto">
+                <p class="reveal-item">Thinking partners</p>
+                <p class="reveal-item">Life organization</p>
+                <p class="reveal-item">Creative collaborators</p>
+                <p class="reveal-item">Learning accelerators</p>
+            </div>
+
+            <p class="reveal-item text-xl text-accent mt-12">
+                These tools can help you build things<br>
+                AND help you think through things
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 9: Why Claude Code -->
+    <section class="slide" data-slide="9">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// our_tool</p>
+            <h2 class="text-5xl font-bold text-white mb-12">Why Claude Code?</h2>
+
+            <div class="space-y-8 text-xl">
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Accessible:</strong> works with Claude Pro ($20/mo)</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Powerful:</strong> full agentic capabilities</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Flexible:</strong> not just code — knowledge work, organization, creative projects</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Transparent:</strong> you see everything it's doing</span>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 10: The New Skill -->
+    <section class="slide" data-slide="10">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <p class="font-mono text-accent text-sm mb-4">// mindset_shift</p>
+
+            <h2 class="text-5xl md:text-6xl font-bold text-white mb-8 leading-tight">
+                The skill isn't coding.<br>
+                <span class="gradient-text">It's articulation.</span>
+            </h2>
+
+            <p class="text-2xl text-gray-400 mt-12">
+                You describe what you want.<br>
+                The AI builds it.
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 11: How Building Can Change -->
+    <section class="slide" data-slide="11">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// lived_examples</p>
+            <h2 class="text-5xl font-bold text-white mb-12">How building can change</h2>
+
+            <div class="space-y-8 text-xl">
+                <div class="reveal-item bg-slate/50 rounded-lg p-6">
+                    <p class="font-mono text-accent mb-2">Voice memo → AI → Spec</p>
+                    <p class="text-gray-400">Record a conversation, toss it into AI, ask it to spec out the project</p>
+                </div>
+                <div class="reveal-item bg-slate/50 rounded-lg p-6">
+                    <p class="font-mono text-accent mb-2">Quick prototype to think around</p>
+                    <p class="text-gray-400">Get something up fast so you have an artifact to react to</p>
+                </div>
+                <div class="reveal-item bg-slate/50 rounded-lg p-6">
+                    <p class="font-mono text-accent mb-2">Shape and refine</p>
+                    <p class="text-gray-400">Ask AI to give you ideas, help you see angles you hadn't considered</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 12: Context is Everything -->
+    <section class="slide" data-slide="12">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <p class="font-mono text-accent text-sm mb-4">// key_principle</p>
+
+            <h2 class="text-5xl md:text-6xl font-bold text-white mb-8">
+                Context is <span class="gradient-text">everything</span>
+            </h2>
+
+            <p class="text-2xl text-gray-400 mt-8 max-w-2xl mx-auto">
+                Bring more of your idea into the space<br>
+                so you have more to play with.
+            </p>
+
+            <p class="text-xl text-gray-500 mt-8">
+                Start by bringing it all out there.<br>
+                Then chisel it down to find the right shape.
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 13: Good Vibes -->
+    <section class="slide" data-slide="13">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <p class="font-mono text-accent text-sm mb-4">// balanced_technology</p>
+
+            <h2 class="text-5xl font-bold text-white mb-8">
+                Good vibes are crucial<br>for good building
+            </h2>
+
+            <div class="space-y-6 text-xl text-gray-400 max-w-2xl mx-auto mt-12">
+                <p class="reveal-item">Balanced relationship with technology</p>
+                <p class="reveal-item">Experimental mindset — learn by doing</p>
+                <p class="reveal-item">Try things out, iterate, play</p>
+                <p class="reveal-item">Leverage your tools, relationships, and self-knowledge</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 14: Three Modes Intro -->
+    <section class="slide" data-slide="14">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <p class="font-mono text-accent text-sm mb-4">// thinking_modes</p>
+
+            <h2 class="text-5xl font-bold text-white mb-12">
+                Three modes of thinking
+            </h2>
+
+            <div class="grid md:grid-cols-3 gap-8 text-xl">
+                <div class="reveal-item">
+                    <div class="text-4xl mb-4">🧘</div>
+                    <p class="text-white font-semibold">With Self</p>
+                </div>
+                <div class="reveal-item">
+                    <div class="text-4xl mb-4">🤖</div>
+                    <p class="text-white font-semibold">With AI</p>
+                </div>
+                <div class="reveal-item">
+                    <div class="text-4xl mb-4">👥</div>
+                    <p class="text-white font-semibold">With Others</p>
+                </div>
+            </div>
+
+            <p class="text-gray-400 mt-12 text-xl">
+                All three matter. Let's explore each.
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 15: Thinking with Self -->
+    <section class="slide" data-slide="15">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// thinking_with_self</p>
+            <h2 class="text-5xl font-bold text-white mb-12">Thinking with Self</h2>
+
+            <div class="space-y-6 text-xl">
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Self-knowledge:</strong> Know what you want to build. Know your limitations.</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Know what you don't know:</strong> Easier to bring into context, use tech or relationships to infill.</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Felt sense:</strong> Your intuition about direction matters. Being in touch with your body is a skill.</span>
+                </p>
+            </div>
+
+            <div class="reveal-item mt-10 p-6 bg-accent/10 border border-accent/30 rounded-lg">
+                <p class="text-accent">
+                    In the world of vibecoding, your felt sense of what direction to go<br>
+                    is actually a crucial component.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 16: Guided Moment -->
+    <section class="slide" data-slide="16">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <p class="font-mono text-accent text-sm mb-4">// pause</p>
+
+            <h2 class="text-5xl font-bold text-white mb-12">
+                Let's try this
+            </h2>
+
+            <div class="space-y-8 text-xl text-gray-400 max-w-2xl mx-auto">
+                <p class="reveal-item">Close your eyes if you're comfortable.</p>
+                <p class="reveal-item">Sense into your body. Your breath.</p>
+                <p class="reveal-item">Bring an idea you have to mind.</p>
+                <p class="reveal-item">Where do you feel it? Heart? Gut? Elsewhere?</p>
+                <p class="reveal-item">What would it feel like to have this exist in the world?</p>
+                <p class="reveal-item">Breathe into that.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 17: Thinking with AI -->
+    <section class="slide" data-slide="17">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// thinking_with_ai</p>
+            <h2 class="text-5xl font-bold text-white mb-12">Thinking with AI</h2>
+
+            <div class="space-y-6 text-xl">
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Not just building — inquiring.</strong> The thinking process is key.</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Share what you're thinking.</strong> Ask for other perspectives.</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Express uncertainty.</strong> "I want to think before building."</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Get interviewed.</strong> Ask AI to ask you questions to find the root of what you're building.</span>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 18: AI as Thinking Partner -->
+    <section class="slide" data-slide="18">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// ai_inquiry</p>
+            <h2 class="text-5xl font-bold text-white mb-12">Try saying things like...</h2>
+
+            <div class="space-y-6 text-xl">
+                <div class="reveal-item bg-slate/50 rounded-lg p-6">
+                    <p class="font-mono text-gray-300">"I have an idea but I'm not sure about the shape of it yet. Can you ask me questions to help me clarify?"</p>
+                </div>
+                <div class="reveal-item bg-slate/50 rounded-lg p-6">
+                    <p class="font-mono text-gray-300">"Before we build anything, I want to think through this with you. What are the key decisions I need to make?"</p>
+                </div>
+                <div class="reveal-item bg-slate/50 rounded-lg p-6">
+                    <p class="font-mono text-gray-300">"Interview me about this project. Help me discover what I actually want."</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 19: Thinking with Others -->
+    <section class="slide" data-slide="19">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// thinking_with_others</p>
+            <h2 class="text-5xl font-bold text-white mb-12">Thinking with Others</h2>
+
+            <div class="space-y-6 text-xl">
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">We think better together.</strong> Bring your idea into relationship.</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Others infill knowledge.</strong> They also provide feedback and perspective.</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">This cohort is the container.</strong> We're learning and growing these skills together.</span>
+                </p>
+            </div>
+
+            <div class="reveal-item mt-10 p-6 bg-accent/10 border border-accent/30 rounded-lg">
+                <p class="text-accent">
+                    I'm skilled at this but I don't know everything, nor do I have all the perspectives.<br>
+                    We lean on each other. We build relationships in the process.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 20: Hands-On Intro -->
+    <section class="slide" data-slide="20">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <p class="font-mono text-accent text-sm mb-4">// hands_on</p>
+
+            <h2 class="text-6xl font-bold text-white mb-8">
+                Let's build something
+            </h2>
+
+            <p class="text-2xl text-gray-400">
+                Take your idea.<br>
+                Paste it into Claude.<br>
+                Get a quick website.
+            </p>
+
+            <p class="text-xl text-gray-500 mt-8">
+                Now you have something to think with.
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 21: Breakout Time -->
+    <section class="slide" data-slide="21">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// breakouts</p>
+            <h2 class="text-5xl font-bold text-white mb-12">Breakout groups</h2>
+
+            <div class="bg-slate/50 rounded-xl p-8 mb-8">
+                <p class="text-2xl text-white mb-4">Groups of 2-3 people</p>
+                <p class="text-xl text-gray-400">~5 minutes each person</p>
+            </div>
+
+            <div class="space-y-4 text-xl">
+                <p class="reveal-item flex items-center gap-4">
+                    <span class="text-accent font-mono">01</span>
+                    <span>Share your screen — show your website</span>
+                </p>
+                <p class="reveal-item flex items-center gap-4">
+                    <span class="text-accent font-mono">02</span>
+                    <span>Articulate your idea — what is it, why does it matter</span>
+                </p>
+                <p class="reveal-item flex items-center gap-4">
+                    <span class="text-accent font-mono">03</span>
+                    <span>Get questions and feedback</span>
+                </p>
+            </div>
+
+            <p class="text-gray-400 mt-10 text-lg">
+                This is practice. Articulating your idea is the skill.
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 22: Demo Time -->
+    <section class="slide" data-slide="22">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <p class="font-mono text-accent text-sm mb-4">// live_demo</p>
+
+            <h2 class="text-6xl font-bold text-white mb-8">
+                Claude Code in action
+            </h2>
+
+            <p class="text-2xl text-gray-400">
+                Spec → Build → Test → Refine
+            </p>
+
+            <p class="text-xl text-gray-500 mt-8">
+                Watch the full arc of building something complex.
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 23: Experimental Mindset -->
+    <section class="slide" data-slide="23">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <p class="font-mono text-accent text-sm mb-4">// going_forward</p>
+
+            <h2 class="text-5xl font-bold text-white mb-8">
+                Experimental mindset
+            </h2>
+
+            <div class="space-y-6 text-2xl text-gray-400 max-w-2xl mx-auto">
+                <p class="reveal-item">Learn by doing</p>
+                <p class="reveal-item">Try things out</p>
+                <p class="reveal-item">Leverage your tooling</p>
+                <p class="reveal-item">Leverage your relationships</p>
+                <p class="reveal-item">Leverage your self-knowledge</p>
+            </div>
+
+            <p class="reveal-item text-xl text-accent mt-12">
+                Deepen your learning through all three.
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 24: Close -->
+    <section class="slide" data-slide="24">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <h2 class="text-6xl md:text-7xl font-bold text-white mb-8">
+                You have ideas.<br>
+                <span class="gradient-text">Let's make them real.</span>
+            </h2>
+
+            <p class="text-2xl text-gray-400 mt-12 mb-8">See you in the Discord. Office hours this week.</p>
+
+            <div class="text-lg text-gray-500">
+                <p>Week 2: Seeds & Prompts</p>
+                <p class="text-accent mt-2">Pick a project. Start building.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== END SLIDES ==================== -->
+
+    <script>
+        // Slide navigation
+        let currentSlide = 1;
+        const totalSlides = document.querySelectorAll('.slide').length;
+
+        document.getElementById('total-slides').textContent = totalSlides;
+
+        function showSlide(n) {
+            // Bounds check
+            if (n < 1) n = 1;
+            if (n > totalSlides) n = totalSlides;
+
+            currentSlide = n;
+
+            // Hide all slides
+            document.querySelectorAll('.slide').forEach(slide => {
+                slide.classList.remove('active');
+            });
+
+            // Show current slide
+            document.querySelector(`[data-slide="${n}"]`).classList.add('active');
+
+            // Update counter
+            document.getElementById('current-slide').textContent = n;
+
+            // Update progress bar
+            const progress = ((n - 1) / (totalSlides - 1)) * 100;
+            document.getElementById('progress').style.width = `${progress}%`;
+
+            // Update URL hash
+            history.replaceState(null, null, `#${n}`);
+        }
+
+        function nextSlide() {
+            showSlide(currentSlide + 1);
+        }
+
+        function prevSlide() {
+            showSlide(currentSlide - 1);
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') {
+                e.preventDefault();
+                nextSlide();
+            } else if (e.key === 'ArrowLeft' || e.key === 'Backspace') {
+                e.preventDefault();
+                prevSlide();
+            } else if (e.key === 'Home') {
+                e.preventDefault();
+                showSlide(1);
+            } else if (e.key === 'End') {
+                e.preventDefault();
+                showSlide(totalSlides);
+            }
+        });
+
+        // Click navigation
+        document.addEventListener('click', (e) => {
+            // Ignore clicks on links
+            if (e.target.tagName === 'A') return;
+
+            const x = e.clientX;
+            const width = window.innerWidth;
+
+            if (x < width / 3) {
+                prevSlide();
+            } else {
+                nextSlide();
+            }
+        });
+
+        // Touch navigation
+        let touchStartX = 0;
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+        });
+        document.addEventListener('touchend', (e) => {
+            const touchEndX = e.changedTouches[0].clientX;
+            const diff = touchStartX - touchEndX;
+
+            if (Math.abs(diff) > 50) {
+                if (diff > 0) {
+                    nextSlide();
+                } else {
+                    prevSlide();
+                }
+            }
+        });
+
+        // Load slide from URL hash
+        const hash = window.location.hash.slice(1);
+        if (hash && !isNaN(hash)) {
+            showSlide(parseInt(hash));
+        }
+    </script>
+
+</body>
+</html>
