@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Week 2: Seeds & Structure — Learn Vibe Build</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        midnight: '#0a0a0f',
+                        charcoal: '#12121a',
+                        slate: '#1a1a24',
+                        accent: '#6366f1',
+                        accentLight: '#818cf8',
+                        glow: '#4f46e5',
+                    },
+                    fontFamily: {
+                        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #0a0a0f;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Slide styles */
+        .slide {
+            min-height: 100vh;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .slide.active {
+            display: flex;
+        }
+
+        /* Progress bar */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #6366f1, #a855f7);
+            transition: width 0.3s ease;
+            z-index: 100;
+        }
+
+        /* Navigation hints */
+        .nav-hint {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: #4b5563;
+        }
+
+        /* Slide counter */
+        .slide-counter {
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            color: #6366f1;
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* List animations */
+        .slide.active .reveal-item {
+            opacity: 0;
+            transform: translateX(-20px);
+            animation: revealItem 0.4s ease-out forwards;
+        }
+        .slide.active .reveal-item:nth-child(1) { animation-delay: 0.1s; }
+        .slide.active .reveal-item:nth-child(2) { animation-delay: 0.2s; }
+        .slide.active .reveal-item:nth-child(3) { animation-delay: 0.3s; }
+        .slide.active .reveal-item:nth-child(4) { animation-delay: 0.4s; }
+        .slide.active .reveal-item:nth-child(5) { animation-delay: 0.5s; }
+        .slide.active .reveal-item:nth-child(6) { animation-delay: 0.6s; }
+        .slide.active .reveal-item:nth-child(7) { animation-delay: 0.7s; }
+        .slide.active .reveal-item:nth-child(8) { animation-delay: 0.8s; }
+
+        @keyframes revealItem {
+            to { opacity: 1; transform: translateX(0); }
+        }
+    </style>
+</head>
+<body class="font-sans text-gray-300 antialiased">
+
+    <!-- Progress Bar -->
+    <div class="progress-bar" id="progress"></div>
+
+    <!-- Slide Counter -->
+    <div class="slide-counter">
+        <span id="current-slide">1</span> / <span id="total-slides">18</span>
+    </div>
+
+    <!-- Navigation Hint -->
+    <div class="nav-hint">
+        ← → or click to navigate
+    </div>
+
+    <!-- ==================== SLIDES ==================== -->
+
+    <!-- Slide 1: Title -->
+    <section class="slide active" data-slide="1">
+        <div class="max-w-4xl mx-auto text-center fade-in">
+            <p class="font-mono text-accent text-sm mb-6">// week_02</p>
+            <h1 class="text-6xl md:text-8xl font-bold text-white mb-6">
+                Seeds<br>
+                <span class="gradient-text">& Structure</span>
+            </h1>
+            <p class="text-2xl text-gray-400 mt-8">Learn Vibe Build — Cohort 1</p>
+        </div>
+    </section>
+
+    <!-- Slide 2: Check-in -->
+    <section class="slide" data-slide="2">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// check_in</p>
+            <h2 class="text-5xl font-bold text-white mb-8">How was your week?</h2>
+
+            <div class="space-y-4 text-xl">
+                <p class="reveal-item flex items-center gap-4">
+                    <span class="text-accent">✋</span>
+                    <span>Who played with Claude Desktop?</span>
+                </p>
+                <p class="reveal-item flex items-center gap-4">
+                    <span class="text-accent">✋</span>
+                    <span>Who refined their landing page?</span>
+                </p>
+                <p class="reveal-item flex items-center gap-4">
+                    <span class="text-accent">✋</span>
+                    <span>Who got stuck on something?</span>
+                </p>
+                <p class="reveal-item flex items-center gap-4">
+                    <span class="text-accent">✋</span>
+                    <span>Who had a breakthrough?</span>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 3: Student Demos -->
+    <section class="slide" data-slide="3">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <p class="font-mono text-accent text-sm mb-4">// show_and_tell</p>
+
+            <h2 class="text-5xl font-bold text-white mb-8">
+                Who wants to <span class="gradient-text">show something?</span>
+            </h2>
+
+            <p class="text-xl text-gray-400 mb-10">
+                Share your landing page, an experiment, or something you tried.
+            </p>
+
+            <div class="text-lg text-gray-500">
+                <p>This is practice. We learn from each other.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 4: Today's Journey -->
+    <section class="slide" data-slide="4">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// today</p>
+            <h2 class="text-5xl font-bold text-white mb-10">What we're covering</h2>
+
+            <div class="space-y-5 text-lg">
+                <div class="reveal-item flex items-start gap-4">
+                    <span class="text-accent font-mono w-8">01</span>
+                    <div>
+                        <p class="text-white font-semibold">MCPs / Connectors</p>
+                        <p class="text-gray-400">How Claude reaches beyond the conversation</p>
+                    </div>
+                </div>
+                <div class="reveal-item flex items-start gap-4">
+                    <span class="text-accent font-mono w-8">02</span>
+                    <div>
+                        <p class="text-white font-semibold">Skills</p>
+                        <p class="text-gray-400">Pre-packaged capabilities in Claude</p>
+                    </div>
+                </div>
+                <div class="reveal-item flex items-start gap-4">
+                    <span class="text-accent font-mono w-8">03</span>
+                    <div>
+                        <p class="text-white font-semibold">Claude Cowork</p>
+                        <p class="text-gray-400">Creating real files — PowerPoints, documents, systems</p>
+                    </div>
+                </div>
+                <div class="reveal-item flex items-start gap-4">
+                    <span class="text-accent font-mono w-8">04</span>
+                    <div>
+                        <p class="text-white font-semibold">Claude Code</p>
+                        <p class="text-gray-400">Writing real software — live demo</p>
+                    </div>
+                </div>
+                <div class="reveal-item flex items-start gap-4">
+                    <span class="text-accent font-mono w-8">05</span>
+                    <div>
+                        <p class="text-white font-semibold">GitHub Basics</p>
+                        <p class="text-gray-400">Where code lives, public vs private</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 5: MCPs Intro -->
+    <section class="slide" data-slide="5">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// mcps</p>
+            <h2 class="text-5xl font-bold text-white mb-8">MCPs / Connectors</h2>
+
+            <p class="text-xl text-gray-400 mb-8">
+                <strong class="text-white">MCP</strong> = Model Context Protocol<br>
+                In Claude's UI: <strong class="text-white">Connectors</strong> or <strong class="text-white">Integrations</strong>
+            </p>
+
+            <div class="reveal-item p-6 bg-accent/10 border border-accent/30 rounded-lg">
+                <p class="text-accent text-lg">
+                    Ways for Claude to reach beyond the conversation and interact with your world.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 6: MCPs What They Do -->
+    <section class="slide" data-slide="6">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// mcps</p>
+            <h2 class="text-5xl font-bold text-white mb-10">What MCPs enable</h2>
+
+            <div class="space-y-6 text-xl">
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Search the web</strong> for current information</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Access your files</strong> — Google Drive, Notion, etc.</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Connect to services</strong> — databases, APIs</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Read/write files</strong> on your computer</span>
+                </p>
+            </div>
+
+            <p class="reveal-item text-gray-500 mt-10 text-lg">
+                Think of it as giving Claude "hands" to reach out and touch things.
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 7: MCP Demo -->
+    <section class="slide" data-slide="7">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <p class="font-mono text-accent text-sm mb-4">// demo</p>
+
+            <h2 class="text-6xl font-bold text-white mb-8">
+                Let me show you
+            </h2>
+
+            <p class="text-2xl text-gray-400">
+                Connectors in the Claude UI
+            </p>
+
+            <p class="text-xl text-gray-500 mt-8">
+                How to enable them. What they can do.
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 8: Skills -->
+    <section class="slide" data-slide="8">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// skills</p>
+            <h2 class="text-5xl font-bold text-white mb-8">Skills</h2>
+
+            <p class="text-xl text-gray-400 mb-8">
+                Pre-packaged capabilities. Specialized modes for specific tasks.
+            </p>
+
+            <div class="space-y-6 text-xl">
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span>Pre-built prompts and workflows</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span>Optimized behavior for specific tasks</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span>Quick access to specialized capabilities</span>
+                </p>
+            </div>
+
+            <p class="reveal-item text-gray-500 mt-10 text-lg">
+                Explore what's available in the Claude interface.
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 9: Cowork Intro -->
+    <section class="slide" data-slide="9">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <p class="font-mono text-accent text-sm mb-4">// cowork</p>
+
+            <h2 class="text-5xl font-bold text-white mb-8">
+                Claude <span class="gradient-text">Cowork</span>
+            </h2>
+
+            <p class="text-2xl text-gray-400 mb-10">
+                Not just conversation.<br>
+                Claude that creates <strong class="text-white">real files</strong>.
+            </p>
+
+            <div class="reveal-item p-6 bg-accent/10 border border-accent/30 rounded-lg max-w-xl mx-auto">
+                <p class="text-accent text-lg">
+                    "Cowork is basically like a chief of staff for $20 a month."
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 10: Cowork Capabilities -->
+    <section class="slide" data-slide="10">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// cowork</p>
+            <h2 class="text-5xl font-bold text-white mb-10">What Cowork can do</h2>
+
+            <div class="space-y-6 text-xl">
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Create documents</strong> — Word, PowerPoint, Excel</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Organize files</strong> — folder structures, move things around</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Read your data</strong> — analyze CSVs, review docs</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Build systems</strong> — templates, workflows, structures</span>
+                </p>
+            </div>
+
+            <div class="reveal-item mt-8 p-5 bg-green-500/10 border border-green-500/30 rounded-lg">
+                <p class="text-green-400">
+                    Works on Windows! Great option if Claude Code isn't available yet.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 11: Cowork Demo -->
+    <section class="slide" data-slide="11">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <p class="font-mono text-accent text-sm mb-4">// demo</p>
+
+            <h2 class="text-6xl font-bold text-white mb-8">
+                Demo: PowerPoint
+            </h2>
+
+            <p class="text-2xl text-gray-400">
+                Watch Claude create a complete presentation<br>
+                from a simple prompt.
+            </p>
+
+            <p class="text-xl text-gray-500 mt-8">
+                Real files. Real capability.
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 12: Claude Code Intro -->
+    <section class="slide" data-slide="12">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <p class="font-mono text-accent text-sm mb-4">// claude_code</p>
+
+            <h2 class="text-5xl font-bold text-white mb-8">
+                Claude <span class="gradient-text">Code</span>
+            </h2>
+
+            <p class="text-2xl text-gray-400 mb-10">
+                Claude in your terminal.<br>
+                Writing <strong class="text-white">real software</strong>.
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 13: Claude Code What -->
+    <section class="slide" data-slide="13">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// claude_code</p>
+            <h2 class="text-5xl font-bold text-white mb-10">What makes it different</h2>
+
+            <div class="space-y-6 text-xl">
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Writes real code</strong> — not explanations, working software</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Runs commands</strong> — install, test, deploy</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Sees your whole project</strong> — context across files</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Iterates</strong> — makes changes, tests, fixes</span>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 14: The Skill -->
+    <section class="slide" data-slide="14">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <p class="font-mono text-accent text-sm mb-4">// the_skill</p>
+
+            <h2 class="text-5xl font-bold text-white mb-8">
+                You don't need to be a programmer.
+            </h2>
+
+            <p class="text-2xl text-gray-400 mb-10">
+                You need to <strong class="text-white">articulate what you want</strong>.
+            </p>
+
+            <p class="reveal-item text-xl text-accent">
+                That's the skill we've been practicing.
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 15: Claude Code Demo -->
+    <section class="slide" data-slide="15">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <p class="font-mono text-accent text-sm mb-4">// live_demo</p>
+
+            <h2 class="text-6xl font-bold text-white mb-8">
+                Live: Building this course
+            </h2>
+
+            <p class="text-2xl text-gray-400">
+                Watch Claude Code build parts of<br>
+                this very website.
+            </p>
+
+            <div class="text-left max-w-xl mx-auto mt-10 space-y-3 text-lg text-gray-500">
+                <p class="reveal-item">• The terminal interface</p>
+                <p class="reveal-item">• Creating and editing files</p>
+                <p class="reveal-item">• How Claude understands context</p>
+                <p class="reveal-item">• Iterating together</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 16: GitHub -->
+    <section class="slide" data-slide="16">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// github</p>
+            <h2 class="text-5xl font-bold text-white mb-10">GitHub Basics</h2>
+
+            <p class="text-xl text-gray-400 mb-8">Where code lives on the internet.</p>
+
+            <div class="space-y-6 text-xl">
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Storage</strong> — like Google Drive for software</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Version control</strong> — tracks every change</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Collaboration</strong> — multiple people, same project</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Hosting</strong> — serve websites directly</span>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 17: Public vs Private -->
+    <section class="slide" data-slide="17">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// github</p>
+            <h2 class="text-5xl font-bold text-white mb-10">Public vs Private</h2>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="reveal-item">
+                    <h3 class="text-xl font-semibold text-white mb-4">Public</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li>• Anyone can see</li>
+                        <li>• Open source</li>
+                        <li>• Free website hosting</li>
+                        <li>• Collaboration</li>
+                    </ul>
+                </div>
+                <div class="reveal-item">
+                    <h3 class="text-xl font-semibold text-white mb-4">Private</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li>• Only you can see</li>
+                        <li>• Client work</li>
+                        <li>• Personal projects</li>
+                        <li>• Free (with limits)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="reveal-item mt-10 p-5 bg-red-500/10 border border-red-500/30 rounded-lg">
+                <p class="text-red-400 font-semibold mb-2">Never commit:</p>
+                <p class="text-gray-400">API keys, passwords, .env files, personal data</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 18: Homework -->
+    <section class="slide" data-slide="18">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// homework</p>
+            <h2 class="text-5xl font-bold text-white mb-10">Before next week</h2>
+
+            <div class="space-y-5 text-xl">
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span>Explore MCPs and Skills in Claude</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span>Play with Cowork — create a document</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span>Optional: Create a GitHub account</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span>Keep refining your project</span>
+                </p>
+            </div>
+
+            <div class="reveal-item mt-10 p-6 bg-accent/10 border border-accent/30 rounded-lg">
+                <p class="text-accent">
+                    <strong>Next week:</strong> Deep dive into Claude Code. Building, iterating, hosting.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== END SLIDES ==================== -->
+
+    <script>
+        // Slide navigation
+        let currentSlide = 1;
+        const totalSlides = document.querySelectorAll('.slide').length;
+
+        document.getElementById('total-slides').textContent = totalSlides;
+
+        function showSlide(n) {
+            // Bounds check
+            if (n < 1) n = 1;
+            if (n > totalSlides) n = totalSlides;
+
+            currentSlide = n;
+
+            // Hide all slides
+            document.querySelectorAll('.slide').forEach(slide => {
+                slide.classList.remove('active');
+            });
+
+            // Show current slide
+            document.querySelector(`[data-slide="${n}"]`).classList.add('active');
+
+            // Update counter
+            document.getElementById('current-slide').textContent = n;
+
+            // Update progress bar
+            const progress = ((n - 1) / (totalSlides - 1)) * 100;
+            document.getElementById('progress').style.width = `${progress}%`;
+
+            // Update URL hash
+            history.replaceState(null, null, `#${n}`);
+        }
+
+        function nextSlide() {
+            showSlide(currentSlide + 1);
+        }
+
+        function prevSlide() {
+            showSlide(currentSlide - 1);
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') {
+                e.preventDefault();
+                nextSlide();
+            } else if (e.key === 'ArrowLeft' || e.key === 'Backspace') {
+                e.preventDefault();
+                prevSlide();
+            } else if (e.key === 'Home') {
+                e.preventDefault();
+                showSlide(1);
+            } else if (e.key === 'End') {
+                e.preventDefault();
+                showSlide(totalSlides);
+            }
+        });
+
+        // Click navigation
+        document.addEventListener('click', (e) => {
+            // Ignore clicks on links
+            if (e.target.tagName === 'A') return;
+
+            const x = e.clientX;
+            const width = window.innerWidth;
+
+            if (x < width / 3) {
+                prevSlide();
+            } else {
+                nextSlide();
+            }
+        });
+
+        // Touch navigation
+        let touchStartX = 0;
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+        });
+        document.addEventListener('touchend', (e) => {
+            const touchEndX = e.changedTouches[0].clientX;
+            const diff = touchStartX - touchEndX;
+
+            if (Math.abs(diff) > 50) {
+                if (diff > 0) {
+                    nextSlide();
+                } else {
+                    prevSlide();
+                }
+            }
+        });
+
+        // Load slide from URL hash
+        const hash = window.location.hash.slice(1);
+        if (hash && !isNaN(hash)) {
+            showSlide(parseInt(hash));
+        }
+    </script>
+
+</body>
+</html>
