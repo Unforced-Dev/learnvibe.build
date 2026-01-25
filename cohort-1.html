@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cohort 1 — Learn Vibe Build</title>
+    <meta name="description" content="Learn Vibe Build Cohort 1 - January 2026. A 4-week journey from idea to reality using AI as your creative collaborator.">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        midnight: '#0a0a0f',
+                        charcoal: '#12121a',
+                        slate: '#1a1a24',
+                        accent: '#6366f1',
+                        accentLight: '#818cf8',
+                        glow: '#4f46e5',
+                    },
+                    fontFamily: {
+                        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #0a0a0f;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .card {
+            background: linear-gradient(180deg, rgba(26, 26, 36, 0.8) 0%, rgba(18, 18, 26, 0.9) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.1);
+        }
+        .card:hover {
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+        .week-card {
+            transition: all 0.2s ease;
+        }
+        .week-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(99, 102, 241, 0.15);
+        }
+    </style>
+</head>
+<body class="font-sans text-gray-300 antialiased">
+
+    <!-- Nav -->
+    <nav class="px-6 py-4 border-b border-slate">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <a href="/" class="font-mono text-sm text-accent hover:text-accentLight">// learnvibe.build</a>
+            <span class="text-xs bg-accent/20 text-accent px-2 py-1 rounded-full">Cohort 1</span>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <section class="px-6 py-16 border-b border-slate">
+        <div class="max-w-4xl mx-auto">
+            <p class="font-mono text-accent text-sm mb-4">// cohort_01</p>
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
+                Cohort 1: <span class="gradient-text">January 2026</span>
+            </h1>
+            <p class="text-xl text-gray-400 max-w-2xl">
+                13 creators learning to build with AI. Four weeks. Idea to reality.
+            </p>
+        </div>
+    </section>
+
+    <!-- The Journey -->
+    <section class="px-6 py-16 border-b border-slate">
+        <div class="max-w-4xl mx-auto">
+            <h2 class="font-mono text-accent text-sm mb-4">// the_journey</h2>
+            <h3 class="text-2xl font-bold text-white mb-8">Four Weeks</h3>
+
+            <div class="space-y-4">
+                <!-- Week 1 -->
+                <a href="cohort-1/week-1.html" class="week-card card rounded-lg p-6 flex gap-6 items-start block">
+                    <div class="shrink-0">
+                        <div class="font-mono text-accent text-xl font-bold">01</div>
+                        <div class="text-xs text-gray-500 mt-1">Jan 20</div>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="text-xl font-semibold text-white mb-2">Orientation & Play</h4>
+                        <p class="text-gray-400 mb-3">Get set up with Claude Desktop. Explore what's possible. Learn the three ways of thinking.</p>
+                        <div class="flex flex-wrap gap-2 text-xs">
+                            <span class="px-2 py-1 rounded bg-green-500/20 text-green-400">Completed</span>
+                            <span class="px-2 py-1 rounded bg-slate text-gray-400">Claude Desktop</span>
+                            <span class="px-2 py-1 rounded bg-slate text-gray-400">Landing Pages</span>
+                        </div>
+                    </div>
+                    <div class="text-accent shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </div>
+                </a>
+
+                <!-- Week 2 -->
+                <div class="week-card card rounded-lg p-6 flex gap-6 items-start opacity-75">
+                    <div class="shrink-0">
+                        <div class="font-mono text-gray-500 text-xl font-bold">02</div>
+                        <div class="text-xs text-gray-600 mt-1">Jan 27</div>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="text-xl font-semibold text-white mb-2">Seeds & Structure</h4>
+                        <p class="text-gray-400 mb-3">MCPs and connectors. Skills. Introduction to Claude Code. GitHub basics.</p>
+                        <div class="flex flex-wrap gap-2 text-xs">
+                            <span class="px-2 py-1 rounded bg-accent/20 text-accent">Upcoming</span>
+                            <span class="px-2 py-1 rounded bg-slate text-gray-400">MCPs</span>
+                            <span class="px-2 py-1 rounded bg-slate text-gray-400">Claude Code</span>
+                            <span class="px-2 py-1 rounded bg-slate text-gray-400">GitHub</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Week 3 -->
+                <div class="week-card card rounded-lg p-6 flex gap-6 items-start opacity-50">
+                    <div class="shrink-0">
+                        <div class="font-mono text-gray-500 text-xl font-bold">03</div>
+                        <div class="text-xs text-gray-600 mt-1">Feb 3</div>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="text-xl font-semibold text-white mb-2">Building & Iteration</h4>
+                        <p class="text-gray-400 mb-3">Go deeper with Claude Code. Full agentic building. Hosting and deployment.</p>
+                        <div class="flex flex-wrap gap-2 text-xs">
+                            <span class="px-2 py-1 rounded bg-slate text-gray-500">Week 3</span>
+                            <span class="px-2 py-1 rounded bg-slate text-gray-400">Claude Code</span>
+                            <span class="px-2 py-1 rounded bg-slate text-gray-400">Deployment</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Week 4 -->
+                <div class="week-card card rounded-lg p-6 flex gap-6 items-start opacity-50">
+                    <div class="shrink-0">
+                        <div class="font-mono text-gray-500 text-xl font-bold">04</div>
+                        <div class="text-xs text-gray-600 mt-1">Feb 10</div>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="text-xl font-semibold text-white mb-2">Ship & Celebrate</h4>
+                        <p class="text-gray-400 mb-3">Demo day. Share what you've made. Celebrate together.</p>
+                        <div class="flex flex-wrap gap-2 text-xs">
+                            <span class="px-2 py-1 rounded bg-slate text-gray-500">Week 4</span>
+                            <span class="px-2 py-1 rounded bg-slate text-gray-400">Demo Day</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Core Framework -->
+    <section class="px-6 py-16 border-b border-slate">
+        <div class="max-w-4xl mx-auto">
+            <h2 class="font-mono text-accent text-sm mb-4">// core_framework</h2>
+            <h3 class="text-2xl font-bold text-white mb-8">Three Ways of Thinking</h3>
+
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="card rounded-lg p-6 text-center">
+                    <div class="text-3xl mb-4">🧘</div>
+                    <h4 class="text-lg font-semibold text-white mb-2">With Self</h4>
+                    <p class="text-gray-400 text-sm">Know what you want. Know your limitations. Stay grounded.</p>
+                </div>
+                <div class="card rounded-lg p-6 text-center">
+                    <div class="text-3xl mb-4">👥</div>
+                    <h4 class="text-lg font-semibold text-white mb-2">With Others</h4>
+                    <p class="text-gray-400 text-sm">Practice articulation. Get feedback. Lean on the cohort.</p>
+                </div>
+                <div class="card rounded-lg p-6 text-center">
+                    <div class="text-3xl mb-4">🤖</div>
+                    <h4 class="text-lg font-semibold text-white mb-2">With Machines</h4>
+                    <p class="text-gray-400 text-sm">Prompt clearly. Provide context. Know the limits.</p>
+                </div>
+            </div>
+
+            <p class="text-center text-gray-500 mt-8">
+                These aren't separate skills — they feed each other.
+            </p>
+        </div>
+    </section>
+
+    <!-- Resources -->
+    <section class="px-6 py-16 border-b border-slate">
+        <div class="max-w-4xl mx-auto">
+            <h2 class="font-mono text-accent text-sm mb-4">// resources</h2>
+            <h3 class="text-2xl font-bold text-white mb-8">Quick Links</h3>
+
+            <div class="grid md:grid-cols-2 gap-4">
+                <a href="https://claude.ai" target="_blank" class="card rounded-lg p-5 flex items-center gap-4 hover:border-accent/30">
+                    <span class="text-2xl">🤖</span>
+                    <div>
+                        <div class="text-white font-medium">Claude</div>
+                        <div class="text-gray-500 text-sm">claude.ai</div>
+                    </div>
+                </a>
+                <a href="#" class="card rounded-lg p-5 flex items-center gap-4 hover:border-accent/30">
+                    <span class="text-2xl">💬</span>
+                    <div>
+                        <div class="text-white font-medium">Discord</div>
+                        <div class="text-gray-500 text-sm">Community chat</div>
+                    </div>
+                </a>
+                <a href="week-1.html" class="card rounded-lg p-5 flex items-center gap-4 hover:border-accent/30">
+                    <span class="text-2xl">📊</span>
+                    <div>
+                        <div class="text-white font-medium">Week 1 Slides</div>
+                        <div class="text-gray-500 text-sm">Presentation deck</div>
+                    </div>
+                </a>
+                <a href="#" class="card rounded-lg p-5 flex items-center gap-4 hover:border-accent/30">
+                    <span class="text-2xl">🎥</span>
+                    <div>
+                        <div class="text-white font-medium">Session Recordings</div>
+                        <div class="text-gray-500 text-sm">Video archive</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="px-6 py-12">
+        <div class="max-w-4xl mx-auto text-center">
+            <a href="/" class="text-gray-500 hover:text-gray-400 text-sm">← Back to Learn Vibe Build</a>
+        </div>
+    </footer>
+
+</body>
+</html>
