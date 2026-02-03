@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Week 3: Building & Iteration — Learn Vibe Build</title>
+    <meta name="description" content="Week 3 of Learn Vibe Build - Building & Iteration. Deep dive into Claude Code, Git/GitHub, and building something real from PRD to working software.">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        midnight: '#0a0a0f',
+                        charcoal: '#12121a',
+                        slate: '#1a1a24',
+                        accent: '#6366f1',
+                        accentLight: '#818cf8',
+                        glow: '#4f46e5',
+                    },
+                    fontFamily: {
+                        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #0a0a0f;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .card {
+            background: linear-gradient(180deg, rgba(26, 26, 36, 0.8) 0%, rgba(18, 18, 26, 0.9) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.1);
+        }
+        .quote-card {
+            background: linear-gradient(180deg, rgba(99, 102, 241, 0.1) 0%, rgba(99, 102, 241, 0.05) 100%);
+            border-left: 3px solid #6366f1;
+        }
+        .prompt-card {
+            background: #0d0d12;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+        .warning-card {
+            background: linear-gradient(180deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%);
+            border-left: 3px solid #f59e0b;
+        }
+        .frontier-card {
+            background: linear-gradient(180deg, rgba(168, 85, 247, 0.1) 0%, rgba(168, 85, 247, 0.05) 100%);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+        .toc-link {
+            transition: all 0.15s ease;
+        }
+        .toc-link:hover {
+            color: #818cf8;
+            padding-left: 0.5rem;
+        }
+    </style>
+</head>
+<body class="font-sans text-gray-300 antialiased">
+
+    <!-- Nav -->
+    <nav class="px-6 py-4 border-b border-slate sticky top-0 bg-midnight/95 backdrop-blur z-50">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <a href="../cohort-1.html" class="text-gray-500 hover:text-gray-300 text-sm">← Cohort 1</a>
+                <span class="text-gray-600">/</span>
+                <span class="font-mono text-sm text-accent">Week 3</span>
+            </div>
+            <a href="week-3-slides.html" class="text-xs bg-accent/20 text-accent px-3 py-1 rounded-full hover:bg-accent/30">View Slides</a>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <section class="px-6 py-12 border-b border-slate">
+        <div class="max-w-4xl mx-auto">
+            <p class="font-mono text-accent text-sm mb-3">// week_03 — February 3, 2026</p>
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
+                Building <span class="gradient-text">& Iteration</span>
+            </h1>
+            <p class="text-xl text-gray-400 max-w-2xl mb-6">
+                Deep dive into Claude Code. Git and GitHub. From idea to PRD to working software. The paradox of fast tools requiring slow thinking.
+            </p>
+            <div class="flex flex-wrap gap-3 text-sm">
+                <span class="px-3 py-1 rounded-full bg-slate text-gray-300">Claude Code</span>
+                <span class="px-3 py-1 rounded-full bg-slate text-gray-300">Git/GitHub</span>
+                <span class="px-3 py-1 rounded-full bg-slate text-gray-300">PRDs</span>
+                <span class="px-3 py-1 rounded-full bg-slate text-gray-300">Building Real Things</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Links -->
+    <section class="px-6 py-8 border-b border-slate bg-charcoal/30">
+        <div class="max-w-4xl mx-auto">
+            <div class="flex flex-wrap gap-4 justify-center">
+                <a href="week-3-slides.html" class="card rounded-lg px-5 py-3 flex items-center gap-3 hover:border-accent/30">
+                    <span>📊</span>
+                    <span class="text-white">Slides</span>
+                </a>
+                <a href="#" class="card rounded-lg px-5 py-3 flex items-center gap-3 hover:border-accent/30">
+                    <span>🎥</span>
+                    <span class="text-white">Recording</span>
+                </a>
+                <a href="#live-demos" class="card rounded-lg px-5 py-3 flex items-center gap-3 hover:border-accent/30">
+                    <span>🛠️</span>
+                    <span class="text-white">Live Demos</span>
+                </a>
+                <a href="#homework" class="card rounded-lg px-5 py-3 flex items-center gap-3 hover:border-accent/30">
+                    <span>📝</span>
+                    <span class="text-white">Homework</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <div class="max-w-4xl mx-auto px-6 py-12">
+
+        <!-- Table of Contents -->
+        <div class="card rounded-lg p-6 mb-12">
+            <h3 class="font-mono text-accent text-sm mb-4">// contents</h3>
+            <div class="grid md:grid-cols-2 gap-2 text-sm">
+                <a href="#overview" class="toc-link text-gray-400 hover:text-accentLight py-1">1. Session Overview</a>
+                <a href="#frontier" class="toc-link text-gray-400 hover:text-accentLight py-1">2. The Frontier: OpenClaw</a>
+                <a href="#slowing-down" class="toc-link text-gray-400 hover:text-accentLight py-1">3. The Paradox of Slowing Down</a>
+                <a href="#git-github" class="toc-link text-gray-400 hover:text-accentLight py-1">4. Git and GitHub</a>
+                <a href="#claude-code" class="toc-link text-gray-400 hover:text-accentLight py-1">5. Claude Code Deep Dive</a>
+                <a href="#building-real" class="toc-link text-gray-400 hover:text-accentLight py-1">6. Building Something Real</a>
+                <a href="#care-permissions" class="toc-link text-gray-400 hover:text-accentLight py-1">7. Care and Permissions</a>
+                <a href="#live-demos" class="toc-link text-gray-400 hover:text-accentLight py-1">8. Live Demos</a>
+                <a href="#homework" class="toc-link text-gray-400 hover:text-accentLight py-1">9. Homework</a>
+                <a href="#resources" class="toc-link text-gray-400 hover:text-accentLight py-1">10. Resources</a>
+            </div>
+        </div>
+
+        <!-- Overview -->
+        <section id="overview" class="mb-16">
+            <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                <span class="font-mono text-accent text-lg">01</span>
+                Session Overview
+            </h2>
+
+            <p class="text-gray-300 text-lg mb-6">
+                This is where we go deeper. We've learned to converse with Claude and organize our thinking with Projects. Now we bring in the power tools — Claude Code, Git, and the full workflow from idea to working software.
+            </p>
+
+            <div class="quote-card rounded-lg p-6 mb-6">
+                <p class="text-lg text-white italic">
+                    "The tools are getting faster. That means we need to think slower."
+                </p>
+            </div>
+
+            <h3 class="text-lg font-semibold text-white mb-4">What we're covering</h3>
+            <div class="space-y-3">
+                <div class="flex items-start gap-4">
+                    <span class="font-mono text-accent w-8 shrink-0">01</span>
+                    <div>
+                        <span class="text-white font-medium">The Frontier</span>
+                        <span class="text-gray-400"> — OpenClaw and autonomous AI agents</span>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4">
+                    <span class="font-mono text-accent w-8 shrink-0">02</span>
+                    <div>
+                        <span class="text-white font-medium">Slowing Down</span>
+                        <span class="text-gray-400"> — The paradox of fast tools</span>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4">
+                    <span class="font-mono text-accent w-8 shrink-0">03</span>
+                    <div>
+                        <span class="text-white font-medium">Git & GitHub</span>
+                        <span class="text-gray-400"> — Version control, where code lives</span>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4">
+                    <span class="font-mono text-accent w-8 shrink-0">04</span>
+                    <div>
+                        <span class="text-white font-medium">Claude Code</span>
+                        <span class="text-gray-400"> — Full agentic building in the terminal</span>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4">
+                    <span class="font-mono text-accent w-8 shrink-0">05</span>
+                    <div>
+                        <span class="text-white font-medium">Building Real Things</span>
+                        <span class="text-gray-400"> — PRD → Spec → Research → Build</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- The Frontier -->
+        <section id="frontier" class="mb-16">
+            <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                <span class="font-mono text-accent text-lg">02</span>
+                The Frontier: OpenClaw
+            </h2>
+
+            <div class="frontier-card rounded-lg p-6 mb-6">
+                <h3 class="text-xl font-semibold text-white mb-3">What's happening right now</h3>
+                <p class="text-gray-300 mb-4">
+                    An open-source autonomous AI agent called <strong class="text-white">OpenClaw</strong> (originally Clawdbot, then Moltbot) has gone viral. It's built on MCP — the same protocol we learned about last week — and has over <strong class="text-purple-400">150,000+ GitHub stars</strong>.
+                </p>
+                <p class="text-gray-400">
+                    This is an AI that can run tasks, use tools, and act autonomously. It's a glimpse of where things are heading — and a reminder of why we need to understand what we're building with.
+                </p>
+            </div>
+
+            <div class="space-y-4">
+                <div class="card rounded-lg p-5">
+                    <h4 class="text-white font-semibold mb-2">Why this matters</h4>
+                    <p class="text-gray-400">OpenClaw shows how quickly the frontier is moving. The tools we're learning aren't just for making websites — they're the foundation for autonomous systems that can take real action in the world.</p>
+                </div>
+
+                <div class="card rounded-lg p-5">
+                    <h4 class="text-white font-semibold mb-2">The MCP connection</h4>
+                    <p class="text-gray-400">Remember MCPs from Week 2? OpenClaw is built on that same protocol. The "connectors" that let Claude access your files and services are the same infrastructure powering autonomous agents.</p>
+                </div>
+
+                <div class="card rounded-lg p-5">
+                    <h4 class="text-white font-semibold mb-2">What to pay attention to</h4>
+                    <p class="text-gray-400">This is moving fast. Things that seem experimental today become standard tomorrow. Stay curious, but also stay grounded. Understanding the foundations matters more than chasing every new tool.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slowing Down -->
+        <section id="slowing-down" class="mb-16">
+            <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                <span class="font-mono text-accent text-lg">03</span>
+                The Paradox of Slowing Down
+            </h2>
+
+            <div class="quote-card rounded-lg p-6 mb-6">
+                <p class="text-xl text-white italic mb-4">
+                    "The faster the tools get, the slower we need to think."
+                </p>
+                <p class="text-gray-500 text-sm">This might be the most important lesson of this week.</p>
+            </div>
+
+            <p class="text-gray-300 mb-6">
+                Claude Code can generate hundreds of lines of code in seconds. It can refactor entire projects. It can spin up databases and deploy applications. This power is intoxicating — and dangerous if you're not careful.
+            </p>
+
+            <div class="space-y-4 mb-8">
+                <div class="card rounded-lg p-5">
+                    <h4 class="text-white font-semibold mb-2">Speed creates urgency</h4>
+                    <p class="text-gray-400">When you can build fast, there's pressure to build more. To add features. To "just try one more thing." Before you know it, you've created complexity you don't understand.</p>
+                </div>
+
+                <div class="card rounded-lg p-5">
+                    <h4 class="text-white font-semibold mb-2">Complexity compounds</h4>
+                    <p class="text-gray-400">Each feature you add creates surface area for bugs. Each integration creates dependencies. The AI doesn't feel this complexity — but you will when things break.</p>
+                </div>
+
+                <div class="card rounded-lg p-5">
+                    <h4 class="text-white font-semibold mb-2">Understanding matters</h4>
+                    <p class="text-gray-400">You don't need to understand every line of code. But you need to understand what your system does, what it touches, and what could go wrong. If you can't explain it, slow down.</p>
+                </div>
+            </div>
+
+            <h3 class="text-lg font-semibold text-white mb-4">Practices for staying grounded</h3>
+            <div class="space-y-3">
+                <div class="flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span class="text-gray-300"><strong class="text-white">Take breaks.</strong> Step away regularly. Come back with fresh eyes.</span>
+                </div>
+                <div class="flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span class="text-gray-300"><strong class="text-white">Write first, build second.</strong> Articulate what you want before asking Claude to build it.</span>
+                </div>
+                <div class="flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span class="text-gray-300"><strong class="text-white">Review what was built.</strong> Ask Claude to explain what it created. Walk through it together.</span>
+                </div>
+                <div class="flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span class="text-gray-300"><strong class="text-white">Trust your felt sense.</strong> If something feels off, pause. Your intuition matters.</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Git and GitHub -->
+        <section id="git-github" class="mb-16">
+            <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                <span class="font-mono text-accent text-lg">04</span>
+                Git and GitHub
+            </h2>
+
+            <p class="text-gray-300 mb-6">
+                Before we dive into Claude Code, we need to understand Git and GitHub. These are fundamental to how software is built — and how Claude Code works under the hood.
+            </p>
+
+            <h3 class="text-lg font-semibold text-white mb-4">What is Git?</h3>
+            <div class="card rounded-lg p-5 mb-6">
+                <p class="text-gray-300 mb-4">
+                    <strong class="text-white">Git</strong> is version control. It tracks every change to your code, so you can:
+                </p>
+                <ul class="space-y-2 text-gray-400">
+                    <li>• <strong class="text-white">Go back in time</strong> — undo mistakes, restore previous versions</li>
+                    <li>• <strong class="text-white">Branch</strong> — try experiments without breaking the main code</li>
+                    <li>• <strong class="text-white">Merge</strong> — bring changes together safely</li>
+                    <li>• <strong class="text-white">Collaborate</strong> — multiple people working on the same project</li>
+                </ul>
+            </div>
+
+            <h3 class="text-lg font-semibold text-white mb-4">What is GitHub?</h3>
+            <div class="card rounded-lg p-5 mb-6">
+                <p class="text-gray-300 mb-4">
+                    <strong class="text-white">GitHub</strong> is where Git repositories live online. Think of it as:
+                </p>
+                <ul class="space-y-2 text-gray-400">
+                    <li>• <strong class="text-white">Cloud storage for code</strong> — backup and sync your projects</li>
+                    <li>• <strong class="text-white">Collaboration hub</strong> — share code, get contributions</li>
+                    <li>• <strong class="text-white">Free hosting</strong> — GitHub Pages can serve your websites</li>
+                    <li>• <strong class="text-white">The world's code library</strong> — millions of open source projects</li>
+                </ul>
+            </div>
+
+            <h3 class="text-lg font-semibold text-white mb-4">Key Concepts</h3>
+            <div class="space-y-4 mb-8">
+                <div class="card rounded-lg p-5">
+                    <h4 class="text-white font-semibold mb-2">Repository (Repo)</h4>
+                    <p class="text-gray-400">A folder that Git tracks. Contains your code plus the history of every change.</p>
+                </div>
+
+                <div class="card rounded-lg p-5">
+                    <h4 class="text-white font-semibold mb-2">Commit</h4>
+                    <p class="text-gray-400">A snapshot of your code at a moment in time. Like a save point in a video game. Each commit has a message describing what changed.</p>
+                </div>
+
+                <div class="card rounded-lg p-5">
+                    <h4 class="text-white font-semibold mb-2">Branch</h4>
+                    <p class="text-gray-400">A parallel version of your code. The main branch is usually called "main." You can create branches to try things, then merge them back.</p>
+                </div>
+
+                <div class="card rounded-lg p-5">
+                    <h4 class="text-white font-semibold mb-2">Worktree</h4>
+                    <p class="text-gray-400">A way to have multiple branches checked out at once in different folders. <strong class="text-accent">Claude Code uses worktrees by default</strong> when integrated with Claude Desktop — this lets you work on code while keeping the original safe.</p>
+                </div>
+            </div>
+
+            <div class="warning-card rounded-lg p-6">
+                <h4 class="text-amber-400 font-semibold mb-2">Important: What NOT to commit</h4>
+                <ul class="space-y-2 text-gray-300">
+                    <li>• <strong class="text-amber-400">API keys and secrets</strong> — never put these in code</li>
+                    <li>• <strong class="text-amber-400">.env files</strong> — contain environment variables and secrets</li>
+                    <li>• <strong class="text-amber-400">Personal data</strong> — don't commit user info or private data</li>
+                    <li>• <strong class="text-amber-400">Large files</strong> — images, videos, databases</li>
+                </ul>
+                <p class="text-gray-400 mt-4 text-sm">Use a <code class="bg-slate px-1 rounded">.gitignore</code> file to tell Git what to exclude.</p>
+            </div>
+        </section>
+
+        <!-- Claude Code -->
+        <section id="claude-code" class="mb-16">
+            <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                <span class="font-mono text-accent text-lg">05</span>
+                Claude Code Deep Dive
+            </h2>
+
+            <p class="text-gray-300 text-lg mb-6">
+                Claude Code is Claude in your terminal — a full agentic coding assistant that can read, write, and execute code on your machine.
+            </p>
+
+            <h3 class="text-lg font-semibold text-white mb-4">What makes it different</h3>
+            <div class="space-y-4 mb-8">
+                <div class="card rounded-lg p-5">
+                    <h4 class="text-white font-semibold mb-2">Full file system access</h4>
+                    <p class="text-gray-400">Claude Code can read and write files anywhere you give it permission. It sees your whole project, not just what you paste in.</p>
+                </div>
+
+                <div class="card rounded-lg p-5">
+                    <h4 class="text-white font-semibold mb-2">Runs commands</h4>
+                    <p class="text-gray-400">It can run shell commands — install packages, run tests, start servers, deploy to production. Real power, real responsibility.</p>
+                </div>
+
+                <div class="card rounded-lg p-5">
+                    <h4 class="text-white font-semibold mb-2">Understands context</h4>
+                    <p class="text-gray-400">Claude Code reads your codebase to understand how things fit together. It can navigate between files, understand dependencies, and make coherent changes across your project.</p>
+                </div>
+
+                <div class="card rounded-lg p-5">
+                    <h4 class="text-white font-semibold mb-2">Two ways to access</h4>
+                    <p class="text-gray-400">
+                        <strong class="text-white">Terminal:</strong> Run <code class="bg-slate px-2 py-1 rounded">claude</code> in any folder. Full control, cross-platform.<br>
+                        <strong class="text-white">Claude Desktop:</strong> Integrated as a feature. Uses Git worktrees for safety.
+                    </p>
+                </div>
+            </div>
+
+            <h3 class="text-lg font-semibold text-white mb-4">Getting started</h3>
+            <div class="prompt-card rounded-lg p-5 mb-6">
+                <p class="font-mono text-sm text-gray-300 mb-4">
+                    # Install Claude Code (requires Node.js)<br>
+                    npm install -g @anthropic-ai/claude-code<br><br>
+                    # Navigate to your project<br>
+                    cd my-project<br><br>
+                    # Start Claude Code<br>
+                    claude
+                </p>
+                <p class="text-gray-500 text-sm">Claude will read your project and be ready to help.</p>
+            </div>
+
+            <h3 class="text-lg font-semibold text-white mb-4">Useful commands</h3>
+            <div class="space-y-3 mb-8">
+                <div class="flex items-start gap-4">
+                    <code class="bg-slate px-2 py-1 rounded text-accent font-mono text-sm shrink-0">/help</code>
+                    <span class="text-gray-400">See all available commands</span>
+                </div>
+                <div class="flex items-start gap-4">
+                    <code class="bg-slate px-2 py-1 rounded text-accent font-mono text-sm shrink-0">/clear</code>
+                    <span class="text-gray-400">Clear conversation history</span>
+                </div>
+                <div class="flex items-start gap-4">
+                    <code class="bg-slate px-2 py-1 rounded text-accent font-mono text-sm shrink-0">/compact</code>
+                    <span class="text-gray-400">Summarize conversation to save context</span>
+                </div>
+                <div class="flex items-start gap-4">
+                    <code class="bg-slate px-2 py-1 rounded text-accent font-mono text-sm shrink-0">/cost</code>
+                    <span class="text-gray-400">See how much this session has cost</span>
+                </div>
+            </div>
+
+            <div class="quote-card rounded-lg p-6">
+                <p class="text-accent font-semibold mb-2">The skill is the same</p>
+                <p class="text-white">Claude Code is more powerful, but the core skill is identical: articulate what you want clearly. Know what you're building. Stay grounded.</p>
+            </div>
+        </section>
+
+        <!-- Building Something Real -->
+        <section id="building-real" class="mb-16">
+            <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                <span class="font-mono text-accent text-lg">06</span>
+                Building Something Real
+            </h2>
+
+            <p class="text-gray-300 text-lg mb-6">
+                The path from idea to working software. This is where everything comes together.
+            </p>
+
+            <h3 class="text-lg font-semibold text-white mb-4">The workflow</h3>
+            <div class="space-y-4 mb-8">
+                <div class="card rounded-lg p-5 border-l-4 border-l-accent">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="font-mono text-accent font-bold">01</span>
+                        <h4 class="text-white font-semibold">Idea</h4>
+                    </div>
+                    <p class="text-gray-400">Start with your felt sense. What are you trying to create? Who is it for? What problem does it solve? This is thinking with self.</p>
+                </div>
+
+                <div class="card rounded-lg p-5 border-l-4 border-l-accent">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="font-mono text-accent font-bold">02</span>
+                        <h4 class="text-white font-semibold">PRD (Product Requirements Document)</h4>
+                    </div>
+                    <p class="text-gray-400 mb-3">Write down what you're building. Not how — what. Features, user flows, success criteria. Claude can help you create this.</p>
+                    <div class="prompt-card rounded-lg p-4">
+                        <p class="font-mono text-sm text-gray-300">"Help me write a PRD for [your idea]. I want to build [description]. The user should be able to [key features]."</p>
+                    </div>
+                </div>
+
+                <div class="card rounded-lg p-5 border-l-4 border-l-accent">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="font-mono text-accent font-bold">03</span>
+                        <h4 class="text-white font-semibold">Technical Spec</h4>
+                    </div>
+                    <p class="text-gray-400 mb-3">Now we figure out how. What technologies? What architecture? What files and components? Claude can help translate the PRD into a spec.</p>
+                    <div class="prompt-card rounded-lg p-4">
+                        <p class="font-mono text-sm text-gray-300">"Based on this PRD, what's the simplest way to build this? I'm new to coding — keep it simple."</p>
+                    </div>
+                </div>
+
+                <div class="card rounded-lg p-5 border-l-4 border-l-accent">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="font-mono text-accent font-bold">04</span>
+                        <h4 class="text-white font-semibold">Research</h4>
+                    </div>
+                    <p class="text-gray-400">Before building, understand what exists. What libraries? What patterns? What can we learn from similar projects? Claude can search and summarize.</p>
+                </div>
+
+                <div class="card rounded-lg p-5 border-l-4 border-l-accent">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="font-mono text-accent font-bold">05</span>
+                        <h4 class="text-white font-semibold">Build</h4>
+                    </div>
+                    <p class="text-gray-400 mb-3">Now we build. Start small. Get something working. Then iterate. Don't try to build everything at once.</p>
+                    <div class="prompt-card rounded-lg p-4">
+                        <p class="font-mono text-sm text-gray-300">"Let's start with the simplest version. Just [core feature]. We can add more later."</p>
+                    </div>
+                </div>
+
+                <div class="card rounded-lg p-5 border-l-4 border-l-accent">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="font-mono text-accent font-bold">06</span>
+                        <h4 class="text-white font-semibold">Test & Iterate</h4>
+                    </div>
+                    <p class="text-gray-400">Does it work? Does it feel right? Get feedback. Make changes. This is where thinking with others comes in — show people, learn, improve.</p>
+                </div>
+            </div>
+
+            <div class="quote-card rounded-lg p-6">
+                <p class="text-accent font-semibold mb-2">Start smaller than you think</p>
+                <p class="text-white">The most common mistake is trying to build too much. Start with the tiniest possible version that does something useful. You can always add more.</p>
+            </div>
+        </section>
+
+        <!-- Care and Permissions -->
+        <section id="care-permissions" class="mb-16">
+            <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                <span class="font-mono text-accent text-lg">07</span>
+                Care and Permissions
+            </h2>
+
+            <p class="text-gray-300 text-lg mb-6">
+                Claude Code has real power. It can modify files, run commands, and make changes to your system. With great power comes the need for care.
+            </p>
+
+            <div class="warning-card rounded-lg p-6 mb-6">
+                <h4 class="text-amber-400 font-semibold mb-3">Permission prompts matter</h4>
+                <p class="text-gray-300 mb-4">
+                    Claude Code asks for permission before taking actions. <strong class="text-white">Read these prompts carefully.</strong> Understand what you're approving before you say yes.
+                </p>
+                <ul class="space-y-2 text-gray-400">
+                    <li>• <strong class="text-white">File writes</strong> — what file is being modified?</li>
+                    <li>• <strong class="text-white">Command execution</strong> — what will this command do?</li>
+                    <li>• <strong class="text-white">Network access</strong> — is it reaching out to the internet?</li>
+                </ul>
+            </div>
+
+            <h3 class="text-lg font-semibold text-white mb-4">Best practices</h3>
+            <div class="space-y-4">
+                <div class="card rounded-lg p-5">
+                    <h4 class="text-white font-semibold mb-2">Use Git</h4>
+                    <p class="text-gray-400">Commit your work before making big changes. If something goes wrong, you can always go back. Git is your safety net.</p>
+                </div>
+
+                <div class="card rounded-lg p-5">
+                    <h4 class="text-white font-semibold mb-2">Review changes</h4>
+                    <p class="text-gray-400">After Claude makes changes, look at what it did. Ask it to explain. Use <code class="bg-slate px-1 rounded">git diff</code> to see exactly what changed.</p>
+                </div>
+
+                <div class="card rounded-lg p-5">
+                    <h4 class="text-white font-semibold mb-2">Work in a sandbox first</h4>
+                    <p class="text-gray-400">When trying something risky, do it in a separate folder or branch. Don't experiment on code you can't afford to break.</p>
+                </div>
+
+                <div class="card rounded-lg p-5">
+                    <h4 class="text-white font-semibold mb-2">Keep secrets out</h4>
+                    <p class="text-gray-400">API keys, passwords, personal data — keep these in environment variables or separate files that aren't tracked by Git.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Live Demos -->
+        <section id="live-demos" class="mb-16">
+            <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                <span class="font-mono text-accent text-lg">08</span>
+                Live Demos
+            </h2>
+
+            <p class="text-gray-300 text-lg mb-6">
+                We'll walk through the full workflow together — from idea to working code.
+            </p>
+
+            <div class="space-y-4">
+                <div class="card rounded-lg p-5">
+                    <h4 class="text-white font-semibold mb-2">Demo 1: Setting up a project</h4>
+                    <p class="text-gray-400">Creating a new folder, initializing Git, and starting Claude Code.</p>
+                </div>
+
+                <div class="card rounded-lg p-5">
+                    <h4 class="text-white font-semibold mb-2">Demo 2: PRD to working code</h4>
+                    <p class="text-gray-400">Taking an idea, writing a PRD, and having Claude Code build the first version.</p>
+                </div>
+
+                <div class="card rounded-lg p-5">
+                    <h4 class="text-white font-semibold mb-2">Demo 3: Iteration</h4>
+                    <p class="text-gray-400">Making changes, adding features, handling errors — the real workflow.</p>
+                </div>
+
+                <div class="card rounded-lg p-5">
+                    <h4 class="text-white font-semibold mb-2">Demo 4: Pushing to GitHub</h4>
+                    <p class="text-gray-400">Committing changes, pushing to a repository, and optionally deploying.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Homework -->
+        <section id="homework" class="mb-16">
+            <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                <span class="font-mono text-accent text-lg">09</span>
+                Homework
+            </h2>
+
+            <div class="card rounded-lg p-6 mb-6">
+                <p class="text-accent font-mono text-sm mb-4">// before_week_4</p>
+                <ol class="space-y-4">
+                    <li class="flex items-start gap-3">
+                        <span class="bg-accent/20 text-accent rounded-full w-6 h-6 flex items-center justify-center shrink-0 text-sm">1</span>
+                        <div>
+                            <p class="text-white font-medium">Install Claude Code</p>
+                            <p class="text-gray-400 text-sm">Follow the instructions above. Get it running on your machine.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="bg-accent/20 text-accent rounded-full w-6 h-6 flex items-center justify-center shrink-0 text-sm">2</span>
+                        <div>
+                            <p class="text-white font-medium">Create a GitHub repository</p>
+                            <p class="text-gray-400 text-sm">For your project. Public or private — your choice.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="bg-accent/20 text-accent rounded-full w-6 h-6 flex items-center justify-center shrink-0 text-sm">3</span>
+                        <div>
+                            <p class="text-white font-medium">Write a PRD for your project</p>
+                            <p class="text-gray-400 text-sm">Use Claude to help. What are you building? What does it do?</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="bg-accent/20 text-accent rounded-full w-6 h-6 flex items-center justify-center shrink-0 text-sm">4</span>
+                        <div>
+                            <p class="text-white font-medium">Build the first version</p>
+                            <p class="text-gray-400 text-sm">Use Claude Code. Start small. Get something working.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="bg-accent/20 text-accent rounded-full w-6 h-6 flex items-center justify-center shrink-0 text-sm">5</span>
+                        <div>
+                            <p class="text-white font-medium">Push to GitHub</p>
+                            <p class="text-gray-400 text-sm">Commit your work. Push it up. Share the link in Discord if you want.</p>
+                        </div>
+                    </li>
+                </ol>
+            </div>
+
+            <div class="quote-card rounded-lg p-6">
+                <p class="text-accent font-semibold mb-2">Next week is Demo Day</p>
+                <p class="text-white">Week 4 is when we share what we've built. You don't need a finished product — you need something to show. A working demo, a prototype, a proof of concept. Something that exists.</p>
+            </div>
+        </section>
+
+        <!-- Resources -->
+        <section id="resources" class="mb-16">
+            <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                <span class="font-mono text-accent text-lg">10</span>
+                Resources
+            </h2>
+
+            <h3 class="text-lg font-semibold text-white mb-4">Tools</h3>
+            <div class="grid md:grid-cols-2 gap-4 mb-8">
+                <a href="https://github.com" target="_blank" class="card rounded-lg p-4 flex items-center gap-3 hover:border-accent/30">
+                    <span class="text-xl">🐙</span>
+                    <div>
+                        <div class="text-white font-medium">GitHub</div>
+                        <div class="text-gray-500 text-sm">github.com — where code lives</div>
+                    </div>
+                </a>
+                <a href="https://docs.anthropic.com/en/docs/claude-code" target="_blank" class="card rounded-lg p-4 flex items-center gap-3 hover:border-accent/30">
+                    <span class="text-xl">🤖</span>
+                    <div>
+                        <div class="text-white font-medium">Claude Code Docs</div>
+                        <div class="text-gray-500 text-sm">Official documentation</div>
+                    </div>
+                </a>
+                <a href="https://github.com/FoundryAI/openclaw" target="_blank" class="card rounded-lg p-4 flex items-center gap-3 hover:border-accent/30">
+                    <span class="text-xl">🦞</span>
+                    <div>
+                        <div class="text-white font-medium">OpenClaw</div>
+                        <div class="text-gray-500 text-sm">The viral autonomous agent</div>
+                    </div>
+                </a>
+                <a href="https://git-scm.com/doc" target="_blank" class="card rounded-lg p-4 flex items-center gap-3 hover:border-accent/30">
+                    <span class="text-xl">📚</span>
+                    <div>
+                        <div class="text-white font-medium">Git Documentation</div>
+                        <div class="text-gray-500 text-sm">Learn Git deeply</div>
+                    </div>
+                </a>
+            </div>
+
+            <h3 class="text-lg font-semibold text-white mb-4">Session Materials</h3>
+            <div class="space-y-3">
+                <a href="week-3-slides.html" class="card rounded-lg p-4 flex items-center justify-between hover:border-accent/30">
+                    <div class="flex items-center gap-3">
+                        <span class="text-xl">📊</span>
+                        <span class="text-white">Week 3 Slide Deck</span>
+                    </div>
+                    <span class="text-accent">→</span>
+                </a>
+                <a href="#" class="card rounded-lg p-4 flex items-center justify-between hover:border-accent/30">
+                    <div class="flex items-center gap-3">
+                        <span class="text-xl">🎥</span>
+                        <span class="text-white">Session Recording</span>
+                    </div>
+                    <span class="text-accent">→</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- Next Week Preview -->
+        <section class="card rounded-xl p-8 text-center">
+            <p class="font-mono text-accent text-sm mb-3">// up_next</p>
+            <h3 class="text-2xl font-bold text-white mb-4">Week 4: Ship & Celebrate</h3>
+            <p class="text-gray-400 mb-6">
+                Demo day. Share what you've made. Celebrate together. Reflect on what we've learned.
+            </p>
+            <p class="text-gray-500 text-sm">
+                "It's not about having a finished product. It's about having something to show — something that exists because you made it."
+            </p>
+        </section>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="px-6 py-12 border-t border-slate">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <a href="../cohort-1.html" class="text-gray-500 hover:text-gray-400 text-sm">← Back to Cohort 1</a>
+            <a href="week-2.html" class="text-gray-500 hover:text-gray-400 text-sm">← Week 2</a>
+        </div>
+    </footer>
+
+</body>
+</html>

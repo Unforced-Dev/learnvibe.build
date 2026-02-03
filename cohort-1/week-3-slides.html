@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Week 3: Building & Iteration — Learn Vibe Build</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        midnight: '#0a0a0f',
+                        charcoal: '#12121a',
+                        slate: '#1a1a24',
+                        accent: '#6366f1',
+                        accentLight: '#818cf8',
+                        glow: '#4f46e5',
+                    },
+                    fontFamily: {
+                        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #0a0a0f;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Slide styles */
+        .slide {
+            min-height: 100vh;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .slide.active {
+            display: flex;
+        }
+
+        /* Progress bar */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #6366f1, #a855f7);
+            transition: width 0.3s ease;
+            z-index: 100;
+        }
+
+        /* Navigation hints */
+        .nav-hint {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: #4b5563;
+        }
+
+        /* Slide counter */
+        .slide-counter {
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            color: #6366f1;
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* List animations */
+        .slide.active .reveal-item {
+            opacity: 0;
+            transform: translateX(-20px);
+            animation: revealItem 0.4s ease-out forwards;
+        }
+        .slide.active .reveal-item:nth-child(1) { animation-delay: 0.1s; }
+        .slide.active .reveal-item:nth-child(2) { animation-delay: 0.2s; }
+        .slide.active .reveal-item:nth-child(3) { animation-delay: 0.3s; }
+        .slide.active .reveal-item:nth-child(4) { animation-delay: 0.4s; }
+        .slide.active .reveal-item:nth-child(5) { animation-delay: 0.5s; }
+        .slide.active .reveal-item:nth-child(6) { animation-delay: 0.6s; }
+        .slide.active .reveal-item:nth-child(7) { animation-delay: 0.7s; }
+        .slide.active .reveal-item:nth-child(8) { animation-delay: 0.8s; }
+
+        @keyframes revealItem {
+            to { opacity: 1; transform: translateX(0); }
+        }
+    </style>
+</head>
+<body class="font-sans text-gray-300 antialiased">
+
+    <!-- Progress Bar -->
+    <div class="progress-bar" id="progress"></div>
+
+    <!-- Slide Counter -->
+    <div class="slide-counter">
+        <span id="current-slide">1</span> / <span id="total-slides">20</span>
+    </div>
+
+    <!-- Navigation Hint -->
+    <div class="nav-hint">
+        ← → or click to navigate
+    </div>
+
+    <!-- ==================== SLIDES ==================== -->
+
+    <!-- Slide 1: Title -->
+    <section class="slide active" data-slide="1">
+        <div class="max-w-4xl mx-auto text-center fade-in">
+            <p class="font-mono text-accent text-sm mb-6">// week_03</p>
+            <h1 class="text-6xl md:text-8xl font-bold text-white mb-6">
+                Building<br>
+                <span class="gradient-text">& Iteration</span>
+            </h1>
+            <p class="text-2xl text-gray-400 mt-8">Learn Vibe Build — Cohort 1</p>
+        </div>
+    </section>
+
+    <!-- Slide 2: Check-in -->
+    <section class="slide" data-slide="2">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// check_in</p>
+            <h2 class="text-5xl font-bold text-white mb-8">How was your week?</h2>
+
+            <div class="space-y-4 text-xl">
+                <p class="reveal-item flex items-center gap-4">
+                    <span class="text-accent">✋</span>
+                    <span>Who created a Claude Project?</span>
+                </p>
+                <p class="reveal-item flex items-center gap-4">
+                    <span class="text-accent">✋</span>
+                    <span>Who tried a new Connector?</span>
+                </p>
+                <p class="reveal-item flex items-center gap-4">
+                    <span class="text-accent">✋</span>
+                    <span>Who has a GitHub account now?</span>
+                </p>
+                <p class="reveal-item flex items-center gap-4">
+                    <span class="text-accent">✋</span>
+                    <span>Who's excited to go deeper?</span>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 3: Today's Journey -->
+    <section class="slide" data-slide="3">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// today</p>
+            <h2 class="text-5xl font-bold text-white mb-10">What we're covering</h2>
+
+            <div class="space-y-5 text-lg">
+                <div class="reveal-item flex items-start gap-4">
+                    <span class="text-accent font-mono w-8">01</span>
+                    <div>
+                        <p class="text-white font-semibold">The Frontier: OpenClaw</p>
+                        <p class="text-gray-400">What's happening at the edge</p>
+                    </div>
+                </div>
+                <div class="reveal-item flex items-start gap-4">
+                    <span class="text-accent font-mono w-8">02</span>
+                    <div>
+                        <p class="text-white font-semibold">Slowing Down</p>
+                        <p class="text-gray-400">The paradox of fast tools</p>
+                    </div>
+                </div>
+                <div class="reveal-item flex items-start gap-4">
+                    <span class="text-accent font-mono w-8">03</span>
+                    <div>
+                        <p class="text-white font-semibold">Git & GitHub</p>
+                        <p class="text-gray-400">Version control fundamentals</p>
+                    </div>
+                </div>
+                <div class="reveal-item flex items-start gap-4">
+                    <span class="text-accent font-mono w-8">04</span>
+                    <div>
+                        <p class="text-white font-semibold">Claude Code</p>
+                        <p class="text-gray-400">Full agentic building</p>
+                    </div>
+                </div>
+                <div class="reveal-item flex items-start gap-4">
+                    <span class="text-accent font-mono w-8">05</span>
+                    <div>
+                        <p class="text-white font-semibold">Building Something Real</p>
+                        <p class="text-gray-400">PRD → Spec → Build</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 4: The Frontier -->
+    <section class="slide" data-slide="4">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <p class="font-mono text-purple-400 text-sm mb-4">// frontier</p>
+
+            <h2 class="text-5xl font-bold text-white mb-8">
+                <span class="gradient-text">OpenClaw</span>
+            </h2>
+
+            <p class="text-2xl text-gray-400 mb-10">
+                An autonomous AI agent.<br>
+                Built on MCP. <strong class="text-white">150,000+ GitHub stars.</strong>
+            </p>
+
+            <p class="reveal-item text-xl text-purple-400">
+                This is what's happening at the frontier right now.
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 5: OpenClaw What -->
+    <section class="slide" data-slide="5">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-purple-400 text-sm mb-4">// frontier</p>
+            <h2 class="text-5xl font-bold text-white mb-10">What is OpenClaw?</h2>
+
+            <div class="space-y-6 text-xl">
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-purple-400 mt-1">→</span>
+                    <span><strong class="text-white">Autonomous agent</strong> — can run tasks on its own</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-purple-400 mt-1">→</span>
+                    <span><strong class="text-white">Built on MCP</strong> — same protocol as Claude's Connectors</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-purple-400 mt-1">→</span>
+                    <span><strong class="text-white">Open source</strong> — anyone can use and modify it</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-purple-400 mt-1">→</span>
+                    <span><strong class="text-white">Viral growth</strong> — shows the hunger for autonomous tools</span>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 6: Why This Matters -->
+    <section class="slide" data-slide="6">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <p class="font-mono text-purple-400 text-sm mb-4">// frontier</p>
+
+            <h2 class="text-5xl font-bold text-white mb-8">
+                Why does this matter?
+            </h2>
+
+            <p class="text-2xl text-gray-400 mb-10">
+                The infrastructure we're learning —<br>
+                <strong class="text-white">powers what's coming next.</strong>
+            </p>
+
+            <p class="reveal-item text-xl text-gray-500">
+                MCPs. Projects. Claude Code.<br>
+                These are the building blocks of autonomous systems.
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 7: Slowing Down -->
+    <section class="slide" data-slide="7">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <p class="font-mono text-accent text-sm mb-4">// paradox</p>
+
+            <h2 class="text-6xl font-bold text-white mb-8">
+                The faster the tools get,<br>
+                <span class="gradient-text">the slower we need to think.</span>
+            </h2>
+        </div>
+    </section>
+
+    <!-- Slide 8: Why Slow Down -->
+    <section class="slide" data-slide="8">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// paradox</p>
+            <h2 class="text-5xl font-bold text-white mb-10">Why slow down?</h2>
+
+            <div class="space-y-6 text-xl">
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Speed creates urgency</strong> — pressure to add more, faster</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Complexity compounds</strong> — each feature adds surface area</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Understanding matters</strong> — if you can't explain it, slow down</span>
+                </p>
+            </div>
+
+            <p class="reveal-item text-gray-500 mt-10 text-lg">
+                The AI doesn't feel complexity. You will when things break.
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 9: Practices -->
+    <section class="slide" data-slide="9">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// paradox</p>
+            <h2 class="text-5xl font-bold text-white mb-10">Practices for staying grounded</h2>
+
+            <div class="space-y-6 text-xl">
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Take breaks</strong> — step away, come back with fresh eyes</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Write first, build second</strong> — articulate before asking</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Review what was built</strong> — understand what Claude created</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Trust your felt sense</strong> — if it feels off, pause</span>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 10: Git Intro -->
+    <section class="slide" data-slide="10">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <p class="font-mono text-accent text-sm mb-4">// git</p>
+
+            <h2 class="text-5xl font-bold text-white mb-8">
+                Git & <span class="gradient-text">GitHub</span>
+            </h2>
+
+            <p class="text-2xl text-gray-400 mb-10">
+                Version control.<br>
+                <strong class="text-white">Where code lives.</strong>
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 11: What is Git -->
+    <section class="slide" data-slide="11">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// git</p>
+            <h2 class="text-5xl font-bold text-white mb-10">What is Git?</h2>
+
+            <div class="space-y-6 text-xl">
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Go back in time</strong> — undo mistakes, restore versions</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Branch</strong> — try experiments safely</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Merge</strong> — bring changes together</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Collaborate</strong> — multiple people, same project</span>
+                </p>
+            </div>
+
+            <p class="reveal-item text-gray-500 mt-10 text-lg">
+                Git tracks every change. It's your safety net.
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 12: Key Concepts -->
+    <section class="slide" data-slide="12">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// git</p>
+            <h2 class="text-5xl font-bold text-white mb-10">Key concepts</h2>
+
+            <div class="grid md:grid-cols-2 gap-6 text-lg">
+                <div class="reveal-item">
+                    <h4 class="text-white font-semibold mb-2">Repository</h4>
+                    <p class="text-gray-400">A folder Git tracks. Your code + its history.</p>
+                </div>
+                <div class="reveal-item">
+                    <h4 class="text-white font-semibold mb-2">Commit</h4>
+                    <p class="text-gray-400">A snapshot. Like a save point in a game.</p>
+                </div>
+                <div class="reveal-item">
+                    <h4 class="text-white font-semibold mb-2">Branch</h4>
+                    <p class="text-gray-400">A parallel version. Try things without breaking main.</p>
+                </div>
+                <div class="reveal-item">
+                    <h4 class="text-white font-semibold mb-2">Worktree</h4>
+                    <p class="text-gray-400">Multiple branches at once. Claude Code uses this.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 13: GitHub -->
+    <section class="slide" data-slide="13">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// github</p>
+            <h2 class="text-5xl font-bold text-white mb-10">What is GitHub?</h2>
+
+            <div class="space-y-6 text-xl">
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Cloud storage for code</strong> — backup and sync</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Collaboration hub</strong> — share, get contributions</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Free hosting</strong> — GitHub Pages serves websites</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">World's code library</strong> — millions of projects</span>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 14: Claude Code -->
+    <section class="slide" data-slide="14">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <p class="font-mono text-accent text-sm mb-4">// claude_code</p>
+
+            <h2 class="text-5xl font-bold text-white mb-8">
+                Claude <span class="gradient-text">Code</span>
+            </h2>
+
+            <p class="text-2xl text-gray-400 mb-10">
+                Claude in your terminal.<br>
+                <strong class="text-white">Full agentic building.</strong>
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 15: Claude Code What -->
+    <section class="slide" data-slide="15">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// claude_code</p>
+            <h2 class="text-5xl font-bold text-white mb-10">What makes it different</h2>
+
+            <div class="space-y-6 text-xl">
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Full file system access</strong> — reads and writes anywhere you allow</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Runs commands</strong> — install, test, deploy</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Understands context</strong> — sees your whole project</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Cross-platform</strong> — Mac, Windows, Linux</span>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 16: Demo -->
+    <section class="slide" data-slide="16">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <p class="font-mono text-accent text-sm mb-4">// demo</p>
+
+            <h2 class="text-6xl font-bold text-white mb-8">
+                Let me show you
+            </h2>
+
+            <p class="text-2xl text-gray-400">
+                Claude Code in action
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 17: Building Real Things -->
+    <section class="slide" data-slide="17">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// workflow</p>
+            <h2 class="text-5xl font-bold text-white mb-10">The workflow</h2>
+
+            <div class="space-y-5 text-lg">
+                <div class="reveal-item flex items-start gap-4">
+                    <span class="text-accent font-mono w-8">01</span>
+                    <div>
+                        <p class="text-white font-semibold">Idea</p>
+                        <p class="text-gray-400">What are you building? Who's it for?</p>
+                    </div>
+                </div>
+                <div class="reveal-item flex items-start gap-4">
+                    <span class="text-accent font-mono w-8">02</span>
+                    <div>
+                        <p class="text-white font-semibold">PRD</p>
+                        <p class="text-gray-400">Write down WHAT, not how</p>
+                    </div>
+                </div>
+                <div class="reveal-item flex items-start gap-4">
+                    <span class="text-accent font-mono w-8">03</span>
+                    <div>
+                        <p class="text-white font-semibold">Spec</p>
+                        <p class="text-gray-400">Figure out HOW to build it</p>
+                    </div>
+                </div>
+                <div class="reveal-item flex items-start gap-4">
+                    <span class="text-accent font-mono w-8">04</span>
+                    <div>
+                        <p class="text-white font-semibold">Build</p>
+                        <p class="text-gray-400">Start small. Get something working.</p>
+                    </div>
+                </div>
+                <div class="reveal-item flex items-start gap-4">
+                    <span class="text-accent font-mono w-8">05</span>
+                    <div>
+                        <p class="text-white font-semibold">Iterate</p>
+                        <p class="text-gray-400">Test, get feedback, improve</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 18: Start Smaller -->
+    <section class="slide" data-slide="18">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <p class="font-mono text-accent text-sm mb-4">// wisdom</p>
+
+            <h2 class="text-6xl font-bold text-white mb-8">
+                Start smaller<br>
+                <span class="gradient-text">than you think.</span>
+            </h2>
+
+            <p class="text-xl text-gray-500 mt-10">
+                The tiniest version that does something useful.<br>
+                You can always add more.
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 19: Homework -->
+    <section class="slide" data-slide="19">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// homework</p>
+            <h2 class="text-5xl font-bold text-white mb-10">Before next week</h2>
+
+            <div class="space-y-5 text-xl">
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span>Install Claude Code</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span>Create a GitHub repository</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span>Write a PRD for your project</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span>Build the first version</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span>Push to GitHub</span>
+                </p>
+            </div>
+
+            <div class="reveal-item mt-10 p-6 bg-accent/10 border border-accent/30 rounded-lg">
+                <p class="text-accent">
+                    <strong>Next week is Demo Day.</strong> Something to show — doesn't need to be finished.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 20: Looking Ahead -->
+    <section class="slide" data-slide="20">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <p class="font-mono text-accent text-sm mb-4">// next_week</p>
+
+            <h2 class="text-5xl font-bold text-white mb-8">
+                Week 4: <span class="gradient-text">Ship & Celebrate</span>
+            </h2>
+
+            <div class="text-left max-w-xl mx-auto space-y-3 text-lg text-gray-400">
+                <p class="reveal-item">• Demo day</p>
+                <p class="reveal-item">• Share what you've built</p>
+                <p class="reveal-item">• Celebrate together</p>
+                <p class="reveal-item">• Reflect on what we've learned</p>
+            </div>
+
+            <p class="reveal-item text-xl text-gray-500 mt-10">
+                Something exists because you made it.
+            </p>
+        </div>
+    </section>
+
+    <!-- ==================== END SLIDES ==================== -->
+
+    <script>
+        // Slide navigation
+        let currentSlide = 1;
+        const totalSlides = document.querySelectorAll('.slide').length;
+
+        document.getElementById('total-slides').textContent = totalSlides;
+
+        function showSlide(n) {
+            // Bounds check
+            if (n < 1) n = 1;
+            if (n > totalSlides) n = totalSlides;
+
+            currentSlide = n;
+
+            // Hide all slides
+            document.querySelectorAll('.slide').forEach(slide => {
+                slide.classList.remove('active');
+            });
+
+            // Show current slide
+            document.querySelector(`[data-slide="${n}"]`).classList.add('active');
+
+            // Update counter
+            document.getElementById('current-slide').textContent = n;
+
+            // Update progress bar
+            const progress = ((n - 1) / (totalSlides - 1)) * 100;
+            document.getElementById('progress').style.width = `${progress}%`;
+
+            // Update URL hash
+            history.replaceState(null, null, `#${n}`);
+        }
+
+        function nextSlide() {
+            showSlide(currentSlide + 1);
+        }
+
+        function prevSlide() {
+            showSlide(currentSlide - 1);
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') {
+                e.preventDefault();
+                nextSlide();
+            } else if (e.key === 'ArrowLeft' || e.key === 'Backspace') {
+                e.preventDefault();
+                prevSlide();
+            } else if (e.key === 'Home') {
+                e.preventDefault();
+                showSlide(1);
+            } else if (e.key === 'End') {
+                e.preventDefault();
+                showSlide(totalSlides);
+            }
+        });
+
+        // Click navigation
+        document.addEventListener('click', (e) => {
+            // Ignore clicks on links
+            if (e.target.tagName === 'A') return;
+
+            const x = e.clientX;
+            const width = window.innerWidth;
+
+            if (x < width / 3) {
+                prevSlide();
+            } else {
+                nextSlide();
+            }
+        });
+
+        // Touch navigation
+        let touchStartX = 0;
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+        });
+        document.addEventListener('touchend', (e) => {
+            const touchEndX = e.changedTouches[0].clientX;
+            const diff = touchStartX - touchEndX;
+
+            if (Math.abs(diff) > 50) {
+                if (diff > 0) {
+                    nextSlide();
+                } else {
+                    prevSlide();
+                }
+            }
+        });
+
+        // Load slide from URL hash
+        const hash = window.location.hash.slice(1);
+        if (hash && !isNaN(hash)) {
+            showSlide(parseInt(hash));
+        }
+    </script>
+
+</body>
+</html>

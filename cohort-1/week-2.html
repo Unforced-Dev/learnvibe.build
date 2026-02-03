@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Week 2: Expanding the Toolbox — Learn Vibe Build</title>
-    <meta name="description" content="Week 2 of Learn Vibe Build - Expanding the Toolbox. MCPs, Skills, Claude Cowork, Claude Code introduction, and GitHub basics.">
+    <meta name="description" content="Week 2 of Learn Vibe Build - Expanding the Toolbox. Deep dive into MCPs, Skills, and Projects for organizing your thinking with Claude.">
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -94,14 +94,12 @@
                 Expanding <span class="gradient-text">the Toolbox</span>
             </h1>
             <p class="text-xl text-gray-400 max-w-2xl mb-6">
-                Expand Claude's capabilities with MCPs and Skills. Learn Claude Cowork for file creation. Get introduced to Claude Code and GitHub.
+                Go deeper with Claude's capabilities. Learn MCPs, Skills, and Projects to extend what's possible and organize your thinking.
             </p>
             <div class="flex flex-wrap gap-3 text-sm">
                 <span class="px-3 py-1 rounded-full bg-slate text-gray-300">MCPs / Connectors</span>
                 <span class="px-3 py-1 rounded-full bg-slate text-gray-300">Skills</span>
-                <span class="px-3 py-1 rounded-full bg-slate text-gray-300">Claude Cowork</span>
-                <span class="px-3 py-1 rounded-full bg-slate text-gray-300">Claude Code</span>
-                <span class="px-3 py-1 rounded-full bg-slate text-gray-300">GitHub</span>
+                <span class="px-3 py-1 rounded-full bg-slate text-gray-300">Projects</span>
             </div>
         </div>
     </section>
@@ -117,10 +115,6 @@
                 <a href="#" class="card rounded-lg px-5 py-3 flex items-center gap-3 hover:border-accent/30">
                     <span>🎥</span>
                     <span class="text-white">Recording</span>
-                </a>
-                <a href="#demos" class="card rounded-lg px-5 py-3 flex items-center gap-3 hover:border-accent/30">
-                    <span>🛠️</span>
-                    <span class="text-white">Demos</span>
                 </a>
                 <a href="#homework" class="card rounded-lg px-5 py-3 flex items-center gap-3 hover:border-accent/30">
                     <span>📝</span>
@@ -139,12 +133,11 @@
                 <a href="#overview" class="toc-link text-gray-400 hover:text-accentLight py-1">1. Session Overview</a>
                 <a href="#mcps" class="toc-link text-gray-400 hover:text-accentLight py-1">2. MCPs / Connectors</a>
                 <a href="#skills" class="toc-link text-gray-400 hover:text-accentLight py-1">3. Skills</a>
-                <a href="#cowork" class="toc-link text-gray-400 hover:text-accentLight py-1">4. Claude Cowork</a>
-                <a href="#claude-code" class="toc-link text-gray-400 hover:text-accentLight py-1">5. Claude Code Introduction</a>
-                <a href="#github" class="toc-link text-gray-400 hover:text-accentLight py-1">6. GitHub Basics</a>
-                <a href="#demos" class="toc-link text-gray-400 hover:text-accentLight py-1">7. Live Demos</a>
-                <a href="#homework" class="toc-link text-gray-400 hover:text-accentLight py-1">8. Homework</a>
-                <a href="#resources" class="toc-link text-gray-400 hover:text-accentLight py-1">9. Resources</a>
+                <a href="#projects" class="toc-link text-gray-400 hover:text-accentLight py-1">4. Projects</a>
+                <a href="#demos" class="toc-link text-gray-400 hover:text-accentLight py-1">5. Live Demos</a>
+                <a href="#homework" class="toc-link text-gray-400 hover:text-accentLight py-1">6. Homework</a>
+                <a href="#looking-ahead" class="toc-link text-gray-400 hover:text-accentLight py-1">7. Looking Ahead</a>
+                <a href="#resources" class="toc-link text-gray-400 hover:text-accentLight py-1">8. Resources</a>
             </div>
         </div>
 
@@ -156,44 +149,40 @@
             </h2>
 
             <p class="text-gray-300 text-lg mb-6">
-                This week we expand what Claude can do. Last week was about conversation and creating artifacts. This week is about <strong class="text-white">extending Claude's reach</strong> — connecting it to external services, giving it tools, and showing you how to build real things.
+                Last week we started playing with Claude — having conversations, creating artifacts, building landing pages. This week we go deeper into <strong class="text-white">what Claude can actually do</strong> when you unlock more of its capabilities.
             </p>
 
             <div class="quote-card rounded-lg p-6 mb-6">
                 <p class="text-lg text-white italic">
-                    "Claude isn't just a chatbot. It's a system that can connect to your data, create files, and build software. This week we unlock those capabilities."
+                    "The goal isn't to rush through features. It's to really understand how these tools extend your thinking — and to get comfortable using them well."
                 </p>
             </div>
 
             <h3 class="text-lg font-semibold text-white mb-4">Session Structure</h3>
             <div class="space-y-3">
                 <div class="flex items-start gap-4">
-                    <span class="font-mono text-accent w-28 shrink-0">10-15 min</span>
+                    <span class="font-mono text-accent w-28 shrink-0">15 min</span>
                     <span class="text-gray-300">Check-in — how did the week go?</span>
                 </div>
                 <div class="flex items-start gap-4">
-                    <span class="font-mono text-accent w-28 shrink-0">10-15 min</span>
+                    <span class="font-mono text-accent w-28 shrink-0">15 min</span>
                     <span class="text-gray-300">Student demos — show what you've built</span>
                 </div>
                 <div class="flex items-start gap-4">
-                    <span class="font-mono text-accent w-28 shrink-0">15-20 min</span>
-                    <span class="text-gray-300">MCPs / Connectors</span>
+                    <span class="font-mono text-accent w-28 shrink-0">25 min</span>
+                    <span class="text-gray-300">MCPs / Connectors — deep dive</span>
                 </div>
                 <div class="flex items-start gap-4">
-                    <span class="font-mono text-accent w-28 shrink-0">10 min</span>
+                    <span class="font-mono text-accent w-28 shrink-0">15 min</span>
                     <span class="text-gray-300">Skills</span>
                 </div>
                 <div class="flex items-start gap-4">
-                    <span class="font-mono text-accent w-28 shrink-0">20-25 min</span>
-                    <span class="text-gray-300">Claude Cowork deep dive</span>
+                    <span class="font-mono text-accent w-28 shrink-0">15 min</span>
+                    <span class="text-gray-300">Projects — organizing your thinking</span>
                 </div>
                 <div class="flex items-start gap-4">
-                    <span class="font-mono text-accent w-28 shrink-0">15-20 min</span>
-                    <span class="text-gray-300">Claude Code introduction</span>
-                </div>
-                <div class="flex items-start gap-4">
-                    <span class="font-mono text-accent w-28 shrink-0">5-10 min</span>
-                    <span class="text-gray-300">GitHub basics</span>
+                    <span class="font-mono text-accent w-28 shrink-0">5 min</span>
+                    <span class="text-gray-300">Looking ahead + homework</span>
                 </div>
             </div>
         </section>
@@ -303,264 +292,108 @@
             </div>
         </section>
 
-        <!-- Cowork -->
-        <section id="cowork" class="mb-16">
+        <!-- Projects -->
+        <section id="projects" class="mb-16">
             <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
                 <span class="font-mono text-accent text-lg">04</span>
-                Claude Cowork
+                Projects
             </h2>
 
             <p class="text-gray-300 text-lg mb-6">
-                <strong class="text-white">Claude Cowork</strong> is where Claude gets real power. It's not just conversation — it's Claude with the ability to <strong class="text-white">create actual files</strong> on your computer.
+                <strong class="text-white">Projects</strong> in Claude let you organize related conversations and context in one place. Instead of starting fresh each time, you can build up a knowledge base that Claude remembers.
             </p>
 
-            <div class="quote-card rounded-lg p-6 mb-6">
-                <p class="text-lg text-white italic">
-                    "Cowork is basically like a chief of staff for $20 a month."
-                </p>
-                <p class="text-gray-500 text-sm mt-2">— From Week 1</p>
-            </div>
-
             <div class="card rounded-lg p-6 mb-6">
-                <h4 class="text-white font-semibold mb-3">What Cowork Can Do</h4>
+                <h4 class="text-white font-semibold mb-3">Why Projects Matter</h4>
                 <ul class="space-y-2 text-gray-300">
                     <li class="flex items-start gap-3">
                         <span class="text-accent">→</span>
-                        <span><strong class="text-white">Create documents</strong> — Word docs, PowerPoints, spreadsheets</span>
+                        <span><strong class="text-white">Persistent context</strong> — Claude remembers what you've discussed</span>
                     </li>
                     <li class="flex items-start gap-3">
                         <span class="text-accent">→</span>
-                        <span><strong class="text-white">Organize files</strong> — create folder structures, move things around</span>
+                        <span><strong class="text-white">Organized thinking</strong> — keep related conversations together</span>
                     </li>
                     <li class="flex items-start gap-3">
                         <span class="text-accent">→</span>
-                        <span><strong class="text-white">Read your data</strong> — analyze CSVs, review documents</span>
+                        <span><strong class="text-white">Add documents</strong> — upload files for Claude to reference</span>
                     </li>
                     <li class="flex items-start gap-3">
                         <span class="text-accent">→</span>
-                        <span><strong class="text-white">Build systems</strong> — create templates, workflows, organized structures</span>
+                        <span><strong class="text-white">Custom instructions</strong> — tell Claude how to behave for this project</span>
                     </li>
                 </ul>
             </div>
 
             <div class="card rounded-lg p-6 mb-6">
-                <h4 class="text-white font-semibold mb-3">Key Difference from Claude Desktop</h4>
-                <p class="text-gray-400">
-                    In regular Claude Desktop, you can create <em>artifacts</em> — things that exist in the conversation. In Cowork, Claude creates <em>real files</em> that exist on your computer, that you can open in other programs, share with others, and build on over time.
-                </p>
-            </div>
-
-            <h3 class="text-lg font-semibold text-white mb-4">Live Demo: Public Meeting Transcripts to Website</h3>
-            <p class="text-gray-400 mb-4">
-                Watch a real workflow: taking Boulder Human Relations Commission meeting recordings, extracting transcripts, organizing them into files, and generating a navigable website — all with Claude Cowork.
-            </p>
-
-            <div class="card rounded-lg p-6 mb-6 bg-slate/50">
-                <h4 class="font-mono text-accent text-sm mb-3">// what_you'll_see</h4>
-                <ul class="space-y-2 text-gray-300 text-sm">
-                    <li>• Finding and gathering source content (YouTube meetings)</li>
-                    <li>• Getting transcripts and saving them to files</li>
-                    <li>• Organizing content into a folder structure</li>
-                    <li>• Generating summaries and a timeline</li>
-                    <li>• Creating a website to navigate the content</li>
-                </ul>
-            </div>
-
-            <div class="card rounded-lg p-6 bg-amber-500/5 border-amber-500/20">
-                <h4 class="text-amber-400 font-semibold mb-2">Windows Users</h4>
-                <p class="text-gray-300">Cowork is currently Mac-only. But we'll show how the same workflow works in Claude Code — which is available on Windows. The UI is different (terminal vs visual), but the capabilities are the same.</p>
-            </div>
-        </section>
-
-        <!-- Claude Code -->
-        <section id="claude-code" class="mb-16">
-            <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                <span class="font-mono text-accent text-lg">05</span>
-                Claude Code Introduction
-            </h2>
-
-            <p class="text-gray-300 text-lg mb-6">
-                <strong class="text-white">Claude Code</strong> is Claude in your terminal. It can do everything Cowork can do — and more. It reads files, writes code, runs commands, and builds real software.
-            </p>
-
-            <div class="card rounded-lg p-6 mb-6">
-                <h4 class="text-white font-semibold mb-3">Cowork vs Claude Code</h4>
+                <h4 class="text-white font-semibold mb-3">How to Use Projects</h4>
+                <p class="text-gray-400 mb-4">Create a project for your main idea — the thing you're building in this course. Add:</p>
                 <ul class="space-y-2 text-gray-300">
                     <li class="flex items-start gap-3">
                         <span class="text-accent">→</span>
-                        <span><strong class="text-white">Same capabilities</strong> — both can read/write files, organize content, build things</span>
+                        <span>Your landing page or vision document</span>
                     </li>
                     <li class="flex items-start gap-3">
                         <span class="text-accent">→</span>
-                        <span><strong class="text-white">Different interface</strong> — Cowork is visual, Claude Code is terminal-based</span>
+                        <span>Notes about what you're trying to build</span>
                     </li>
                     <li class="flex items-start gap-3">
                         <span class="text-accent">→</span>
-                        <span><strong class="text-white">Claude Code goes further</strong> — can run commands, install packages, deploy</span>
+                        <span>Reference materials — articles, examples, inspiration</span>
                     </li>
                     <li class="flex items-start gap-3">
                         <span class="text-accent">→</span>
-                        <span><strong class="text-white">Platform availability</strong> — Claude Code works on Mac, Windows, and Linux</span>
+                        <span>Custom instructions about your preferences and goals</span>
                     </li>
                 </ul>
             </div>
-
-            <div class="quote-card rounded-lg p-6 mb-6">
-                <p class="text-white italic mb-2">
-                    "You don't need to be a programmer to use Claude Code. You need to be able to articulate what you want — and that's the skill we've been practicing."
-                </p>
-            </div>
-
-            <h3 class="text-lg font-semibold text-white mb-4">Demo: Same Workflow in Claude Code</h3>
-            <p class="text-gray-400 mb-4">
-                We'll show the same meeting transcript workflow running in Claude Code — demonstrating that Windows users can do exactly what we just did in Cowork. The terminal looks different, but the result is the same.
-            </p>
-
-            <div class="card rounded-lg p-6 bg-accent/5">
-                <h4 class="text-accent font-semibold mb-2">It's Not Scary</h4>
-                <p class="text-gray-300">
-                    The terminal might look intimidating, but Claude Code handles the complexity. You describe what you want in plain English, and Claude figures out the code. The same articulation skills you've been practicing apply here.
-                </p>
-            </div>
-        </section>
-
-        <!-- GitHub -->
-        <section id="github" class="mb-16">
-            <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                <span class="font-mono text-accent text-lg">06</span>
-                GitHub Basics
-            </h2>
-
-            <p class="text-gray-300 mb-6">
-                <strong class="text-white">GitHub</strong> is where code lives on the internet. It's how developers store, share, and collaborate on software projects.
-            </p>
-
-            <div class="card rounded-lg p-6 mb-6">
-                <h4 class="text-white font-semibold mb-3">What GitHub Is</h4>
-                <ul class="space-y-2 text-gray-300">
-                    <li class="flex items-start gap-3">
-                        <span class="text-accent">→</span>
-                        <span>A place to store your code (like Google Drive for software)</span>
-                    </li>
-                    <li class="flex items-start gap-3">
-                        <span class="text-accent">→</span>
-                        <span>Version control — keeps track of every change you make</span>
-                    </li>
-                    <li class="flex items-start gap-3">
-                        <span class="text-accent">→</span>
-                        <span>Collaboration — multiple people can work on the same project</span>
-                    </li>
-                    <li class="flex items-start gap-3">
-                        <span class="text-accent">→</span>
-                        <span>Hosting — can serve websites directly (like this course site)</span>
-                    </li>
-                </ul>
-            </div>
-
-            <h3 class="text-lg font-semibold text-white mb-4">Public vs Private</h3>
-            <div class="grid md:grid-cols-2 gap-4 mb-6">
-                <div class="card rounded-lg p-5">
-                    <h4 class="text-white font-semibold mb-2">Public Repositories</h4>
-                    <ul class="space-y-1 text-gray-400 text-sm">
-                        <li>• Anyone can see your code</li>
-                        <li>• Great for open source projects</li>
-                        <li>• Enables collaboration</li>
-                        <li>• Free hosting for websites</li>
-                    </ul>
-                </div>
-                <div class="card rounded-lg p-5">
-                    <h4 class="text-white font-semibold mb-2">Private Repositories</h4>
-                    <ul class="space-y-1 text-gray-400 text-sm">
-                        <li>• Only you (and invited people) can see</li>
-                        <li>• Good for client work or personal projects</li>
-                        <li>• Protects proprietary code</li>
-                        <li>• Free on GitHub (with limits)</li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="card rounded-lg p-6 bg-red-500/5 border-red-500/20 mb-6">
-                <h4 class="text-red-400 font-semibold mb-2">Caution: What NOT to Commit</h4>
-                <p class="text-gray-300 mb-3">Never put these in a public repository:</p>
-                <ul class="space-y-1 text-gray-400 text-sm">
-                    <li>• <strong class="text-red-400">API keys</strong> — credentials for services</li>
-                    <li>• <strong class="text-red-400">Passwords</strong> — any login credentials</li>
-                    <li>• <strong class="text-red-400">.env files</strong> — environment variables with secrets</li>
-                    <li>• <strong class="text-red-400">Personal data</strong> — emails, phone numbers, etc.</li>
-                </ul>
-                <p class="text-gray-500 text-sm mt-3">If you accidentally commit secrets, consider them compromised and rotate them immediately.</p>
-            </div>
-
-            <h3 class="text-lg font-semibold text-white mb-4">Open Source</h3>
-            <p class="text-gray-400 mb-4">
-                <strong class="text-white">Open source</strong> means making your code public so others can use, learn from, and contribute to it. Benefits include:
-            </p>
-            <ul class="space-y-2 text-gray-300 mb-6">
-                <li class="flex items-start gap-3">
-                    <span class="text-accent">→</span>
-                    <span><strong class="text-white">Transparency</strong> — people can see how things work</span>
-                </li>
-                <li class="flex items-start gap-3">
-                    <span class="text-accent">→</span>
-                    <span><strong class="text-white">Collaboration</strong> — others can help improve your project</span>
-                </li>
-                <li class="flex items-start gap-3">
-                    <span class="text-accent">→</span>
-                    <span><strong class="text-white">Learning</strong> — you learn from others' code, they learn from yours</span>
-                </li>
-                <li class="flex items-start gap-3">
-                    <span class="text-accent">→</span>
-                    <span><strong class="text-white">Community</strong> — building in public creates connection</span>
-                </li>
-            </ul>
 
             <div class="quote-card rounded-lg p-6">
-                <p class="text-white">
-                    Open source is powerful, but be thoughtful. Don't expose secrets. Don't share client data. When in doubt, start private and open up later.
-                </p>
+                <p class="text-accent font-semibold mb-2">Key Insight</p>
+                <p class="text-white">Projects help you think more clearly. By organizing your context, you make it easier for Claude to help you — and easier for you to see what you're actually building.</p>
             </div>
         </section>
 
         <!-- Demos -->
         <section id="demos" class="mb-16">
             <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                <span class="font-mono text-accent text-lg">07</span>
+                <span class="font-mono text-accent text-lg">05</span>
                 Live Demos
             </h2>
 
-            <p class="text-gray-300 mb-6">This session includes several live demonstrations:</p>
+            <p class="text-gray-300 mb-6">This session includes hands-on demonstrations:</p>
 
             <div class="space-y-4">
                 <div class="card rounded-lg p-5">
                     <div class="flex items-center gap-3 mb-2">
                         <span class="text-xl">🔌</span>
-                        <h4 class="text-white font-semibold">MCPs / Connectors in Claude UI</h4>
+                        <h4 class="text-white font-semibold">Enabling and Using Connectors</h4>
                     </div>
-                    <p class="text-gray-400 text-sm">How to enable and use connectors in the Claude web interface</p>
+                    <p class="text-gray-400 text-sm">How to enable MCPs in the Claude interface, what each one does, and how to use them effectively</p>
                 </div>
 
                 <div class="card rounded-lg p-5">
                     <div class="flex items-center gap-3 mb-2">
-                        <span class="text-xl">📋</span>
-                        <h4 class="text-white font-semibold">Meeting Transcripts → Website (Cowork)</h4>
+                        <span class="text-xl">⚡</span>
+                        <h4 class="text-white font-semibold">Exploring Skills</h4>
                     </div>
-                    <p class="text-gray-400 text-sm">Full workflow: find meetings, get transcripts, organize files, generate navigable website</p>
+                    <p class="text-gray-400 text-sm">Tour of available Skills, how to activate them, and when they're useful</p>
                 </div>
 
                 <div class="card rounded-lg p-5">
                     <div class="flex items-center gap-3 mb-2">
-                        <span class="text-xl">💻</span>
-                        <h4 class="text-white font-semibold">Same Workflow in Claude Code</h4>
+                        <span class="text-xl">📁</span>
+                        <h4 class="text-white font-semibold">Setting Up a Project</h4>
                     </div>
-                    <p class="text-gray-400 text-sm">Showing Windows users how to do the same thing — different interface, same result</p>
+                    <p class="text-gray-400 text-sm">Creating a project for your main idea, adding context, and using custom instructions</p>
                 </div>
 
                 <div class="card rounded-lg p-5">
                     <div class="flex items-center gap-3 mb-2">
-                        <span class="text-xl">🌐</span>
-                        <h4 class="text-white font-semibold">GitHub Overview</h4>
+                        <span class="text-xl">🎯</span>
+                        <h4 class="text-white font-semibold">Working with Student Projects</h4>
                     </div>
-                    <p class="text-gray-400 text-sm">Quick tour of what a repository looks like</p>
+                    <p class="text-gray-400 text-sm">Live demos with what cohort members are building — applying these tools to real projects</p>
                 </div>
             </div>
         </section>
@@ -568,7 +401,7 @@
         <!-- Homework -->
         <section id="homework" class="mb-16">
             <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                <span class="font-mono text-accent text-lg">08</span>
+                <span class="font-mono text-accent text-lg">06</span>
                 Homework
             </h2>
 
@@ -578,44 +411,81 @@
                     <li class="flex items-start gap-3">
                         <span class="bg-accent/20 text-accent rounded-full w-6 h-6 flex items-center justify-center shrink-0 text-sm">1</span>
                         <div>
-                            <p class="text-white font-medium">Explore MCPs and Skills</p>
-                            <p class="text-gray-400 text-sm">Enable a connector in Claude. Try a Skill. See what's available.</p>
+                            <p class="text-white font-medium">Enable at least one MCP</p>
+                            <p class="text-gray-400 text-sm">Try Web Search or Google Drive. Use it in a conversation. Notice how it changes what Claude can do.</p>
                         </div>
                     </li>
                     <li class="flex items-start gap-3">
                         <span class="bg-accent/20 text-accent rounded-full w-6 h-6 flex items-center justify-center shrink-0 text-sm">2</span>
                         <div>
-                            <p class="text-white font-medium">Play with Claude Cowork</p>
-                            <p class="text-gray-400 text-sm">Try creating a document or organizing some files. See what's possible.</p>
+                            <p class="text-white font-medium">Try a Skill</p>
+                            <p class="text-gray-400 text-sm">Find a Skill that's relevant to your project. Use it. See how it helps.</p>
                         </div>
                     </li>
                     <li class="flex items-start gap-3">
                         <span class="bg-accent/20 text-accent rounded-full w-6 h-6 flex items-center justify-center shrink-0 text-sm">3</span>
                         <div>
-                            <p class="text-white font-medium">Create a GitHub account (optional)</p>
-                            <p class="text-gray-400 text-sm">If you don't have one, create a free account at github.com. Just explore — no pressure to do anything yet.</p>
+                            <p class="text-white font-medium">Create a Project for your main idea</p>
+                            <p class="text-gray-400 text-sm">Set up a Project in Claude. Add your landing page, notes, and any reference materials. Write custom instructions.</p>
                         </div>
                     </li>
                     <li class="flex items-start gap-3">
                         <span class="bg-accent/20 text-accent rounded-full w-6 h-6 flex items-center justify-center shrink-0 text-sm">4</span>
                         <div>
-                            <p class="text-white font-medium">Keep refining your project</p>
-                            <p class="text-gray-400 text-sm">What do you want to build? What would make it real? Start thinking about what you'll demo in Week 4.</p>
+                            <p class="text-white font-medium">Create a GitHub account (required for Week 3)</p>
+                            <p class="text-gray-400 text-sm">Go to github.com and sign up. We'll use this next week when we start building with Claude Code.</p>
                         </div>
                     </li>
                 </ol>
             </div>
 
+            <div class="card rounded-lg p-6 bg-accent/5">
+                <h4 class="text-accent font-semibold mb-2">Take Your Time</h4>
+                <p class="text-gray-300">
+                    Don't rush through these. Spend real time with each one. The goal isn't to check boxes — it's to genuinely understand how these tools extend what's possible. When you hit something confusing, that's a good thing. Sit with it. Ask in Discord.
+                </p>
+            </div>
+        </section>
+
+        <!-- Looking Ahead -->
+        <section id="looking-ahead" class="mb-16">
+            <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                <span class="font-mono text-accent text-lg">07</span>
+                Looking Ahead
+            </h2>
+
+            <div class="card rounded-lg p-6 mb-6">
+                <h4 class="text-white font-semibold mb-3">Week 3: Claude Code</h4>
+                <p class="text-gray-400 mb-4">
+                    Next week we take the training wheels off. We'll dive into Claude Code — where Claude can actually write software, work with your file system, and build real things.
+                </p>
+                <ul class="space-y-2 text-gray-300">
+                    <li class="flex items-start gap-3">
+                        <span class="text-accent">→</span>
+                        <span>Git and GitHub — how code is tracked and shared</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="text-accent">→</span>
+                        <span>Claude Code basics — the terminal interface</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="text-accent">→</span>
+                        <span>Building something real — from idea to working code</span>
+                    </li>
+                </ul>
+            </div>
+
             <div class="quote-card rounded-lg p-6">
-                <p class="text-accent font-semibold mb-2">Week 3 Preview</p>
-                <p class="text-white">Next week we go deeper with Claude Code. We'll focus on building, iterating, and getting things hosted. If you're curious, start poking at Claude Code this week — but don't worry if you're not ready yet.</p>
+                <p class="text-white">
+                    Make sure you have a GitHub account set up before Week 3. We'll need it.
+                </p>
             </div>
         </section>
 
         <!-- Resources -->
         <section id="resources" class="mb-16">
             <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                <span class="font-mono text-accent text-lg">09</span>
+                <span class="font-mono text-accent text-lg">08</span>
                 Resources
             </h2>
 
@@ -625,28 +495,14 @@
                     <span class="text-xl">🤖</span>
                     <div>
                         <div class="text-white font-medium">Claude</div>
-                        <div class="text-gray-500 text-sm">claude.ai — MCPs, Skills, Cowork</div>
+                        <div class="text-gray-500 text-sm">claude.ai — MCPs, Skills, Projects</div>
                     </div>
                 </a>
                 <a href="https://github.com" target="_blank" class="tool-card card rounded-lg p-4 flex items-center gap-3">
                     <span class="text-xl">🐙</span>
                     <div>
                         <div class="text-white font-medium">GitHub</div>
-                        <div class="text-gray-500 text-sm">github.com — Code hosting</div>
-                    </div>
-                </a>
-                <a href="https://claude.ai/download" target="_blank" class="tool-card card rounded-lg p-4 flex items-center gap-3">
-                    <span class="text-xl">💻</span>
-                    <div>
-                        <div class="text-white font-medium">Claude Desktop</div>
-                        <div class="text-gray-500 text-sm">Desktop app for Cowork</div>
-                    </div>
-                </a>
-                <a href="https://docs.anthropic.com/en/docs/claude-code" target="_blank" class="tool-card card rounded-lg p-4 flex items-center gap-3">
-                    <span class="text-xl">⌨️</span>
-                    <div>
-                        <div class="text-white font-medium">Claude Code Docs</div>
-                        <div class="text-gray-500 text-sm">Official documentation</div>
+                        <div class="text-gray-500 text-sm">github.com — Create your account</div>
                     </div>
                 </a>
             </div>
@@ -679,10 +535,13 @@
                     <div class="text-white">Week 1: Orientation & Play</div>
                 </div>
             </a>
-            <div class="card rounded-lg px-5 py-3 opacity-50">
-                <div class="text-gray-500 text-xs">Next</div>
-                <div class="text-gray-400">Week 3: Coming Soon</div>
-            </div>
+            <a href="week-3.html" class="card rounded-lg px-5 py-3 flex items-center gap-3 hover:border-accent/30">
+                <div>
+                    <div class="text-gray-500 text-xs">Next</div>
+                    <div class="text-white">Week 3: Claude Code</div>
+                </div>
+                <span class="text-accent">→</span>
+            </a>
         </div>
 
     </div>
@@ -691,7 +550,7 @@
     <footer class="px-6 py-12 border-t border-slate">
         <div class="max-w-4xl mx-auto flex items-center justify-between">
             <a href="../cohort-1.html" class="text-gray-500 hover:text-gray-400 text-sm">← Back to Cohort 1</a>
-            <span class="text-gray-600 text-sm">Week 3 coming soon</span>
+            <span class="text-gray-600 text-sm">Week 3: Claude Code</span>
         </div>
     </footer>
 
