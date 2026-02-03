@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ETH Boulder 2026 — Learn Vibe Build</title>
+    <meta name="description" content="AI Building Track at ETH Boulder. February 13-15, 2026 at Regen Hub. Storm, Swarm, Form — build together with AI.">
+
+    <!-- Open Graph / Social -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://learnvibe.build/boulder">
+    <meta property="og:title" content="ETH Boulder 2026 — AI Building Track">
+    <meta property="og:description" content="Not a hackathon. A co-learning space. Build together with AI. February 13-15 at Regen Hub, Boulder.">
+    <meta property="og:image" content="https://learnvibe.build/og-image.png">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        midnight: '#0a0a0f',
+                        charcoal: '#12121a',
+                        slate: '#1a1a24',
+                        accent: '#6366f1',
+                        accentLight: '#818cf8',
+                        glow: '#4f46e5',
+                        storm: '#f59e0b',
+                        swarm: '#8b5cf6',
+                        form: '#10b981',
+                    },
+                    fontFamily: {
+                        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #0a0a0f;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #f59e0b 0%, #8b5cf6 50%, #10b981 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .glow-box {
+            box-shadow: 0 0 60px rgba(99, 102, 241, 0.15);
+        }
+        .card {
+            background: linear-gradient(180deg, rgba(26, 26, 36, 0.8) 0%, rgba(18, 18, 26, 0.9) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.1);
+        }
+        .card:hover {
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+        .phase-card {
+            border-left: 3px solid;
+        }
+    </style>
+</head>
+<body class="font-sans text-gray-300 antialiased">
+
+    <!-- Nav -->
+    <nav class="px-6 py-4 border-b border-slate/50">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <a href="/" class="font-mono text-sm text-accent hover:text-accentLight">← learnvibe.build</a>
+            <a href="https://ethboulder.xyz" target="_blank" class="font-mono text-sm text-gray-500 hover:text-white">ethboulder.xyz ↗</a>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="min-h-[85vh] flex flex-col justify-center px-6 py-20">
+        <div class="max-w-4xl mx-auto text-center">
+            <!-- Badge -->
+            <div class="mb-6">
+                <span class="inline-block px-4 py-2 rounded-full bg-accent/10 text-accent text-sm font-mono">
+                    February 13-15, 2026 · Regen Hub, Boulder
+                </span>
+            </div>
+
+            <!-- Headline -->
+            <h1 class="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
+                ETH Boulder<br>
+                <span class="gradient-text">AI Building Track</span>
+            </h1>
+
+            <!-- Subhead -->
+            <p class="text-xl md:text-2xl text-gray-400 mb-4 max-w-2xl mx-auto">
+                Not a hackathon. A co-learning space.
+            </p>
+
+            <p class="text-lg text-gray-500 mb-10 max-w-xl mx-auto">
+                Build together with AI. Learn from each other. Ship real things by Sunday.
+            </p>
+
+            <!-- CTA -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <a href="https://lu.ma/o9qpeepn" target="_blank" class="bg-accent hover:bg-accentLight text-white font-semibold px-8 py-4 rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-accent/25">
+                    Register for ETH Boulder
+                </a>
+                <a href="#weekend" class="text-gray-400 hover:text-white font-medium px-6 py-4 transition-all">
+                    See the weekend ↓
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- What This Is -->
+    <section class="px-6 py-20 border-t border-slate">
+        <div class="max-w-4xl mx-auto">
+            <h2 class="font-mono text-accent text-sm mb-4">// what_this_is</h2>
+            <h3 class="text-3xl md:text-4xl font-bold text-white mb-8">A different kind of hackathon</h3>
+
+            <p class="text-xl text-gray-400 mb-6 max-w-2xl">
+                No pitches. No competition. Just a space to build together with AI, learn from each other, and ship something real.
+            </p>
+
+            <p class="text-lg text-gray-500 mb-10 max-w-2xl">
+                This is the in-person version of what Learn Vibe Build teaches online — AI as creative partner, building as brainstorming, articulation as the core skill.
+            </p>
+
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="card rounded-lg p-6 transition-all duration-200">
+                    <div class="text-2xl mb-3">🤝</div>
+                    <h4 class="text-lg font-semibold text-white mb-2">Collaborative</h4>
+                    <p class="text-gray-400 text-sm">Help each other's projects. Fluid contribution across ideas. The "hungry hippos" model.</p>
+                </div>
+                <div class="card rounded-lg p-6 transition-all duration-200">
+                    <div class="text-2xl mb-3">🧠</div>
+                    <h4 class="text-lg font-semibold text-white mb-2">Bonfires Knowledge Graph</h4>
+                    <p class="text-gray-400 text-sm">Live collective intelligence. Query what's being discussed. Build on shared context.</p>
+                </div>
+                <div class="card rounded-lg p-6 transition-all duration-200">
+                    <div class="text-2xl mb-3">🌱</div>
+                    <h4 class="text-lg font-semibold text-white mb-2">Open Source</h4>
+                    <p class="text-gray-400 text-sm">Everything created is forkable, remixable, owned by the commons.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- The Weekend -->
+    <section id="weekend" class="px-6 py-20 border-t border-slate">
+        <div class="max-w-4xl mx-auto">
+            <h2 class="font-mono text-accent text-sm mb-4">// the_weekend</h2>
+            <h3 class="text-3xl md:text-4xl font-bold text-white mb-10">Storm → Swarm → Form</h3>
+
+            <div class="space-y-6">
+                <!-- Friday -->
+                <div class="card rounded-xl p-6 md:p-8 phase-card border-l-storm">
+                    <div class="flex flex-col md:flex-row md:items-center gap-4 mb-4">
+                        <span class="text-storm font-mono text-sm uppercase tracking-wider">Friday · Feb 13</span>
+                        <h4 class="text-2xl font-bold text-white">STORM</h4>
+                    </div>
+                    <p class="text-gray-400 text-lg mb-4">
+                        Rapid experimentation. Brainstorming by building. Throw ideas at the wall.
+                    </p>
+                    <div class="text-gray-500 text-sm space-y-1">
+                        <p>→ Opening circle — set the container, invoke the spirit</p>
+                        <p>→ AI Thinking Partner workshop (intro)</p>
+                        <p>→ First demos — show rough experiments, no polish required</p>
+                    </div>
+                </div>
+
+                <!-- Saturday -->
+                <div class="card rounded-xl p-6 md:p-8 phase-card border-l-swarm">
+                    <div class="flex flex-col md:flex-row md:items-center gap-4 mb-4">
+                        <span class="text-swarm font-mono text-sm uppercase tracking-wider">Saturday · Feb 14</span>
+                        <h4 class="text-2xl font-bold text-white">SWARM</h4>
+                    </div>
+                    <p class="text-gray-400 text-lg mb-4">
+                        Swarm on the best ideas. Agents flying everywhere. Fluid collaboration.
+                    </p>
+                    <div class="text-gray-500 text-sm space-y-1">
+                        <p>→ Project pitches — "here's what I'm building, here's what I need"</p>
+                        <p>→ Claude Code workshop (intermediate)</p>
+                        <p>→ Match people to projects, cross-pollinate</p>
+                    </div>
+                </div>
+
+                <!-- Sunday -->
+                <div class="card rounded-xl p-6 md:p-8 phase-card border-l-form">
+                    <div class="flex flex-col md:flex-row md:items-center gap-4 mb-4">
+                        <span class="text-form font-mono text-sm uppercase tracking-wider">Sunday · Feb 15</span>
+                        <h4 class="text-2xl font-bold text-white">FORM</h4>
+                    </div>
+                    <p class="text-gray-400 text-lg mb-4">
+                        Consolidate. Polish. Ship. Demo what we built together.
+                    </p>
+                    <div class="text-gray-500 text-sm space-y-1">
+                        <p>→ Final push — bring prototypes into form</p>
+                        <p>→ Demo time — show what emerged</p>
+                        <p>→ Closing circle — reflections, gratitude, what's next</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Workshops -->
+    <section class="px-6 py-20 border-t border-slate">
+        <div class="max-w-4xl mx-auto">
+            <h2 class="font-mono text-accent text-sm mb-4">// workshops</h2>
+            <h3 class="text-3xl md:text-4xl font-bold text-white mb-10">Crash courses in AI building</h3>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="card rounded-xl p-6 md:p-8">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="font-mono text-accent text-xl font-bold">01</span>
+                        <h4 class="text-xl font-semibold text-white">AI as Thinking Partner</h4>
+                    </div>
+                    <p class="text-gray-400 mb-4">
+                        The fundamentals. How to use Claude as a collaborator for organizing thoughts, exploring ideas, and turning messy input into structured output.
+                    </p>
+                    <ul class="text-gray-500 text-sm space-y-1">
+                        <li>→ Giving AI rich context</li>
+                        <li>→ Thinking out loud effectively</li>
+                        <li>→ Connecting to knowledge graphs</li>
+                    </ul>
+                    <div class="mt-4 pt-4 border-t border-slate">
+                        <span class="text-xs font-mono text-gray-600">Friday afternoon</span>
+                    </div>
+                </div>
+
+                <div class="card rounded-xl p-6 md:p-8">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="font-mono text-accent text-xl font-bold">02</span>
+                        <h4 class="text-xl font-semibold text-white">Building with Claude Code</h4>
+                    </div>
+                    <p class="text-gray-400 mb-4">
+                        From thinking to making. The Learn Vibe Build curriculum compressed into an intensive hands-on session.
+                    </p>
+                    <ul class="text-gray-500 text-sm space-y-1">
+                        <li>→ Setting up Claude Code</li>
+                        <li>→ The vibe coding workflow</li>
+                        <li>→ From idea to deployed prototype</li>
+                    </ul>
+                    <div class="mt-4 pt-4 border-t border-slate">
+                        <span class="text-xs font-mono text-gray-600">Saturday afternoon</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bonfires -->
+    <section class="px-6 py-16 border-t border-slate bg-charcoal/30">
+        <div class="max-w-3xl mx-auto text-center">
+            <h2 class="font-mono text-accent text-sm mb-4">// collective_intelligence</h2>
+            <h3 class="text-2xl md:text-3xl font-bold text-white mb-6">Bonfires Knowledge Graph</h3>
+
+            <p class="text-lg text-gray-400 mb-6">
+                Live collective memory running throughout the weekend. Conversations captured, connections surfaced. Build tools that tap into what we're learning together.
+            </p>
+
+            <div class="flex flex-wrap justify-center gap-3 text-sm font-mono">
+                <span class="px-4 py-2 rounded-full bg-slate text-gray-300">query discussions</span>
+                <span class="px-4 py-2 rounded-full bg-slate text-gray-300">find collaborators</span>
+                <span class="px-4 py-2 rounded-full bg-slate text-gray-300">build on shared context</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- The Vibe -->
+    <section class="px-6 py-16 border-t border-slate">
+        <div class="max-w-3xl mx-auto text-center">
+            <h2 class="font-mono text-accent text-sm mb-4">// the_vibe</h2>
+
+            <p class="text-xl text-gray-400 mb-8">
+                Spaciousness woven into intensity.
+            </p>
+
+            <div class="flex flex-wrap justify-center gap-4 text-sm">
+                <span class="px-4 py-2 rounded-full bg-slate text-gray-300">🍵 morning tea</span>
+                <span class="px-4 py-2 rounded-full bg-slate text-gray-300">🔔 hourly gong</span>
+                <span class="px-4 py-2 rounded-full bg-slate text-gray-300">💃 movement breaks</span>
+                <span class="px-4 py-2 rounded-full bg-slate text-gray-300">🧘 quiet focus</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Prepare -->
+    <section class="px-6 py-20 border-t border-slate">
+        <div class="max-w-4xl mx-auto">
+            <h2 class="font-mono text-accent text-sm mb-4">// prepare</h2>
+            <h3 class="text-3xl md:text-4xl font-bold text-white mb-6">Want to arrive ready?</h3>
+
+            <div class="card rounded-xl p-6 md:p-8 max-w-2xl">
+                <h4 class="text-xl font-semibold text-white mb-3">Learn Vibe Build — Cohort 2</h4>
+                <p class="text-gray-400 mb-4">
+                    4-week online cohort. Learn the fundamentals before the intensive weekend. Graduate ready to build and mentor others.
+                </p>
+                <p class="text-gray-500 text-sm mb-4">
+                    Cohort 1 graduates will be at ETH Boulder applying what they learned.
+                </p>
+                <a href="/" class="inline-flex items-center gap-2 text-accent hover:text-accentLight font-medium">
+                    Learn more about the cohort →
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="px-6 py-20 border-t border-slate">
+        <div class="max-w-2xl mx-auto text-center">
+            <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">Build with us</h2>
+            <p class="text-gray-400 mb-10">
+                Regen Hub, Boulder, Colorado. February 13-15, 2026.
+            </p>
+
+            <a href="https://lu.ma/o9qpeepn" target="_blank" class="inline-block bg-accent hover:bg-accentLight text-white font-semibold px-10 py-5 rounded-lg text-xl transition-all duration-200 hover:shadow-lg hover:shadow-accent/25">
+                Register for ETH Boulder
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="px-6 py-12 border-t border-slate">
+        <div class="max-w-4xl mx-auto text-center">
+            <p class="text-gray-500 text-sm mb-4">
+                Part of <a href="https://ethboulder.xyz" target="_blank" class="text-gray-400 hover:text-white">ETH Boulder 2026</a>
+            </p>
+            <p class="text-gray-600 text-sm">
+                Powered by <a href="https://regenhub.xyz" target="_blank" class="text-gray-500 hover:text-gray-400">Regen Hub</a> ·
+                <a href="/" class="text-gray-500 hover:text-gray-400">Learn Vibe Build</a>
+            </p>
+        </div>
+    </footer>
+
+</body>
+</html>
