@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Learn Vibe Build — You have ideas. Now make them real.</title>
-    <meta name="description" content="A 4-week cohort for creatives ready to bring their ideas to life. Use AI to build websites, newsletters, tools, and more — no coding experience needed.">
+    <title>Learn Vibe Build — AI as Creative Partner</title>
+    <meta name="description" content="Learn to build with AI. Cohort-based programs teaching you to use Claude as a creative collaborator — turning ideas into websites, tools, and real things you ship.">
 
     <!-- Open Graph / Social -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://learnvibe.build/">
-    <meta property="og:title" content="Learn Vibe Build — You have ideas. Now make them real.">
-    <meta property="og:description" content="A 4-week cohort for creatives. Use AI to bring your ideas to life — websites, newsletters, tools, whatever you dream up.">
+    <meta property="og:title" content="Learn Vibe Build — AI as Creative Partner">
+    <meta property="og:description" content="Learn to build with AI. Cohort-based programs teaching you to use Claude as a creative collaborator.">
     <meta property="og:image" content="https://learnvibe.build/og-image.png">
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://learnvibe.build/">
-    <meta name="twitter:title" content="Learn Vibe Build — You have ideas. Now make them real.">
-    <meta name="twitter:description" content="A 4-week cohort for creatives. Use AI to bring your ideas to life — websites, newsletters, tools, whatever you dream up.">
+    <meta name="twitter:title" content="Learn Vibe Build — AI as Creative Partner">
+    <meta name="twitter:description" content="Learn to build with AI. Cohort-based programs teaching you to use Claude as a creative collaborator.">
     <meta name="twitter:image" content="https://learnvibe.build/og-image.png">
 
     <!-- Tailwind CSS -->
@@ -33,6 +33,9 @@
                         accent: '#6366f1',
                         accentLight: '#818cf8',
                         glow: '#4f46e5',
+                        storm: '#f59e0b',
+                        swarm: '#8b5cf6',
+                        form: '#10b981',
                     },
                     fontFamily: {
                         mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
@@ -54,6 +57,12 @@
         }
         .gradient-text {
             background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .gradient-text-ethboulder {
+            background: linear-gradient(135deg, #f59e0b 0%, #8b5cf6 50%, #10b981 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -89,18 +98,17 @@
             <!-- Logo/Name -->
             <div class="mb-8">
                 <span class="font-mono text-sm text-accent tracking-wider">// learnvibe.build</span>
-                <span class="ml-3 text-xs bg-accent/20 text-accent px-2 py-1 rounded-full">Cohort 1</span>
             </div>
 
             <!-- Headline -->
             <h1 class="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
-                You have ideas.<br>
-                <span class="gradient-text">Now make them real.</span>
+                Build with AI.<br>
+                <span class="gradient-text">Ship real things.</span>
             </h1>
 
             <!-- Subhead -->
             <p class="text-xl md:text-2xl text-gray-400 mb-8 max-w-2xl mx-auto">
-                A 4-week cohort for creatives ready to bring their gifts into the world — using AI as your creative collaborator.
+                Cohort-based programs teaching you to use Claude as a creative collaborator. From idea to deployed project in 4 weeks.
             </p>
 
             <!-- Terminal preview -->
@@ -117,40 +125,175 @@
 
             <!-- CTA -->
             <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <a href="#apply" class="bg-accent hover:bg-accentLight text-white font-semibold px-8 py-4 rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-accent/25">
-                    Apply Now
+                <a href="ethboulder.html" class="bg-accent hover:bg-accentLight text-white font-semibold px-8 py-4 rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-accent/25">
+                    ETH Boulder · Feb 13-15
                 </a>
-                <span class="text-gray-500 text-sm">Deadline: January 19, 2026</span>
+                <a href="#cohorts" class="text-gray-400 hover:text-white font-medium px-6 py-4 transition-all">
+                    View cohorts ↓
+                </a>
             </div>
         </div>
     </section>
 
-    <!-- What It Is -->
+    <!-- The Core Idea -->
     <section class="px-6 py-20 border-t border-slate">
         <div class="max-w-4xl mx-auto">
-            <h2 class="font-mono text-accent text-sm mb-4">// what_it_is</h2>
-            <h3 class="text-3xl md:text-4xl font-bold text-white mb-8">Learn together. Build together.</h3>
+            <h2 class="font-mono text-accent text-sm mb-4">// the_idea</h2>
+            <h3 class="text-3xl md:text-4xl font-bold text-white mb-8">Articulation is the new skill</h3>
 
-            <p class="text-xl text-gray-400 mb-10 max-w-2xl">
-                This isn't a course where you watch videos alone. It's a cohort — 25 people learning from each other, building alongside each other, and shipping together.
+            <p class="text-xl text-gray-400 mb-6 max-w-2xl">
+                You don't need four years of engineering school. You need an idea and the words to bring it to life. AI changes what's possible — if you know how to work with it.
             </p>
 
+            <p class="text-lg text-gray-500 mb-10 max-w-2xl">
+                Learn Vibe Build teaches you to use Claude as a thinking partner and building collaborator. Not prompt engineering tricks — real creative partnership with AI.
+            </p>
+
+            <div class="flex flex-wrap gap-3 text-sm font-mono">
+                <span class="px-4 py-2 rounded-full bg-slate text-gray-300">AI as collaborator</span>
+                <span class="px-4 py-2 rounded-full bg-slate text-gray-300">play before polish</span>
+                <span class="px-4 py-2 rounded-full bg-slate text-gray-300">build in the margins</span>
+                <span class="px-4 py-2 rounded-full bg-slate text-gray-300">ship real things</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ETH Boulder Feature -->
+    <section class="px-6 py-20 border-t border-slate bg-charcoal/30">
+        <div class="max-w-4xl mx-auto">
+            <h2 class="font-mono text-accent text-sm mb-4">// coming_up</h2>
+            <h3 class="text-3xl md:text-4xl font-bold text-white mb-6">
+                <span class="gradient-text-ethboulder">ETH Boulder 2026</span>
+            </h3>
+
+            <div class="grid md:grid-cols-2 gap-8 items-center">
+                <div>
+                    <p class="text-xl text-gray-400 mb-4">
+                        <strong class="text-white">February 13-15</strong> at Regen Hub, Boulder
+                    </p>
+                    <p class="text-gray-400 mb-6">
+                        Three days of collaborative AI building. Not a competition — a co-learning space where everyone builds together and ships something real.
+                    </p>
+
+                    <div class="space-y-3 mb-6">
+                        <div class="flex items-center gap-3">
+                            <span class="text-storm font-mono text-sm">FRI</span>
+                            <span class="text-gray-300">Storm — brainstorm by building</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-swarm font-mono text-sm">SAT</span>
+                            <span class="text-gray-300">Swarm — collaborate across projects</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-form font-mono text-sm">SUN</span>
+                            <span class="text-gray-300">Form — polish and ship</span>
+                        </div>
+                    </div>
+
+                    <a href="ethboulder.html" class="inline-flex items-center gap-2 bg-accent hover:bg-accentLight text-white font-semibold px-6 py-3 rounded-lg transition-all duration-200">
+                        See the full schedule →
+                    </a>
+                </div>
+
+                <div class="card rounded-xl p-6">
+                    <h4 class="text-lg font-semibold text-white mb-4">Workshops & Talks</h4>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex items-start gap-3">
+                            <span class="text-accent">→</span>
+                            <span class="text-gray-300">AI as Thinking Partner — fundamentals of working with Claude</span>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <span class="text-accent">→</span>
+                            <span class="text-gray-300">Building with Claude Code — from idea to deployed prototype</span>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <span class="text-accent">→</span>
+                            <span class="text-gray-300">AI and the Spiritual Path — dialogue on consciousness and technology</span>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <span class="text-gray-500">+</span>
+                            <span class="text-gray-500">More sessions emerging...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cohorts -->
+    <section id="cohorts" class="px-6 py-20 border-t border-slate">
+        <div class="max-w-4xl mx-auto">
+            <h2 class="font-mono text-accent text-sm mb-4">// cohorts</h2>
+            <h3 class="text-3xl md:text-4xl font-bold text-white mb-10">4-week programs</h3>
+
             <div class="grid md:grid-cols-2 gap-6">
-                <div class="card rounded-lg p-6 transition-all duration-200">
-                    <div class="text-2xl mb-3">🧑‍🤝‍🧑 Cohort-based</div>
-                    <p class="text-gray-400">You're not just learning from instructors — you're learning from each other. 25 motivated people, all building at the same time.</p>
+                <!-- Cohort 1 -->
+                <div class="card rounded-xl p-6 md:p-8 relative overflow-hidden">
+                    <div class="absolute top-4 right-4">
+                        <span class="text-xs font-mono px-3 py-1 rounded-full bg-form/20 text-form">In Progress</span>
+                    </div>
+                    <h4 class="text-xl font-semibold text-white mb-2">Cohort 1</h4>
+                    <p class="text-gray-500 text-sm mb-4">January 20 — February 13, 2026</p>
+                    <p class="text-gray-400 mb-4">
+                        25 builders learning together. Weekly sessions, office hours, and a community Discord. Culminates with demo day at ETH Boulder.
+                    </p>
+                    <p class="text-gray-500 text-sm">
+                        Sponsored by Gitcoin
+                    </p>
                 </div>
-                <div class="card rounded-lg p-6 transition-all duration-200">
-                    <div class="text-2xl mb-3">🛠️ Create something real</div>
-                    <p class="text-gray-400">You'll leave with something you made — a website, a newsletter system, a tool, whatever serves your vision. Demo day to share it.</p>
+
+                <!-- Cohort 2 -->
+                <div class="card rounded-xl p-6 md:p-8 relative overflow-hidden border-accent/30">
+                    <div class="absolute top-4 right-4">
+                        <span class="text-xs font-mono px-3 py-1 rounded-full bg-accent/20 text-accent">Coming Soon</span>
+                    </div>
+                    <h4 class="text-xl font-semibold text-white mb-2">Cohort 2</h4>
+                    <p class="text-gray-500 text-sm mb-4">Applications opening soon</p>
+                    <p class="text-gray-400 mb-4">
+                        The next wave of builders. Same format: 4 weeks, live sessions, real projects shipped. Dates to be announced.
+                    </p>
+                    <p class="text-accent text-sm">
+                        Join the waitlist to be notified →
+                    </p>
                 </div>
-                <div class="card rounded-lg p-6 transition-all duration-200">
-                    <div class="text-2xl mb-3">📅 4 weeks</div>
-                    <p class="text-gray-400">Weekly live sessions + office hours. Enough structure to keep momentum, enough space to find your own flow.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- What You Learn -->
+    <section class="px-6 py-20 border-t border-slate">
+        <div class="max-w-4xl mx-auto">
+            <h2 class="font-mono text-accent text-sm mb-4">// what_you_learn</h2>
+            <h3 class="text-3xl md:text-4xl font-bold text-white mb-10">From idea to reality</h3>
+
+            <div class="space-y-6">
+                <div class="card rounded-lg p-6 flex gap-6 items-start transition-all duration-200">
+                    <div class="font-mono text-accent text-xl font-bold shrink-0">01</div>
+                    <div>
+                        <h4 class="text-xl font-semibold text-white mb-2">AI as Thinking Partner</h4>
+                        <p class="text-gray-400">Use Claude to organize thoughts, explore ideas, and turn messy input into structured output. The fundamentals that make everything else possible.</p>
+                    </div>
                 </div>
-                <div class="card rounded-lg p-6 transition-all duration-200">
-                    <div class="text-2xl mb-3">🎤 Demo Day</div>
-                    <p class="text-gray-400">Culminates Feb 13 with a demo day to showcase what you created. Share your work with the community.</p>
+                <div class="card rounded-lg p-6 flex gap-6 items-start transition-all duration-200">
+                    <div class="font-mono text-accent text-xl font-bold shrink-0">02</div>
+                    <div>
+                        <h4 class="text-xl font-semibold text-white mb-2">Building with Claude Code</h4>
+                        <p class="text-gray-400">Go from conversation to code. Build websites, tools, and applications through dialogue. No prior coding experience required.</p>
+                    </div>
+                </div>
+                <div class="card rounded-lg p-6 flex gap-6 items-start transition-all duration-200">
+                    <div class="font-mono text-accent text-xl font-bold shrink-0">03</div>
+                    <div>
+                        <h4 class="text-xl font-semibold text-white mb-2">Shipping Real Things</h4>
+                        <p class="text-gray-400">Deploy your projects to the world. Git, hosting, domains — the practical skills to get your work live and shareable.</p>
+                    </div>
+                </div>
+                <div class="card rounded-lg p-6 flex gap-6 items-start transition-all duration-200">
+                    <div class="font-mono text-accent text-xl font-bold shrink-0">04</div>
+                    <div>
+                        <h4 class="text-xl font-semibold text-white mb-2">Learning Together</h4>
+                        <p class="text-gray-400">Cohort-based for a reason. You learn from each other's projects, questions, and discoveries. Community that continues after the program ends.</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -160,165 +303,30 @@
     <section class="px-6 py-20 border-t border-slate">
         <div class="max-w-4xl mx-auto">
             <h2 class="font-mono text-accent text-sm mb-4">// who_its_for</h2>
-            <h3 class="text-3xl md:text-4xl font-bold text-white mb-8">For creatives ready to bring their gifts forward</h3>
+            <h3 class="text-3xl md:text-4xl font-bold text-white mb-8">For people with ideas</h3>
 
             <div class="space-y-4 text-lg">
                 <p class="flex items-start gap-3">
                     <span class="text-accent mt-1">→</span>
-                    <span><strong class="text-white">Artists & makers</strong> who want a website, portfolio, or platform for their work</span>
+                    <span><strong class="text-white">Creators</strong> who want a website, portfolio, or platform for their work</span>
                 </p>
                 <p class="flex items-start gap-3">
                     <span class="text-accent mt-1">→</span>
-                    <span><strong class="text-white">Writers & thinkers</strong> who want to start a newsletter or content practice</span>
+                    <span><strong class="text-white">Thinkers</strong> who want to build tools for their own workflows</span>
                 </p>
                 <p class="flex items-start gap-3">
                     <span class="text-accent mt-1">→</span>
-                    <span><strong class="text-white">Organizers & community builders</strong> who need tools for their people</span>
+                    <span><strong class="text-white">Organizers</strong> who need technology for their communities</span>
                 </p>
                 <p class="flex items-start gap-3">
                     <span class="text-accent mt-1">→</span>
-                    <span><strong class="text-white">Anyone with a vision</strong> who's felt like "I'm not technical enough" to make it real</span>
+                    <span><strong class="text-white">Anyone</strong> who's felt "I'm not technical enough" to make their idea real</span>
                 </p>
             </div>
 
-            <p class="mt-8 text-gray-400 text-lg">
+            <p class="mt-8 text-gray-500 text-lg">
                 This isn't about becoming a developer. It's about using AI to create what serves your life and work.
             </p>
-        </div>
-    </section>
-
-    <!-- Schedule -->
-    <section class="px-6 py-20 border-t border-slate">
-        <div class="max-w-4xl mx-auto">
-            <h2 class="font-mono text-accent text-sm mb-4">// schedule</h2>
-            <h3 class="text-3xl md:text-4xl font-bold text-white mb-10">The details</h3>
-
-            <div class="grid md:grid-cols-3 gap-6 mb-10">
-                <div class="card rounded-lg p-6 text-center">
-                    <div class="text-gray-500 text-sm mb-2">Starts</div>
-                    <div class="text-2xl font-bold text-white">Jan 20, 2026</div>
-                </div>
-                <div class="card rounded-lg p-6 text-center">
-                    <div class="text-gray-500 text-sm mb-2">Live Sessions</div>
-                    <div class="text-2xl font-bold text-white">Tuesdays 6pm MST</div>
-                    <div class="text-gray-500 text-sm mt-1">90 minutes each</div>
-                </div>
-                <div class="card rounded-lg p-6 text-center">
-                    <div class="text-gray-500 text-sm mb-2">Format</div>
-                    <div class="text-2xl font-bold text-white">Fully Remote</div>
-                    <div class="text-gray-500 text-sm mt-1">Join from anywhere</div>
-                </div>
-            </div>
-
-            <div class="card rounded-lg p-6">
-                <h4 class="text-lg font-semibold text-white mb-3">What you'll need</h4>
-                <ul class="space-y-2 text-gray-400">
-                    <li class="flex items-start gap-2">
-                        <span class="text-accent">→</span>
-                        <span><strong class="text-white">Claude Pro</strong> ($20/month) — the AI you'll be building with</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <span class="text-accent">→</span>
-                        <span><strong class="text-white">A computer</strong> — Mac, Windows, or Linux all work</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <span class="text-accent">→</span>
-                        <span><strong class="text-white">An idea</strong> — or just curiosity. We'll help you find what wants to be created.</span>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </section>
-
-    <!-- The Journey -->
-    <section class="px-6 py-20 border-t border-slate">
-        <div class="max-w-4xl mx-auto">
-            <h2 class="font-mono text-accent text-sm mb-4">// the_journey</h2>
-            <h3 class="text-3xl md:text-4xl font-bold text-white mb-10">4 weeks. Idea to reality.</h3>
-
-            <div class="space-y-6">
-                <div class="card rounded-lg p-6 flex gap-6 items-start transition-all duration-200">
-                    <div class="font-mono text-accent text-xl font-bold shrink-0">01</div>
-                    <div>
-                        <h4 class="text-xl font-semibold text-white mb-2">Orientation & Play</h4>
-                        <p class="text-gray-400">Get set up with Claude Code. Explore what's possible. No pressure — just play.</p>
-                    </div>
-                </div>
-                <div class="card rounded-lg p-6 flex gap-6 items-start transition-all duration-200">
-                    <div class="font-mono text-accent text-xl font-bold shrink-0">02</div>
-                    <div>
-                        <h4 class="text-xl font-semibold text-white mb-2">Seeds & Prompts</h4>
-                        <p class="text-gray-400">Pick an idea. Start building something small. Learn to give AI rich context.</p>
-                    </div>
-                </div>
-                <div class="card rounded-lg p-6 flex gap-6 items-start transition-all duration-200">
-                    <div class="font-mono text-accent text-xl font-bold shrink-0">03</div>
-                    <div>
-                        <h4 class="text-xl font-semibold text-white mb-2">Iteration & Craft</h4>
-                        <p class="text-gray-400">Go deeper. Get feedback from peers. Refine your project.</p>
-                    </div>
-                </div>
-                <div class="card rounded-lg p-6 flex gap-6 items-start transition-all duration-200">
-                    <div class="font-mono text-accent text-xl font-bold shrink-0">04</div>
-                    <div>
-                        <h4 class="text-xl font-semibold text-white mb-2">Ship & Celebrate</h4>
-                        <p class="text-gray-400">Deploy your project. Demo day. Share it with the world.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- The Vibe -->
-    <section class="px-6 py-20 border-t border-slate">
-        <div class="max-w-4xl mx-auto text-center">
-            <h2 class="font-mono text-accent text-sm mb-4">// the_vibe</h2>
-
-            <p class="text-2xl md:text-3xl text-white font-medium leading-relaxed mb-8">
-                Articulation is the new skill. You don't need four years of engineering school — just an idea and the words to bring it to life.
-            </p>
-
-            <div class="flex flex-wrap justify-center gap-3 text-sm font-mono">
-                <span class="px-4 py-2 rounded-full bg-slate text-gray-300">AI as collaborator</span>
-                <span class="px-4 py-2 rounded-full bg-slate text-gray-300">play before polish</span>
-                <span class="px-4 py-2 rounded-full bg-slate text-gray-300">build in the margins</span>
-                <span class="px-4 py-2 rounded-full bg-slate text-gray-300">unforced</span>
-            </div>
-        </div>
-    </section>
-
-    <!-- What You Get -->
-    <section class="px-6 py-20 border-t border-slate">
-        <div class="max-w-4xl mx-auto">
-            <h2 class="font-mono text-accent text-sm mb-4">// what_you_get</h2>
-            <h3 class="text-3xl md:text-4xl font-bold text-white mb-10">Everything you need to create</h3>
-
-            <div class="grid md:grid-cols-2 gap-4 text-lg">
-                <div class="flex items-center gap-3 p-4">
-                    <span class="text-accent">✓</span>
-                    <span>4 live sessions (90 min each)</span>
-                </div>
-                <div class="flex items-center gap-3 p-4">
-                    <span class="text-accent">✓</span>
-                    <span>8 office hours (drop-in support)</span>
-                </div>
-                <div class="flex items-center gap-3 p-4">
-                    <span class="text-accent">✓</span>
-                    <span>Community of creators to learn with</span>
-                </div>
-                <div class="flex items-center gap-3 p-4">
-                    <span class="text-accent">✓</span>
-                    <span>Demo day to showcase your work</span>
-                </div>
-                <div class="flex items-center gap-3 p-4">
-                    <span class="text-accent">✓</span>
-                    <span>Recorded sessions for review</span>
-                </div>
-                <div class="flex items-center gap-3 p-4">
-                    <span class="text-accent">✓</span>
-                    <span>Ongoing community after cohort ends</span>
-                </div>
-            </div>
         </div>
     </section>
 
@@ -332,76 +340,29 @@
                 <div class="card rounded-lg p-8">
                     <h4 class="text-xl font-semibold text-white mb-2">Aaron Gabriel</h4>
                     <p class="text-accent text-sm mb-4">Founder of <a href="https://openparachute.io" target="_blank" class="hover:underline">Parachute</a></p>
-                    <p class="text-gray-400 mb-4">I've spent the last year building with AI every day — first as an experiment, then as my primary way of working. I built <a href="https://openparachute.io" target="_blank" class="text-accent hover:underline">Parachute</a>, a voice-first tool for connected thinking, almost entirely through conversation with Claude. Now I use Parachute as my bridge to Claude Code to develop Parachute itself and all my other projects.</p>
-                    <p class="text-gray-400 mb-4">I'm a graduate student at CU Boulder's ATLAS Creative Technology program, founder of Woven Web, and I build technology for others through Unforced Development. But mostly I'm someone who believes that the best software comes from understanding people first, code second.</p>
-                    <p class="text-gray-400">This cohort is me sharing what I've learned about building with AI, and facilitating a space where we can all learn and grow together.</p>
+                    <p class="text-gray-400 mb-4">I've spent the last year building with AI every day. I built <a href="https://openparachute.io" target="_blank" class="text-accent hover:underline">Parachute</a>, a voice-first tool for connected thinking, almost entirely through conversation with Claude.</p>
+                    <p class="text-gray-400">Graduate student at CU Boulder's ATLAS program, founder of Woven Web, and someone who believes the best technology comes from understanding people first, code second.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Cohort Sponsor -->
-    <section class="px-6 py-16 border-t border-slate">
-        <div class="max-w-4xl mx-auto text-center">
-            <p class="font-mono text-gray-500 text-sm mb-6">Cohort 1 sponsored by</p>
-            <a href="https://gitcoin.co" target="_blank" rel="noopener" class="inline-block opacity-70 hover:opacity-100 transition-opacity">
-                <img src="https://cdn.prod.website-files.com/6433c5d029c6bb75f3f00bd5/66f47319725a4d8747859c4f_gitcoin-logotype-wht.svg"
-                     alt="Gitcoin"
-                     class="h-10 md:h-12">
-            </a>
-        </div>
-    </section>
-
-    <!-- ETH Boulder -->
-    <section class="px-6 py-20 border-t border-slate bg-charcoal/30">
-        <div class="max-w-4xl mx-auto">
-            <h2 class="font-mono text-accent text-sm mb-4">// in_person</h2>
-            <h3 class="text-3xl md:text-4xl font-bold text-white mb-6">ETH Boulder 2026</h3>
-
-            <div class="card rounded-xl p-6 md:p-8 max-w-2xl">
-                <p class="text-gray-400 mb-4">
-                    <strong class="text-white">February 13-15</strong> — The cohort culminates at ETH Boulder, where we'll run an AI building track at Regen Hub. Storm, Swarm, Form: three days of collaborative building with AI.
-                </p>
-                <p class="text-gray-500 text-sm mb-6">
-                    Cohort graduates arrive ready to build. First-timers get crash course workshops. Everyone ships something real.
-                </p>
-                <a href="ethboulder.html" class="inline-flex items-center gap-2 text-accent hover:text-accentLight font-medium">
-                    Learn more about ETH Boulder →
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <!-- Cost -->
+    <!-- CTA -->
     <section class="px-6 py-20 border-t border-slate">
-        <div class="max-w-4xl mx-auto">
-            <h2 class="font-mono text-accent text-sm mb-4">// investment</h2>
-
-            <div class="glow-box card rounded-xl p-8 md:p-12 text-center">
-                <div class="text-5xl md:text-6xl font-bold text-white mb-4">$100</div>
-                <p class="text-gray-400 mb-6">+ Claude Pro subscription ($20/month)</p>
-
-                <div class="border-t border-slate pt-6 mt-6">
-                    <p class="text-sm text-gray-500">
-                        Limited to 25 participants · Applications close January 19
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Apply -->
-    <section id="apply" class="px-6 py-20 border-t border-slate">
         <div class="max-w-2xl mx-auto text-center">
-            <h2 class="font-mono text-accent text-sm mb-4">// apply</h2>
-            <h3 class="text-3xl md:text-4xl font-bold text-white mb-6">Ready to create?</h3>
+            <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">Ready to build?</h2>
             <p class="text-gray-400 mb-10">
-                Fill out a quick application. We'll get back to you within a few days.
+                Join us at ETH Boulder or sign up to be notified when Cohort 2 opens.
             </p>
 
-            <a href="https://tally.so/r/lbeYg5" target="_blank" class="inline-block bg-accent hover:bg-accentLight text-white font-semibold px-10 py-5 rounded-lg text-xl transition-all duration-200 hover:shadow-lg hover:shadow-accent/25">
-                Apply Now
-            </a>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="ethboulder.html" class="bg-accent hover:bg-accentLight text-white font-semibold px-8 py-4 rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-accent/25">
+                    ETH Boulder · Feb 13-15
+                </a>
+                <a href="https://lu.ma/o9qpeepn" target="_blank" class="border border-gray-600 hover:border-gray-400 text-white font-semibold px-8 py-4 rounded-lg transition-all duration-200">
+                    Register for ETH Boulder
+                </a>
+            </div>
         </div>
     </section>
 
@@ -409,10 +370,10 @@
     <footer class="px-6 py-12 border-t border-slate">
         <div class="max-w-4xl mx-auto text-center">
             <p class="text-gray-500 text-sm mb-4">
-                Built by <a href="https://unforced.org" target="_blank" class="text-gray-400 hover:text-white">Aaron Gabriel</a> & <a href="https://owocki.com" target="_blank" class="text-gray-400 hover:text-white">Kevin Owocki</a>
+                Part of <a href="https://techne.institute" target="_blank" class="text-gray-400 hover:text-white">Techne Institute</a> at <a href="https://regenhub.xyz" target="_blank" class="text-gray-400 hover:text-white">Regen Hub</a>
             </p>
             <p class="text-gray-600 text-sm">
-                Supported by RegenHub & Gitcoin
+                Built by <a href="https://unforced.org" target="_blank" class="text-gray-500 hover:text-gray-400">Aaron Gabriel</a> · Cohort 1 sponsored by <a href="https://gitcoin.co" target="_blank" class="text-gray-500 hover:text-gray-400">Gitcoin</a>
             </p>
         </div>
     </footer>
