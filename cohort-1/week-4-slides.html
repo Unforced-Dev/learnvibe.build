@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Week 4: Ship & Celebrate — Learn Vibe Build</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        midnight: '#0a0a0f',
+                        charcoal: '#12121a',
+                        slate: '#1a1a24',
+                        accent: '#6366f1',
+                        accentLight: '#818cf8',
+                        glow: '#4f46e5',
+                        storm: '#f59e0b',
+                        swarm: '#8b5cf6',
+                        form: '#10b981',
+                    },
+                    fontFamily: {
+                        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #0a0a0f;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .gradient-text-green {
+            background: linear-gradient(135deg, #10b981 0%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .gradient-text-ethboulder {
+            background: linear-gradient(135deg, #f59e0b 0%, #8b5cf6 50%, #10b981 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Slide styles */
+        .slide {
+            min-height: 100vh;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .slide.active {
+            display: flex;
+        }
+
+        /* Progress bar */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #6366f1, #a855f7);
+            transition: width 0.3s ease;
+            z-index: 100;
+        }
+
+        /* Navigation hints */
+        .nav-hint {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: #4b5563;
+        }
+
+        /* Slide counter */
+        .slide-counter {
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            color: #6366f1;
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* List animations */
+        .slide.active .reveal-item {
+            opacity: 0;
+            transform: translateX(-20px);
+            animation: revealItem 0.4s ease-out forwards;
+        }
+        .slide.active .reveal-item:nth-child(1) { animation-delay: 0.1s; }
+        .slide.active .reveal-item:nth-child(2) { animation-delay: 0.2s; }
+        .slide.active .reveal-item:nth-child(3) { animation-delay: 0.3s; }
+        .slide.active .reveal-item:nth-child(4) { animation-delay: 0.4s; }
+        .slide.active .reveal-item:nth-child(5) { animation-delay: 0.5s; }
+        .slide.active .reveal-item:nth-child(6) { animation-delay: 0.6s; }
+        .slide.active .reveal-item:nth-child(7) { animation-delay: 0.7s; }
+        .slide.active .reveal-item:nth-child(8) { animation-delay: 0.8s; }
+
+        @keyframes revealItem {
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Phase marker */
+        .phase-marker {
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            background: linear-gradient(180deg, rgba(99, 102, 241, 0.1) 0%, rgba(99, 102, 241, 0.03) 100%);
+        }
+    </style>
+</head>
+<body class="font-sans text-gray-300 antialiased">
+
+    <!-- Progress Bar -->
+    <div class="progress-bar" id="progress"></div>
+
+    <!-- Slide Counter -->
+    <div class="slide-counter">
+        <span id="current-slide">1</span> / <span id="total-slides">26</span>
+    </div>
+
+    <!-- Navigation Hint -->
+    <div class="nav-hint">
+        ← → or click to navigate
+    </div>
+
+    <!-- ==================== SLIDES ==================== -->
+
+    <!-- Slide 1: Title -->
+    <section class="slide active" data-slide="1">
+        <div class="max-w-4xl mx-auto text-center fade-in">
+            <p class="font-mono text-accent text-sm mb-6">// week_04 — February 10, 2026</p>
+            <h1 class="text-6xl md:text-8xl font-bold text-white mb-6">
+                Ship<br>
+                <span class="gradient-text">& Celebrate</span>
+            </h1>
+            <p class="text-2xl text-gray-400 mt-8">Learn Vibe Build — Cohort 1</p>
+        </div>
+    </section>
+
+    <!-- Slide 2: Check-in -->
+    <section class="slide" data-slide="2">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// check_in</p>
+            <h2 class="text-5xl font-bold text-white mb-8">How are you feeling?</h2>
+
+            <div class="space-y-4 text-xl">
+                <p class="reveal-item flex items-center gap-4">
+                    <span class="text-accent">✋</span>
+                    <span>Where's your project at?</span>
+                </p>
+                <p class="reveal-item flex items-center gap-4">
+                    <span class="text-accent">✋</span>
+                    <span>What surprised you over the last 4 weeks?</span>
+                </p>
+                <p class="reveal-item flex items-center gap-4">
+                    <span class="text-accent">✋</span>
+                    <span>Who has something they want to show?</span>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 3: Early Demos -->
+    <section class="slide" data-slide="3">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <p class="font-mono text-accent text-sm mb-4">// demos</p>
+
+            <h2 class="text-5xl font-bold text-white mb-8">
+                Let's see what you <span class="gradient-text">built.</span>
+            </h2>
+
+            <p class="text-2xl text-gray-400 mb-10">
+                A few quick shares to kick us off.
+            </p>
+
+            <p class="text-gray-500 text-lg">
+                ~3 minutes each. What is it? What did you learn?
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 4: The 4 D's -->
+    <section class="slide" data-slide="4">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// framework</p>
+            <h2 class="text-5xl font-bold text-white mb-10">The 4 D's</h2>
+
+            <div class="space-y-6 text-xl">
+                <div class="reveal-item flex items-start gap-4">
+                    <span class="text-accent font-mono w-8 font-bold">D1</span>
+                    <div>
+                        <p class="text-white font-semibold">Decision</p>
+                        <p class="text-gray-400">Know what you're building and why</p>
+                    </div>
+                </div>
+                <div class="reveal-item flex items-start gap-4">
+                    <span class="text-accent font-mono w-8 font-bold">D2</span>
+                    <div>
+                        <p class="text-white font-semibold">Design</p>
+                        <p class="text-gray-400">Make your thinking visible before you build</p>
+                    </div>
+                </div>
+                <div class="reveal-item flex items-start gap-4">
+                    <span class="text-accent font-mono w-8 font-bold">D3</span>
+                    <div>
+                        <p class="text-white font-semibold">Development</p>
+                        <p class="text-gray-400">Build it with AI as your hands</p>
+                    </div>
+                </div>
+                <div class="reveal-item flex items-start gap-4">
+                    <span class="text-accent font-mono w-8 font-bold">D4</span>
+                    <div>
+                        <p class="text-white font-semibold">Deployment</p>
+                        <p class="text-gray-400">Ship it to the world</p>
+                    </div>
+                </div>
+            </div>
+
+            <p class="reveal-item text-gray-500 mt-10 text-lg">
+                Most people skip to D3. The magic is in D1 and D2.
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 5: Let's Build -->
+    <section class="slide" data-slide="5">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <p class="font-mono text-accent text-sm mb-4">// live_build</p>
+
+            <h2 class="text-5xl font-bold text-white mb-8">
+                Let's build something<br>
+                <span class="gradient-text">together.</span>
+            </h2>
+
+            <p class="text-2xl text-gray-400 mb-6">
+                A learning platform for Learn Vibe Build.
+            </p>
+
+            <p class="text-lg text-gray-500">
+                From decision to deployed — live, right now.
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 6: Decision Phase -->
+    <section class="slide" data-slide="6">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <div class="phase-marker rounded-2xl px-8 py-12 max-w-2xl mx-auto">
+                <p class="font-mono text-accent text-sm mb-4">D1</p>
+                <h2 class="text-6xl font-bold text-white mb-4">Decision</h2>
+                <p class="text-2xl text-gray-400">It starts with clarity.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 7: Most Important Skill -->
+    <section class="slide" data-slide="7">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <p class="font-mono text-accent text-sm mb-4">// decision</p>
+
+            <h2 class="text-5xl md:text-6xl font-bold text-white mb-8">
+                The most important skill<br>
+                <span class="gradient-text">isn't building.</span>
+            </h2>
+
+            <p class="reveal-item text-2xl text-gray-400">
+                It's knowing what to build.
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 8: Decisions Are Cheap -->
+    <section class="slide" data-slide="8">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// decision</p>
+            <h2 class="text-5xl font-bold text-white mb-10">Decisions are cheap now</h2>
+
+            <div class="space-y-6 text-xl">
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span>You can prototype an idea in an afternoon</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span>The bottleneck isn't execution — it's <strong class="text-white">clarity</strong></span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span>Before you ask the AI anything, ask yourself: <strong class="text-white">what do I actually want?</strong></span>
+                </p>
+            </div>
+
+            <p class="reveal-item text-gray-500 mt-10 text-lg">
+                The felt sense check. Week 1, still true in Week 4.
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 9: Design Phase -->
+    <section class="slide" data-slide="9">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <div class="phase-marker rounded-2xl px-8 py-12 max-w-2xl mx-auto">
+                <p class="font-mono text-accent text-sm mb-4">D2</p>
+                <h2 class="text-6xl font-bold text-white mb-4">Design</h2>
+                <p class="text-2xl text-gray-400">Make your thinking visible.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 10: Design as Communication -->
+    <section class="slide" data-slide="10">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <p class="font-mono text-accent text-sm mb-4">// design</p>
+
+            <h2 class="text-5xl md:text-6xl font-bold text-white mb-8">
+                Design is a conversation<br>
+                <span class="gradient-text">between you and the future.</span>
+            </h2>
+
+            <p class="reveal-item text-xl text-gray-400 max-w-2xl mx-auto">
+                A wireframe, a PRD, a napkin sketch — they're all the same thing: communicating intent. To yourself, to the AI, to anyone who works on this next.
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 11: Layers of Fidelity -->
+    <section class="slide" data-slide="11">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// design</p>
+            <h2 class="text-5xl font-bold text-white mb-10">Layers of fidelity</h2>
+
+            <div class="space-y-6 text-xl">
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">A bullet list</strong> — is design</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">A conversation</strong> — is design</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">A PRD</strong> — is design</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">A mockup</strong> — is design</span>
+                </p>
+            </div>
+
+            <p class="reveal-item text-gray-500 mt-10 text-lg">
+                Match the fidelity to the stakes. You don't always need a Figma file.
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 12: Development Phase -->
+    <section class="slide" data-slide="12">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <div class="phase-marker rounded-2xl px-8 py-12 max-w-2xl mx-auto">
+                <p class="font-mono text-accent text-sm mb-4">D3</p>
+                <h2 class="text-6xl font-bold text-white mb-4">Development</h2>
+                <p class="text-2xl text-gray-400">You are the taste. The AI is the hands.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 13: Reading Code -->
+    <section class="slide" data-slide="13">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// development</p>
+            <h2 class="text-5xl font-bold text-white mb-10">Reading code you didn't write</h2>
+
+            <div class="space-y-6 text-xl">
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span>You don't need to understand <strong class="text-white">every line</strong></span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span>You need to understand the <strong class="text-white">shape</strong></span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span>Does this look like what I asked for?</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span>Are there files I didn't expect?</span>
+                </p>
+            </div>
+
+            <p class="reveal-item text-gray-500 mt-10 text-lg">
+                The AI is tireless but tasteless. Your job is the review.
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 14: The Review Cycle -->
+    <section class="slide" data-slide="14">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// development</p>
+            <h2 class="text-5xl font-bold text-white mb-10">The review cycle</h2>
+
+            <div class="flex justify-center mb-10">
+                <div class="flex items-center gap-4 text-xl">
+                    <span class="reveal-item px-5 py-3 rounded-lg bg-accent/20 text-accent font-semibold">Build</span>
+                    <span class="reveal-item text-gray-600">→</span>
+                    <span class="reveal-item px-5 py-3 rounded-lg bg-accent/20 text-accent font-semibold">Look</span>
+                    <span class="reveal-item text-gray-600">→</span>
+                    <span class="reveal-item px-5 py-3 rounded-lg bg-accent/20 text-accent font-semibold">Adjust</span>
+                    <span class="reveal-item text-gray-600">→</span>
+                    <span class="reveal-item px-5 py-3 rounded-lg bg-accent/10 text-accent/70 font-semibold">Build</span>
+                </div>
+            </div>
+
+            <div class="space-y-4 text-lg">
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">CLAUDE.md</strong> — teach the AI about your project. Like onboarding a new team member.</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Compound knowledge</strong> — every project teaches you patterns. It gets easier.</span>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 15: Deployment Phase -->
+    <section class="slide" data-slide="15">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <div class="phase-marker rounded-2xl px-8 py-12 max-w-2xl mx-auto">
+                <p class="font-mono text-accent text-sm mb-4">D4</p>
+                <h2 class="text-6xl font-bold text-white mb-4">Deployment</h2>
+                <p class="text-2xl text-gray-400">Make it real.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 16: Shipping Changes Who You Are -->
+    <section class="slide" data-slide="16">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <p class="font-mono text-accent text-sm mb-4">// deployment</p>
+
+            <h2 class="text-5xl md:text-6xl font-bold text-white mb-8">
+                Shipping changes<br>
+                <span class="gradient-text">who you are.</span>
+            </h2>
+
+            <p class="reveal-item text-xl text-gray-400 max-w-2xl mx-auto">
+                Before this cohort, most of you wouldn't have called yourselves builders. Now you've built things. That's not a certificate — it's a lived experience.
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 17: Done > Perfect -->
+    <section class="slide" data-slide="17">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// deployment</p>
+            <h2 class="text-5xl font-bold text-white mb-10">"Done" beats "perfect"</h2>
+
+            <div class="space-y-6 text-xl">
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span>Perfectionism is procrastination in a costume</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span>Ship the version that works. Improve later.</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span><strong class="text-white">Build in public.</strong> Share the URL. Put it in your bio. Tell someone.</span>
+                </p>
+            </div>
+
+            <p class="reveal-item text-gray-500 mt-10 text-lg">
+                The act of sharing completes the creative cycle.
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 18: The Skill Compounds -->
+    <section class="slide" data-slide="18">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <p class="font-mono text-accent text-sm mb-4">// what_comes_next</p>
+
+            <h2 class="text-5xl font-bold text-white mb-8">
+                The skill <span class="gradient-text">compounds.</span>
+            </h2>
+
+            <div class="text-left max-w-xl mx-auto space-y-4 text-xl text-gray-400">
+                <p class="reveal-item">Every project gets easier.</p>
+                <p class="reveal-item">Every conversation with the AI gets richer.</p>
+                <p class="reveal-item">The cohort ends.</p>
+                <p class="reveal-item"><strong class="text-white">The skill doesn't.</strong></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 19: More Demos -->
+    <section class="slide" data-slide="19">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <p class="font-mono text-accent text-sm mb-4">// demos</p>
+
+            <h2 class="text-5xl font-bold text-white mb-8">
+                Your <span class="gradient-text">turn.</span>
+            </h2>
+
+            <p class="text-2xl text-gray-400 mb-6">
+                Show us what you built.
+            </p>
+
+            <p class="text-lg text-gray-500">
+                What is it? Why did you build it? What did you learn?
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 20: Feedback -->
+    <section class="slide" data-slide="20">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// feedback</p>
+            <h2 class="text-5xl font-bold text-white mb-8">What landed?</h2>
+
+            <div class="space-y-6 text-xl">
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span>What was the <strong class="text-white">most valuable thing</strong> about this cohort?</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span>What would you <strong class="text-white">change</strong>?</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span>What do you wish we'd spent <strong class="text-white">more time</strong> on?</span>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 21: Feedback Form -->
+    <section class="slide" data-slide="21">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <p class="font-mono text-accent text-sm mb-4">// feedback</p>
+
+            <h2 class="text-5xl font-bold text-white mb-8">
+                I'll send a feedback form.
+            </h2>
+
+            <p class="text-2xl text-gray-400 mb-6">
+                Please fill it out.
+            </p>
+
+            <p class="text-xl text-gray-500 max-w-xl mx-auto">
+                It genuinely shapes what comes next. Your experience is the data that makes the next cohort better.
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 22: Techne Institute -->
+    <section class="slide" data-slide="22">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <p class="font-mono text-accent text-sm mb-4">// the_bigger_picture</p>
+
+            <h2 class="text-5xl font-bold text-white mb-8">
+                <span class="gradient-text">Techne Institute</span>
+            </h2>
+
+            <p class="text-2xl text-gray-400 mb-6">
+                This cohort was the first class.
+            </p>
+
+            <p class="reveal-item text-xl text-gray-500 max-w-2xl mx-auto">
+                You're not just graduates of a 4-week program. You're the founding cohort of a learning institute that's growing into something much bigger.
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 23: The Classes -->
+    <section class="slide" data-slide="23">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// what's_coming</p>
+            <h2 class="text-5xl font-bold text-white mb-10">What's next</h2>
+
+            <div class="space-y-5">
+                <div class="reveal-item flex items-start gap-4">
+                    <span class="font-mono text-accent w-12 shrink-0 text-sm mt-1">101</span>
+                    <div>
+                        <p class="text-white font-semibold text-lg">AI Fundamentals</p>
+                        <p class="text-gray-400">How to think with AI. Chat, context, the basics — done deep.</p>
+                    </div>
+                </div>
+                <div class="reveal-item flex items-start gap-4">
+                    <span class="font-mono text-accent w-12 shrink-0 text-sm mt-1">200</span>
+                    <div>
+                        <p class="text-white font-semibold text-lg">Vibecoding</p>
+                        <p class="text-gray-400">Build real software with AI. Claude Code, Git, shipping.</p>
+                    </div>
+                </div>
+                <div class="reveal-item flex items-start gap-4">
+                    <span class="font-mono text-accent w-12 shrink-0 text-sm mt-1">200</span>
+                    <div>
+                        <p class="text-white font-semibold text-lg">Vibemarketing</p>
+                        <p class="text-gray-400">Websites, social media, content creation with AI.</p>
+                    </div>
+                </div>
+                <div class="reveal-item flex items-start gap-4">
+                    <span class="font-mono text-accent w-12 shrink-0 text-sm mt-1">200</span>
+                    <div>
+                        <p class="text-white font-semibold text-lg">Viberesearch</p>
+                        <p class="text-gray-400">AI for knowledge work. Obsidian, synthesis, deep research.</p>
+                    </div>
+                </div>
+                <div class="reveal-item flex items-start gap-4">
+                    <span class="font-mono text-accent w-12 shrink-0 text-sm mt-1">300</span>
+                    <div>
+                        <p class="text-white font-semibold text-lg">Agentic Engineering</p>
+                        <p class="text-gray-400">Advanced. Engineering fundamentals + autonomous AI systems.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 24: Your Input -->
+    <section class="slide" data-slide="24">
+        <div class="max-w-4xl mx-auto fade-in">
+            <p class="font-mono text-accent text-sm mb-4">// co_design</p>
+            <h2 class="text-5xl font-bold text-white mb-8">Help shape this.</h2>
+
+            <div class="space-y-6 text-xl">
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span>Which of these classes would <strong class="text-white">you</strong> take next?</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span>Which would you <strong class="text-white">send a friend</strong> to?</span>
+                </p>
+                <p class="reveal-item flex items-start gap-4">
+                    <span class="text-accent mt-1">→</span>
+                    <span>What's <strong class="text-white">missing</strong>?</span>
+                </p>
+            </div>
+
+            <p class="reveal-item text-gray-500 mt-10 text-lg">
+                You've lived this. Your input matters more than you think.
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 25: ETH Boulder -->
+    <section class="slide" data-slide="25">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <p class="font-mono text-accent text-sm mb-4">// this_friday</p>
+
+            <h2 class="text-5xl font-bold text-white mb-6">
+                <span class="gradient-text-ethboulder">ETH Boulder</span>
+            </h2>
+
+            <p class="text-2xl text-gray-400 mb-8">
+                February 13–15 at Regen Hub
+            </p>
+
+            <div class="text-left max-w-md mx-auto space-y-3 text-lg">
+                <div class="reveal-item flex items-center gap-3">
+                    <span class="text-storm font-mono text-sm w-10">FRI</span>
+                    <span class="text-gray-300">Storm — brainstorm by building</span>
+                </div>
+                <div class="reveal-item flex items-center gap-3">
+                    <span class="text-swarm font-mono text-sm w-10">SAT</span>
+                    <span class="text-gray-300">Swarm — collaborate across projects</span>
+                </div>
+                <div class="reveal-item flex items-center gap-3">
+                    <span class="text-form font-mono text-sm w-10">SUN</span>
+                    <span class="text-gray-300">Form — polish and ship</span>
+                </div>
+            </div>
+
+            <p class="reveal-item text-gray-500 mt-10 text-lg">
+                See you there.
+            </p>
+        </div>
+    </section>
+
+    <!-- Slide 26: Close -->
+    <section class="slide" data-slide="26">
+        <div class="max-w-4xl mx-auto fade-in text-center">
+            <p class="font-mono text-accent text-sm mb-6">// thank_you</p>
+
+            <h2 class="text-6xl md:text-7xl font-bold text-white mb-8">
+                You're <span class="gradient-text">builders</span> now.
+            </h2>
+
+            <p class="text-2xl text-gray-400 mb-4">
+                The cohort ends. The community doesn't.
+            </p>
+
+            <p class="reveal-item text-xl text-gray-500">
+                Thank you for being Cohort 1.
+            </p>
+        </div>
+    </section>
+
+    <!-- ==================== END SLIDES ==================== -->
+
+    <script>
+        // Slide navigation
+        let currentSlide = 1;
+        const totalSlides = document.querySelectorAll('.slide').length;
+
+        document.getElementById('total-slides').textContent = totalSlides;
+
+        function showSlide(n) {
+            // Bounds check
+            if (n < 1) n = 1;
+            if (n > totalSlides) n = totalSlides;
+
+            currentSlide = n;
+
+            // Hide all slides
+            document.querySelectorAll('.slide').forEach(slide => {
+                slide.classList.remove('active');
+            });
+
+            // Show current slide
+            document.querySelector(`[data-slide="${n}"]`).classList.add('active');
+
+            // Update counter
+            document.getElementById('current-slide').textContent = n;
+
+            // Update progress bar
+            const progress = ((n - 1) / (totalSlides - 1)) * 100;
+            document.getElementById('progress').style.width = `${progress}%`;
+
+            // Update URL hash
+            history.replaceState(null, null, `#${n}`);
+        }
+
+        function nextSlide() {
+            showSlide(currentSlide + 1);
+        }
+
+        function prevSlide() {
+            showSlide(currentSlide - 1);
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') {
+                e.preventDefault();
+                nextSlide();
+            } else if (e.key === 'ArrowLeft' || e.key === 'Backspace') {
+                e.preventDefault();
+                prevSlide();
+            } else if (e.key === 'Home') {
+                e.preventDefault();
+                showSlide(1);
+            } else if (e.key === 'End') {
+                e.preventDefault();
+                showSlide(totalSlides);
+            }
+        });
+
+        // Click navigation
+        document.addEventListener('click', (e) => {
+            // Ignore clicks on links
+            if (e.target.tagName === 'A') return;
+
+            const x = e.clientX;
+            const width = window.innerWidth;
+
+            if (x < width / 3) {
+                prevSlide();
+            } else {
+                nextSlide();
+            }
+        });
+
+        // Touch navigation
+        let touchStartX = 0;
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+        });
+        document.addEventListener('touchend', (e) => {
+            const touchEndX = e.changedTouches[0].clientX;
+            const diff = touchStartX - touchEndX;
+
+            if (Math.abs(diff) > 50) {
+                if (diff > 0) {
+                    nextSlide();
+                } else {
+                    prevSlide();
+                }
+            }
+        });
+
+        // Load slide from URL hash
+        const hash = window.location.hash.slice(1);
+        if (hash && !isNaN(hash)) {
+            showSlide(parseInt(hash));
+        }
+    </script>
+
+</body>
+</html>
