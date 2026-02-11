@@ -1,0 +1,99 @@
+@import "tailwindcss";
+
+@theme inline {
+  /* Colors */
+  --color-midnight: #0a0a0f;
+  --color-charcoal: #12121a;
+  --color-slate: #1a1a24;
+  --color-accent: #6366f1;
+  --color-accent-light: #818cf8;
+  --color-glow: #4f46e5;
+  --color-storm: #f59e0b;
+  --color-swarm: #8b5cf6;
+  --color-form: #10b981;
+
+  /* Fonts */
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+}
+
+body {
+  background-color: var(--color-midnight);
+  color: #d1d5db;
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #6366f1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Card base */
+.card {
+  background: linear-gradient(
+    180deg,
+    rgba(26, 26, 36, 0.8) 0%,
+    rgba(18, 18, 26, 0.9) 100%
+  );
+  border: 1px solid rgba(99, 102, 241, 0.1);
+  transition: border-color 0.2s ease;
+}
+
+.card:hover {
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+/* Glow box shadow */
+.glow-box {
+  box-shadow: 0 0 40px rgba(99, 102, 241, 0.15);
+}
+
+/* Terminal styling */
+.terminal {
+  background: rgba(10, 10, 15, 0.9);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  font-family: var(--font-mono);
+}
+
+/* Quote card */
+.quote-card {
+  background: rgba(99, 102, 241, 0.05);
+  border-left: 3px solid #6366f1;
+  padding: 1rem 1.5rem;
+}
+
+/* Prompt card */
+.prompt-card {
+  background: rgba(10, 10, 15, 0.8);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  font-family: var(--font-mono);
+}
+
+/* Cursor blink animation */
+.cursor-blink {
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Week card hover */
+.week-card {
+  transition: all 0.2s ease;
+}
+
+.week-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 30px rgba(99, 102, 241, 0.15);
+}
