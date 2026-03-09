@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vision — Learn Vibe Build</title>
+    <meta name="robots" content="noindex, nofollow">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        midnight: '#0a0a0f',
+                        charcoal: '#12121a',
+                        slate: '#1a1a24',
+                        accent: '#6366f1',
+                        accentLight: '#818cf8',
+                        glow: '#4f46e5',
+                    },
+                    fontFamily: {
+                        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #0a0a0f;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .card {
+            background: linear-gradient(180deg, rgba(26, 26, 36, 0.8) 0%, rgba(18, 18, 26, 0.9) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.1);
+        }
+        .card:hover {
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+        .glow-box {
+            box-shadow: 0 0 60px rgba(99, 102, 241, 0.15);
+        }
+        .quote-border {
+            border-left: 3px solid #6366f1;
+        }
+    </style>
+</head>
+<body class="font-sans text-gray-300 antialiased">
+
+    <!-- Hero -->
+    <section class="min-h-[70vh] flex flex-col justify-center px-6 py-20">
+        <div class="max-w-3xl mx-auto">
+            <div class="mb-8">
+                <span class="font-mono text-sm text-accent tracking-wider">// learnvibe.build/vision</span>
+            </div>
+
+            <h1 class="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
+                What Learn Vibe Build<br>
+                <span class="gradient-text">is becoming.</span>
+            </h1>
+
+            <p class="text-xl text-gray-400 mb-6 max-w-2xl">
+                This is a living document — a candid look at where LVB is heading, how it fits into a larger vision, and what we're building together. It's meant for the people close to this work: collaborators, partners, RegenHub members, and the builders who came through Cohort 1.
+            </p>
+
+            <p class="text-gray-500">
+                Last updated March 2026
+            </p>
+        </div>
+    </section>
+
+    <!-- The Core Insight -->
+    <section class="px-6 py-20 border-t border-slate">
+        <div class="max-w-3xl mx-auto">
+            <h2 class="font-mono text-accent text-sm mb-4">// the_insight</h2>
+            <h3 class="text-3xl md:text-4xl font-bold text-white mb-8">Everyone is a builder</h3>
+
+            <div class="space-y-6 text-lg text-gray-400">
+                <p>
+                    People coming through LVB are not necessarily learning to be engineers or app developers. They're learning to use emerging AI technologies to be more effective <em class="text-gray-300">creators and builders</em> in the world.
+                </p>
+
+                <p>
+                    They may be a small business owner wanting to build their landing page or e-commerce platform. An artist wanting to create their website and social media strategy. Someone trying to eat healthier and build better practices. A writer with aspirations of structuring a book and giving it form.
+                </p>
+
+                <div class="quote-border pl-6 py-2 my-8">
+                    <p class="text-xl text-gray-300 italic">
+                        Everyone is creative in some capacity and everyone has gifts they want to bring into the world. There is a possibility of using AI tooling to help them be more effective at that.
+                    </p>
+                </div>
+
+                <p>
+                    The idea is that everyone is creative in some capacity and everyone has gifts they want to bring into the world. LVB is about forming a <strong class="text-white">collaborative relationship with technology</strong> — especially AI — to become a more effective agent for change in the world.
+                </p>
+
+                <p>
+                    This isn't about prompt engineering tricks. It's about learning to articulate what you want, think clearly about what you're building, and use AI as a genuine creative partner to bring it into form.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cohort 2 -->
+    <section class="px-6 py-20 border-t border-slate bg-charcoal/30">
+        <div class="max-w-3xl mx-auto">
+            <h2 class="font-mono text-accent text-sm mb-4">// cohort_2</h2>
+            <h3 class="text-3xl md:text-4xl font-bold text-white mb-4">The next cohort</h3>
+            <p class="text-gray-500 mb-10">Early April 2026 · 6 weeks</p>
+
+            <div class="space-y-6 text-lg text-gray-400 mb-12">
+                <p>
+                    We ran Cohort 1 in January, sponsored by Gitcoin — and it worked. People who had never written a line of code shipped real projects. The energy was strong, the community was real, and it was clear this format has legs.
+                </p>
+                <p>
+                    Cohort 2 expands to <strong class="text-white">6 weeks</strong>, with more depth and more space for building. We're aiming for early April, with advertising starting this week.
+                </p>
+            </div>
+
+            <!-- Format -->
+            <div class="card rounded-xl p-6 md:p-8 mb-6">
+                <h4 class="text-lg font-semibold text-white mb-4">Format</h4>
+                <div class="space-y-4">
+                    <div class="flex items-start gap-4">
+                        <span class="text-accent font-mono text-sm mt-1 shrink-0">weekly</span>
+                        <p><strong class="text-white">1–2 hour sessions</strong> — shorter with pre-recorded lectures, longer when done live. Core curriculum and demonstration.</p>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <span class="text-accent font-mono text-sm mt-1 shrink-0">weekly</span>
+                        <p><strong class="text-white">2 hour co-work & office hours</strong> — open working time together, hands-on help, peer learning.</p>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <span class="text-accent font-mono text-sm mt-1 shrink-0">ongoing</span>
+                        <p><strong class="text-white">Community platform</strong> — share projects, ask questions, get inspired by what others are building.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Facilitators -->
+            <div class="card rounded-xl p-6 md:p-8 mb-6">
+                <h4 class="text-lg font-semibold text-white mb-4">Facilitators</h4>
+                <p class="text-gray-400">
+                    <strong class="text-white">Aaron Gabriel</strong> and <strong class="text-white">Jon</strong> as lead facilitators, with the possibility of <strong class="text-white">Lucian</strong> as a third. Multiple facilitators means more perspectives and more support for participants.
+                </p>
+            </div>
+
+            <!-- Pricing -->
+            <div class="card rounded-xl p-6 md:p-8 mb-6">
+                <h4 class="text-lg font-semibold text-white mb-6">Pricing</h4>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between py-3 border-b border-slate">
+                        <span class="text-gray-300">General admission</span>
+                        <span class="text-white font-semibold text-lg">$500</span>
+                    </div>
+                    <div class="flex items-center justify-between py-3 border-b border-slate">
+                        <span class="text-gray-300">Cohort 1 alumni</span>
+                        <span class="text-white font-semibold text-lg">$250</span>
+                    </div>
+                    <div class="flex items-center justify-between py-3 border-b border-slate">
+                        <span class="text-gray-300">RegenHub co-working members</span>
+                        <span class="text-white font-semibold text-lg">$250</span>
+                    </div>
+                    <div class="flex items-center justify-between py-3">
+                        <span class="text-gray-300">RegenHub core members</span>
+                        <span class="text-white font-semibold text-lg">Free</span>
+                    </div>
+                </div>
+                <p class="text-gray-500 text-sm mt-6">
+                    This is an introductory price — the plan is for future cohorts to be $1,000. We're keeping it accessible as we build the community.
+                </p>
+            </div>
+
+            <!-- Revenue Model -->
+            <div class="card rounded-xl p-6 md:p-8">
+                <h4 class="text-lg font-semibold text-white mb-4">Revenue model</h4>
+                <p class="text-gray-400 mb-4">
+                    Revenue splits <strong class="text-white">60% to facilitators</strong> and <strong class="text-white">40% to the cooperative</strong>. With 10–15 people paying full price, we're looking at $5–10k from this cohort — a meaningful start that funds both the teaching and the infrastructure.
+                </p>
+                <p class="text-gray-400">
+                    The goal isn't just revenue. It's building a <strong class="text-white">strong community of practice</strong>. That's why we're bringing in core members and alumni at reduced rates — their experience and engagement strengthens the entire cohort.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- The Platform Vision -->
+    <section class="px-6 py-20 border-t border-slate">
+        <div class="max-w-3xl mx-auto">
+            <h2 class="font-mono text-accent text-sm mb-4">// the_platform</h2>
+            <h3 class="text-3xl md:text-4xl font-bold text-white mb-8">Beyond cohorts</h3>
+
+            <div class="space-y-6 text-lg text-gray-400">
+                <p>
+                    The cohort model is how we <em class="text-gray-300">bridge people in</em>. But the thing we're actually building is an ongoing <strong class="text-white">community of practice</strong> — a place where people create and learn together, long after any single cohort ends.
+                </p>
+
+                <p>
+                    The next major step is building out the platform. Our own version of what Circle, Teachable, and similar tools do — but built for this community, by this community:
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4 my-10">
+                <div class="card rounded-lg p-6 transition-all duration-200">
+                    <h4 class="text-white font-semibold mb-2">Project sharing</h4>
+                    <p class="text-gray-400 text-sm">A way for people to share what they're building and be inspired by each other's work.</p>
+                </div>
+                <div class="card rounded-lg p-6 transition-all duration-200">
+                    <h4 class="text-white font-semibold mb-2">Learning forum</h4>
+                    <p class="text-gray-400 text-sm">Space to share discoveries, ask questions, and build collective knowledge.</p>
+                </div>
+                <div class="card rounded-lg p-6 transition-all duration-200">
+                    <h4 class="text-white font-semibold mb-2">Cohort curriculum</h4>
+                    <p class="text-gray-400 text-sm">Structured course content that lives on and remains accessible to alumni.</p>
+                </div>
+                <div class="card rounded-lg p-6 transition-all duration-200">
+                    <h4 class="text-white font-semibold mb-2">Community hub</h4>
+                    <p class="text-gray-400 text-sm">The connective tissue between cohorts — where the community actually lives.</p>
+                </div>
+            </div>
+
+            <div class="space-y-6 text-lg text-gray-400">
+                <p>
+                    Some of this is already built. Much of it remains to be done. The immediate steps: onboard Cohort 1 alumni onto the platform, and prepare for Cohort 2.
+                </p>
+
+                <p class="text-gray-500">
+                    Inspirations we're drawing from: <a href="https://tinkerer.club" target="_blank" class="text-accent hover:underline">Tinkerer.club</a> and Jonny Miller's <a href="https://www.nervoussystemmastery.com/" target="_blank" class="text-accent hover:underline">Nervous System Mastery</a> cohort model.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- The Bigger Picture -->
+    <section class="px-6 py-20 border-t border-slate bg-charcoal/30">
+        <div class="max-w-3xl mx-auto">
+            <h2 class="font-mono text-accent text-sm mb-4">// the_bigger_picture</h2>
+            <h3 class="text-3xl md:text-4xl font-bold text-white mb-8">Part of something larger</h3>
+
+            <div class="space-y-6 text-lg text-gray-400">
+                <p>
+                    LVB is a program of <a href="https://regenhub.xyz" target="_blank" class="text-accent hover:underline">RegenHub</a>, the cooperative workspace at 1515 Walnut in Boulder. RegenHub is gaining real momentum — the co-working space is growing, membership is expanding, and the community is strengthening.
+                </p>
+
+                <p>
+                    This positions us as an <strong class="text-white">AI-first cooperative</strong>: a cooperative looking at how to use technology well as a way to benefit people and planet.
+                </p>
+            </div>
+
+            <!-- Techne Vision -->
+            <div class="card rounded-xl p-6 md:p-8 my-10 glow-box">
+                <h4 class="text-lg font-semibold text-white mb-2">The Techne Vision</h4>
+                <p class="text-gray-500 text-sm mb-6 font-mono">Holding the vision. Growing into it.</p>
+
+                <p class="text-gray-400 mb-6">
+                    We see the potential for all of this to eventually become <strong class="text-white">Techne</strong> — from the Greek for craft, art, practical wisdom. A cooperative dedicated to building technology differently, innovating wisely, and helping to point a different direction for where technology can go.
+                </p>
+
+                <div class="space-y-3 mb-6">
+                    <div class="flex items-start gap-3">
+                        <span class="text-accent">→</span>
+                        <span><strong class="text-white">Techne Cooperative</strong> — the organizational structure, member-owned and governed</span>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <span class="text-accent">→</span>
+                        <span><strong class="text-white">Techne Foundation</strong> — the non-profit arm</span>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <span class="text-accent">→</span>
+                        <span><strong class="text-white">Techne Institute</strong> — the learning center (where LVB lives)</span>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <span class="text-accent">→</span>
+                        <span><strong class="text-white">Techne Studios</strong> — creative production and making</span>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <span class="text-accent">→</span>
+                        <span><strong class="text-white">Techne Builders</strong> — technology development and services</span>
+                    </div>
+                </div>
+
+                <p class="text-gray-500">
+                    The brands we have — RegenHub, Learn Vibe Build — already have recognition and momentum. We're not rebranding overnight. We're growing into this vision organically, starting in Boulder and extending beyond.
+                </p>
+            </div>
+
+            <div class="space-y-6 text-lg text-gray-400">
+                <p>
+                    Taking the LVB cohort is also a step toward <strong class="text-white">cooperative membership</strong> — which means having a say in how funds are allocated and how we grow together. Right now it doesn't make sense to require the cohort for co-working members, but we're planting the seeds. That's why existing co-workers get the cohort at a discount — we're building the culture from where we are.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call for Feedback -->
+    <section class="px-6 py-20 border-t border-slate">
+        <div class="max-w-3xl mx-auto text-center">
+            <h2 class="font-mono text-accent text-sm mb-4">// your_turn</h2>
+            <h3 class="text-3xl md:text-4xl font-bold text-white mb-6">This is a living vision</h3>
+
+            <p class="text-xl text-gray-400 mb-4 max-w-2xl mx-auto">
+                We're sharing this because we want your input. What resonates? What's missing? What would you want to see from LVB and the broader cooperative?
+            </p>
+
+            <p class="text-gray-500 mb-10 max-w-2xl mx-auto">
+                If you're reading this, you're part of this — as a collaborator, a past participant, a RegenHub member, or someone we trust. Your perspective shapes what this becomes.
+            </p>
+
+            <a href="mailto:aaron@learnvibe.build?subject=LVB%20Vision%20Feedback" class="inline-flex items-center gap-2 bg-accent hover:bg-accentLight text-white font-semibold px-8 py-4 rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-accent/25">
+                Share your thoughts →
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="px-6 py-12 border-t border-slate">
+        <div class="max-w-3xl mx-auto text-center">
+            <p class="text-gray-500 text-sm mb-4">
+                <a href="https://learnvibe.build" class="text-gray-400 hover:text-white">Learn Vibe Build</a> · Part of <a href="https://regenhub.xyz" target="_blank" class="text-gray-400 hover:text-white">Regen Hub</a>
+            </p>
+            <p class="text-gray-600 text-sm">
+                A program of the cooperative at 1515 Walnut, Boulder CO
+            </p>
+        </div>
+    </footer>
+
+</body>
+</html>
