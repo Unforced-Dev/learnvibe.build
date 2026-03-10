@@ -13,7 +13,7 @@ database_id = "3d67d43b-4840-4f33-a297-83d94f355a20"
 migrations_dir = "drizzle/migrations"
 
 [vars]
-CLERK_PUBLISHABLE_KEY = "pk_test_placeholder"
+CLERK_PUBLISHABLE_KEY = "pk_test_dG9waWNhbC1yYWJiaXQtNjAuY2xlcmsuYWNjb3VudHMuZGV2JA"
 
 # Custom domain (uncomment after DNS migration)
 # [[routes]]
