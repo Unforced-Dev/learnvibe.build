@@ -79,6 +79,21 @@ body {
     background: var(--accent-hover) !important;
 }
 
+.nav-user {
+    font-family: var(--font-mono);
+    font-size: 0.8rem !important;
+    padding: 0.4rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text) !important;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.nav-user:hover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+}
+
 @media (max-width: 600px) {
     .nav { padding: 1rem 1.5rem; }
     .nav-links { gap: 1.25rem; }
@@ -464,4 +479,88 @@ footer a:hover { color: var(--accent); }
 .badge-draft { background: var(--surface); color: var(--text-tertiary); }
 .badge-completed { background: var(--surface); color: var(--text-tertiary); }
 .badge-active { background: var(--accent-soft); color: var(--accent); }
+.badge-pending { background: #fff3e0; color: #e65100; }
+
+/* ADMIN */
+.admin-stat-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 1.5rem;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.2s;
+}
+
+.admin-stat-card:hover {
+    border-color: var(--accent);
+    text-decoration: none;
+}
+
+.admin-stat-number {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.03em;
+}
+
+.admin-stat-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.admin-action-btn {
+    display: inline-block;
+    padding: 0.6rem 1.25rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    color: var(--text);
+    text-decoration: none;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.admin-action-btn:hover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    text-decoration: none;
+}
+
+.admin-app-card {
+    display: block;
+    padding: 1rem 1.25rem;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.2s;
+}
+
+.admin-app-card:hover {
+    border-color: var(--accent);
+    text-decoration: none;
+}
+
+.admin-detail-section {
+    margin-top: 2rem;
+}
+
+.admin-detail-section h3 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+}
+
+.admin-detail-section p {
+    color: var(--text-secondary);
+    line-height: 1.7;
+}
 `

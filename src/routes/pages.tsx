@@ -17,6 +17,7 @@ pages.get('/apply', (c) => {
     <Layout
       title="Apply for Cohort 2"
       description="Apply for Learn Vibe Build Cohort 2 — 6 weeks of building with AI as your creative partner."
+      user={c.get('user')}
     >
       <div class="page-section">
         <p class="section-label">Apply</p>
@@ -78,7 +79,7 @@ pages.get('/apply', (c) => {
 
 pages.get('/apply/success', (c) => {
   return c.html(
-    <Layout title="Application Received">
+    <Layout title="Application Received" user={c.get('user')}>
       <div class="page-section success-message">
         <h2>Application received</h2>
         <p class="lead">

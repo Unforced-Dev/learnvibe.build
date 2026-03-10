@@ -1,13 +1,15 @@
 import type { FC, PropsWithChildren } from 'hono/jsx'
 import { DESIGN_SYSTEM_CSS } from '../styles/design-system'
+import type { AuthUser } from '../lib/auth'
 
 type LayoutProps = PropsWithChildren<{
   title: string
   description?: string
   noindex?: boolean
+  user?: AuthUser | null
 }>
 
-export const Layout: FC<LayoutProps> = ({ title, description, noindex, children }) => {
+export const Layout: FC<LayoutProps> = ({ title, description, noindex, user, children }) => {
   return (
     <html lang="en">
       <head>
@@ -30,7 +32,23 @@ export const Layout: FC<LayoutProps> = ({ title, description, noindex, children 
           <a href="/" class="nav-brand">Learn Vibe Build</a>
           <ul class="nav-links">
             <li><a href="/cohort/cohort-1">Cohort 1</a></li>
-            <li><a href="/apply" class="nav-apply">Apply</a></li>
+            {user ? (
+              <>
+                <li><a href="/dashboard">Dashboard</a></li>
+                {(user.role === 'admin' || user.role === 'facilitator') && (
+                  <li><a href="/admin">Admin</a></li>
+                )}
+                <li>
+                  <a href="/sign-out" class="nav-user">
+                    {user.name || user.email.split('@')[0]}
+                  </a>
+                </li>
+              </>
+            ) : (
+              <>
+                <li><a href="/apply" class="nav-apply">Apply</a></li>
+              </>
+            )}
           </ul>
         </nav>
         <main>{children}</main>

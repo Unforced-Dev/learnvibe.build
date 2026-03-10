@@ -4,20 +4,48 @@ import { Layout } from '../components/Layout'
 import { getDb } from '../db'
 import { cohorts, lessons } from '../db/schema'
 import { renderMarkdown } from '../lib/markdown'
+import { canAccessCohort } from '../lib/access'
 import type { AppContext } from '../types'
 
 const cohortRoutes = new Hono<AppContext>()
+
+// Gated content message component
+const GatedMessage = ({ cohort, user }: { cohort: { title: string; slug: string }; user: any }) => (
+  <Layout title={cohort.title} user={user}>
+    <div class="page-section" style="max-width: 600px; margin: 0 auto; text-align: center; padding: 4rem 0;">
+      <p class="section-label">Members Only</p>
+      <h2>{cohort.title}</h2>
+      <p style="margin-top: 1rem; color: var(--text-secondary); line-height: 1.7;">
+        This cohort's content is available to enrolled members.
+        {!user
+          ? " Sign in to access, or apply to join."
+          : " You're not currently enrolled in this cohort."}
+      </p>
+      <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+        {!user && (
+          <a href="/sign-in" style="display: inline-block; background: var(--accent); color: white; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 500;">
+            Sign In
+          </a>
+        )}
+        <a href="/apply" style="display: inline-block; border: 1px solid var(--border); padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; color: var(--text); font-weight: 500;">
+          Apply for Cohort 2
+        </a>
+      </div>
+    </div>
+  </Layout>
+)
 
 // Cohort hub — /cohort/:slug
 cohortRoutes.get('/cohort/:slug', async (c) => {
   const slug = c.req.param('slug')
   const db = getDb(c.env.DB)
+  const user = c.get('user')
 
   const cohort = await db.select().from(cohorts).where(eq(cohorts.slug, slug)).get()
 
   if (!cohort) {
     return c.html(
-      <Layout title="Not Found">
+      <Layout title="Not Found" user={user}>
         <div class="page-section" style="text-align: center; padding: 6rem 0;">
           <h2>Cohort not found</h2>
           <p><a href="/">← Back to homepage</a></p>
@@ -27,8 +55,11 @@ cohortRoutes.get('/cohort/:slug', async (c) => {
     )
   }
 
-  // TODO: If !cohort.isPublic, check auth + enrollment
-  // For now, only public cohorts are accessible
+  // Access control: check if user can view this cohort
+  const hasAccess = await canAccessCohort(c.env.DB, user, cohort.id, cohort.isPublic)
+  if (!hasAccess) {
+    return c.html(<GatedMessage cohort={cohort} user={user} />, 403)
+  }
 
   const cohortLessons = await db
     .select()
@@ -44,7 +75,7 @@ cohortRoutes.get('/cohort/:slug', async (c) => {
     : null
 
   return c.html(
-    <Layout title={cohort.title} description={cohort.description || undefined}>
+    <Layout title={cohort.title} description={cohort.description || undefined} user={user}>
       <div class="page-section">
         <a href="/" class="back-link">← Home</a>
 
@@ -87,6 +118,7 @@ cohortRoutes.get('/cohort/:slug/week/:num', async (c) => {
   const slug = c.req.param('slug')
   const weekNum = parseInt(c.req.param('num'), 10)
   const db = getDb(c.env.DB)
+  const user = c.get('user')
 
   if (isNaN(weekNum)) {
     return c.redirect(`/cohort/${slug}`)
@@ -96,7 +128,7 @@ cohortRoutes.get('/cohort/:slug/week/:num', async (c) => {
 
   if (!cohort) {
     return c.html(
-      <Layout title="Not Found">
+      <Layout title="Not Found" user={user}>
         <div class="page-section" style="text-align: center; padding: 6rem 0;">
           <h2>Cohort not found</h2>
           <p><a href="/">← Back to homepage</a></p>
@@ -106,7 +138,11 @@ cohortRoutes.get('/cohort/:slug/week/:num', async (c) => {
     )
   }
 
-  // TODO: If !cohort.isPublic, check auth + enrollment
+  // Access control
+  const hasAccess = await canAccessCohort(c.env.DB, user, cohort.id, cohort.isPublic)
+  if (!hasAccess) {
+    return c.html(<GatedMessage cohort={cohort} user={user} />, 403)
+  }
 
   const lesson = await db
     .select()
@@ -122,7 +158,7 @@ cohortRoutes.get('/cohort/:slug/week/:num', async (c) => {
 
   if (!lesson) {
     return c.html(
-      <Layout title="Not Found">
+      <Layout title="Not Found" user={user}>
         <div class="page-section" style="text-align: center; padding: 6rem 0;">
           <h2>Lesson not found</h2>
           <p><a href={`/cohort/${slug}`}>← Back to {cohort.title}</a></p>
@@ -147,7 +183,7 @@ cohortRoutes.get('/cohort/:slug/week/:num', async (c) => {
   const nextLesson = currentIndex < allLessons.length - 1 ? allLessons[currentIndex + 1] : null
 
   return c.html(
-    <Layout title={`Week ${weekNum}: ${lesson.title}`} description={lesson.description || undefined}>
+    <Layout title={`Week ${weekNum}: ${lesson.title}`} description={lesson.description || undefined} user={user}>
       <div class="page-section">
         <a href={`/cohort/${slug}`} class="back-link">← {cohort.title}</a>
 
