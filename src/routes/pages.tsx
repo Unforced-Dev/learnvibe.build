@@ -9,7 +9,6 @@ pages.get('/apply', (c) => {
 
   const errorMessages: Record<string, string> = {
     missing_fields: 'Please fill out all required fields.',
-    invalid_tier: 'Please select a valid pricing tier.',
     invalid_email: 'Please enter a valid email address.',
     server_error: 'Something went wrong. Please try again.',
   }
@@ -19,11 +18,11 @@ pages.get('/apply', (c) => {
       title="Apply for Cohort 2"
       description="Apply for Learn Vibe Build Cohort 2 — 6 weeks of building with AI as your creative partner."
     >
-      <section>
-        <p class="section-mark">Apply</p>
+      <div class="page-section">
+        <p class="section-label">Apply</p>
         <h2>Apply for Cohort 2</h2>
         <p class="lead">
-          6 weeks of building with AI as your creative partner. Starting early April 2026 in Boulder, Colorado.
+          6 weeks of building with AI as your creative partner. Starting April 2026 in Boulder, CO &amp; remote. $500.
         </p>
 
         {error && errorMessages[error] && (
@@ -70,20 +69,9 @@ pages.get('/apply', (c) => {
             <input type="text" id="referral_source" name="referral_source" required />
           </div>
 
-          <div class="form-group">
-            <label for="pricing_tier">Pricing tier</label>
-            <select id="pricing_tier" name="pricing_tier" required>
-              <option value="">Select your tier...</option>
-              <option value="full">General admission — $500</option>
-              <option value="alumni">Cohort 1 alumni — $250</option>
-              <option value="regenhub_member">RegenHub co-working member — $250</option>
-              <option value="core_member">RegenHub core member — Free</option>
-            </select>
-          </div>
-
           <button type="submit" class="apply-btn">Submit Application</button>
         </form>
-      </section>
+      </div>
     </Layout>
   )
 })
@@ -91,15 +79,15 @@ pages.get('/apply', (c) => {
 pages.get('/apply/success', (c) => {
   return c.html(
     <Layout title="Application Received">
-      <section class="success-message">
+      <div class="page-section success-message">
         <h2>Application received</h2>
-        <p class="lead" style="max-width: 500px; margin: 2rem auto;">
+        <p class="lead">
           Thank you for applying to Cohort 2. We'll review your application and get back to you soon.
         </p>
-        <p style="margin-top: 3rem;">
-          <a href="/">Back to homepage</a>
+        <p style="margin-top: 2rem;">
+          <a href="/">← Back to homepage</a>
         </p>
-      </section>
+      </div>
     </Layout>
   )
 })

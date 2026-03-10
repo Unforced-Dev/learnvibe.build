@@ -9,7 +9,8 @@ directory = "./public"
 [[d1_databases]]
 binding = "DB"
 database_name = "learnvibe-db"
-database_id = "placeholder-set-after-d1-create"
+database_id = "3d67d43b-4840-4f33-a297-83d94f355a20"
+migrations_dir = "drizzle/migrations"
 
 [vars]
 CLERK_PUBLISHABLE_KEY = "pk_test_placeholder"

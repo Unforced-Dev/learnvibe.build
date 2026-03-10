@@ -9,26 +9,25 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Inter:wght@300;400;500;600&family=IBM+Plex+Mono:wght@300;400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --void: #08080a;
-            --ink: #0f0f12;
-            --charcoal: #1a1a1f;
-            --graphite: #2a2a30;
-            --parchment: #f7f5f0;
-            --cream: #ebe7df;
-            --bone: #d8d3c8;
-            --stone: #9a958a;
-            --ember: #c2512a;
-            --ember-dim: #8a3a1f;
-            --ember-glow: rgba(194, 81, 42, 0.08);
-            --sage: #4a5f4a;
-
-            --font-display: 'Cormorant', serif;
+            --bg: #fafaf8;
+            --surface: #f3f1ed;
+            --border: #e5e2db;
+            --white: #ffffff;
+            --text: #1a1a1a;
+            --text-secondary: #555;
+            --text-tertiary: #999;
+            --accent: #e8612a;
+            --accent-hover: #d05520;
+            --accent-soft: #fef4f0;
+            --dark: #111;
+            --dark-text: #aaa;
+            --font-display: 'Space Grotesk', sans-serif;
             --font-body: 'Inter', sans-serif;
-            --font-mono: 'IBM Plex Mono', monospace;
+            --font-mono: 'JetBrains Mono', monospace;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -36,146 +35,104 @@
 
         body {
             font-family: var(--font-body);
-            background: var(--parchment);
-            color: var(--graphite);
-            line-height: 1.75;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
             font-size: 17px;
-            font-weight: 400;
+            -webkit-font-smoothing: antialiased;
         }
 
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            pointer-events: none;
-            opacity: 0.12;
-            z-index: 10000;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+        /* NAV */
+        .nav {
+            padding: 1.25rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .nav-brand {
+            font-family: var(--font-display);
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--text);
+            text-decoration: none;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-links a {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover { color: var(--text); }
+
+        .nav-apply {
+            background: var(--accent);
+            color: var(--white) !important;
+            padding: 0.5rem 1.25rem;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: background 0.2s !important;
+        }
+
+        .nav-apply:hover { background: var(--accent-hover) !important; }
+
+        @media (max-width: 600px) {
+            .nav { padding: 1rem 1.5rem; }
+            .nav-links { gap: 1.25rem; }
         }
 
         /* HERO */
         .hero {
-            min-height: 70vh;
-            background: var(--ink);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 6rem 2rem;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background:
-                radial-gradient(ellipse at 15% 85%, var(--ember-glow) 0%, transparent 50%),
-                linear-gradient(180deg, var(--void) 0%, var(--ink) 50%, var(--charcoal) 100%);
-            pointer-events: none;
-        }
-
-        .hero-content {
             max-width: 720px;
             margin: 0 auto;
-            position: relative;
-            z-index: 1;
+            padding: 5rem 2rem 3rem;
         }
 
         .hero-label {
             font-family: var(--font-mono);
-            font-size: 0.7rem;
-            font-weight: 300;
-            letter-spacing: 0.2em;
+            font-size: 0.75rem;
+            color: var(--accent);
+            letter-spacing: 0.05em;
             text-transform: uppercase;
-            color: var(--stone);
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
 
         .hero h1 {
             font-family: var(--font-display);
-            font-weight: 300;
-            font-size: clamp(2rem, 7vw, 3.5rem);
-            color: var(--cream);
-            margin-bottom: 2rem;
-            line-height: 1.2;
-            letter-spacing: 0.02em;
-        }
-
-        .hero h1 em {
-            color: var(--ember);
-            font-style: italic;
+            font-weight: 700;
+            font-size: clamp(2rem, 6vw, 3rem);
+            color: var(--text);
+            margin-bottom: 1.5rem;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
         }
 
         .hero p {
-            color: var(--bone);
+            color: var(--text-secondary);
             font-size: 1.05rem;
             line-height: 1.8;
             max-width: 600px;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
         }
 
         .hero .meta {
             font-family: var(--font-mono);
-            font-size: 0.7rem;
-            color: var(--stone);
-            letter-spacing: 0.1em;
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
+            margin-top: 1.5rem;
         }
-
-        /* NAV */
-        nav {
-            background: var(--parchment);
-            border-bottom: 1px solid var(--bone);
-            padding: 1.5rem 2rem;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        nav::before {
-            content: '';
-            position: absolute;
-            bottom: 0; left: 50%;
-            transform: translateX(-50%);
-            width: 60px; height: 1px;
-            background: var(--ember);
-        }
-
-        nav ul {
-            display: flex;
-            justify-content: center;
-            gap: 3rem;
-            list-style: none;
-            max-width: 900px;
-            margin: 0 auto;
-            flex-wrap: wrap;
-        }
-
-        nav a {
-            font-family: var(--font-mono);
-            font-size: 0.7rem;
-            font-weight: 400;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            color: var(--graphite);
-            text-decoration: none;
-            padding: 0.5rem 0;
-            position: relative;
-            transition: color 0.3s ease;
-        }
-
-        nav a::after {
-            content: '';
-            position: absolute;
-            bottom: 0; left: 0;
-            width: 0; height: 1px;
-            background: var(--ember);
-            transition: width 0.4s ease;
-        }
-
-        nav a:hover { color: var(--ember); }
-        nav a:hover::after { width: 100%; }
 
         /* MAIN */
         main {
@@ -185,268 +142,270 @@
         }
 
         section {
-            padding: 5rem 0;
-            border-bottom: 1px solid var(--bone);
+            padding: 3.5rem 0;
+            border-top: 1px solid var(--border);
         }
 
-        section:last-of-type { border-bottom: none; }
-
-        .section-mark {
+        .section-label {
             font-family: var(--font-mono);
-            font-size: 0.65rem;
-            letter-spacing: 0.15em;
+            font-size: 0.75rem;
+            font-weight: 400;
+            color: var(--accent);
+            letter-spacing: 0.05em;
             text-transform: uppercase;
-            color: var(--stone);
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
         }
 
         h2 {
             font-family: var(--font-display);
-            font-weight: 400;
-            font-size: clamp(1.8rem, 4vw, 2.5rem);
-            color: var(--charcoal);
-            margin-bottom: 1.5rem;
-            line-height: 1.2;
+            font-weight: 600;
+            font-size: clamp(1.5rem, 3.5vw, 2rem);
+            color: var(--text);
+            margin-bottom: 1.25rem;
+            letter-spacing: -0.03em;
+            line-height: 1.15;
         }
 
         h3 {
             font-family: var(--font-display);
-            font-weight: 500;
-            font-size: 1.35rem;
-            color: var(--graphite);
-            margin: 2.5rem 0 1rem;
+            font-weight: 600;
+            font-size: 1.25rem;
+            color: var(--text);
+            margin: 2rem 0 0.75rem;
+            letter-spacing: -0.02em;
         }
 
-        p { margin-bottom: 1.25rem; max-width: 65ch; }
+        p {
+            color: var(--text-secondary);
+            margin-bottom: 1.25rem;
+            max-width: 65ch;
+        }
 
         .lead {
             font-size: 1.05rem;
             font-weight: 300;
-            color: var(--charcoal);
-            line-height: 1.9;
+            line-height: 1.8;
+            color: var(--text);
         }
 
-        em { font-style: italic; color: var(--ember-dim); }
-        strong { color: var(--charcoal); font-weight: 600; }
+        strong { color: var(--text); font-weight: 600; }
+        em { font-style: italic; }
 
-        a { color: var(--ember); text-decoration: none; }
+        a { color: var(--accent); text-decoration: none; }
         a:hover { text-decoration: underline; }
 
         /* BLOCKQUOTE */
         blockquote {
-            border-left: 3px solid var(--ember);
-            padding: 1rem 0 1rem 1.5rem;
+            border-left: 3px solid var(--accent);
+            padding: 0.75rem 0 0.75rem 1.5rem;
             margin: 2rem 0;
         }
 
         blockquote p {
-            font-family: var(--font-display);
+            font-size: 1.1rem;
             font-style: italic;
-            font-size: 1.25rem;
-            color: var(--charcoal);
-            line-height: 1.6;
+            color: var(--text);
+            line-height: 1.7;
             margin: 0;
         }
 
         /* INFO CARD */
         .info-card {
-            padding: 2rem 2.5rem;
-            background: var(--cream);
-            border-bottom: 2px solid var(--ember);
-            margin: 2rem 0;
+            padding: 1.75rem 2rem;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin: 1.5rem 0;
         }
 
-        .info-card h3 {
-            margin-top: 0;
-            color: var(--charcoal);
-        }
-
+        .info-card h3 { margin-top: 0; }
         .info-card p { font-size: 0.95rem; }
         .info-card p:last-child { margin-bottom: 0; }
 
-        /* TIER LIST */
-        .tier-item {
+        /* PRICING ROW */
+        .pricing-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1rem 0;
-            border-bottom: 1px solid var(--bone);
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
         }
 
-        .tier-item:last-child { border-bottom: none; }
+        .pricing-label { color: var(--text-secondary); font-size: 0.95rem; }
 
-        .tier-label { color: var(--graphite); }
-
-        .tier-price {
+        .pricing-amount {
             font-family: var(--font-mono);
-            font-size: 0.85rem;
-            color: var(--charcoal);
-            letter-spacing: 0.05em;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text);
         }
 
         /* PLATFORM GRID */
         .platform-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 0;
+            gap: 1rem;
             margin: 2rem 0;
-            border-top: 1px solid var(--bone);
-            border-left: 1px solid var(--bone);
         }
 
         @media (max-width: 600px) { .platform-grid { grid-template-columns: 1fr; } }
 
         .platform-item {
             padding: 1.5rem;
-            border-right: 1px solid var(--bone);
-            border-bottom: 1px solid var(--bone);
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 10px;
         }
 
         .platform-item h4 {
             font-family: var(--font-display);
-            font-weight: 500;
-            font-size: 1.15rem;
-            color: var(--charcoal);
+            font-weight: 600;
+            font-size: 1.05rem;
+            color: var(--text);
             margin-bottom: 0.5rem;
+            letter-spacing: -0.01em;
         }
 
         .platform-item p { font-size: 0.9rem; margin: 0; }
 
-        /* TECHNE VISION */
-        .techne-card {
-            padding: 2.5rem;
-            background: var(--cream);
-            border-left: 3px solid var(--ember);
-            margin: 2.5rem 0;
+        /* VISION CARD */
+        .vision-card {
+            padding: 2rem;
+            background: var(--accent-soft);
+            border-radius: 10px;
+            border-left: 3px solid var(--accent);
+            margin: 2rem 0;
         }
 
-        .techne-card h3 { margin-top: 0; }
+        .vision-card h3 { margin-top: 0; }
 
-        .techne-card .subtitle {
+        .vision-card .subtitle {
             font-family: var(--font-mono);
-            font-size: 0.65rem;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: var(--stone);
-            margin-bottom: 1.5rem;
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            letter-spacing: 0.03em;
+            margin-bottom: 1.25rem;
         }
 
-        .techne-list {
+        .vision-list {
             list-style: none;
             margin: 1.5rem 0;
         }
 
-        .techne-list li {
-            padding: 0.5rem 0;
-            padding-left: 1.5rem;
+        .vision-list li {
+            padding: 0.4rem 0 0.4rem 1.5rem;
             position: relative;
             font-size: 0.95rem;
+            color: var(--text-secondary);
         }
 
-        .techne-list li::before {
-            content: '\2192';
+        .vision-list li::before {
+            content: '→';
             position: absolute;
             left: 0;
-            color: var(--ember);
+            color: var(--accent);
         }
 
-        .techne-list strong {
-            color: var(--charcoal);
-        }
+        .vision-list strong { color: var(--text); }
 
-        /* INVITATION */
-        .invitation {
-            background: var(--ink);
-            padding: 6rem 2rem;
+        .muted { color: var(--text-tertiary); font-size: 0.9rem; }
+
+        /* CTA SECTION */
+        .cta-section {
+            background: var(--dark);
+            padding: 5rem 2rem;
             text-align: center;
         }
 
-        .invitation-content {
-            max-width: 560px;
+        .cta-content {
+            max-width: 520px;
             margin: 0 auto;
         }
 
-        .invitation h2 {
+        .cta-section h2 {
             font-family: var(--font-display);
-            font-weight: 300;
-            font-size: 2.25rem;
-            color: var(--cream);
-            margin-bottom: 1.5rem;
+            font-weight: 600;
+            font-size: 2rem;
+            color: var(--white);
+            margin-bottom: 1rem;
+            letter-spacing: -0.03em;
         }
 
-        .invitation p {
-            color: var(--stone);
-            font-size: 1rem;
+        .cta-section p {
+            color: var(--dark-text);
+            font-size: 1.05rem;
+            line-height: 1.7;
             max-width: none;
             margin-bottom: 1.25rem;
-            line-height: 1.8;
         }
 
-        .feedback-btn {
-            display: inline-block;
-            font-family: var(--font-display);
-            font-size: 1.1rem;
+        .cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--accent);
+            color: var(--white);
+            font-family: var(--font-body);
+            font-size: 1rem;
             font-weight: 500;
-            background: var(--ember);
-            color: var(--parchment);
             padding: 0.875rem 2rem;
+            border-radius: 8px;
             text-decoration: none;
-            transition: background-color 0.3s ease;
-            margin-top: 1.5rem;
+            transition: all 0.2s;
+            margin-top: 0.5rem;
         }
 
-        .feedback-btn:hover {
-            background: var(--ember-dim);
+        .cta-btn:hover {
+            background: var(--accent-hover);
             text-decoration: none;
+            transform: translateY(-1px);
         }
 
         /* FOOTER */
         footer {
-            background: var(--void);
-            padding: 3rem 2rem;
+            padding: 2.5rem 2rem;
             text-align: center;
+            border-top: 1px solid var(--border);
         }
 
         footer p {
-            font-family: var(--font-mono);
-            font-size: 0.7rem;
-            letter-spacing: 0.1em;
-            color: var(--graphite);
+            font-size: 0.85rem;
+            color: var(--text-tertiary);
             max-width: none;
             margin: 0;
+            line-height: 1.7;
         }
 
-        footer a { color: var(--stone); text-decoration: none; transition: color 0.3s ease; }
-        footer a:hover { color: var(--ember); }
+        footer a { color: var(--text-secondary); text-decoration: none; }
+        footer a:hover { color: var(--accent); }
     </style>
 </head>
 <body>
 
-    <section class="hero">
-        <div class="hero-content">
-            <p class="hero-label">learnvibe.build / vision</p>
-            <h1>What Learn Vibe Build <em>is becoming.</em></h1>
-            <p>This is a living document — a candid look at where LVB is heading, how it fits into a larger vision, and what we're building together. It's meant for the people close to this work: collaborators, partners, RegenHub members, and the builders who came through Cohort 1.</p>
-            <p class="meta">Last updated March 2026</p>
-        </div>
-    </section>
-
-    <nav>
-        <ul>
+    <nav class="nav">
+        <a href="/" class="nav-brand">Learn Vibe Build</a>
+        <ul class="nav-links">
             <li><a href="/">Home</a></li>
             <li><a href="/cohort-1.html">Cohort 1</a></li>
-            <li><a href="/apply">Apply</a></li>
+            <li><a href="/apply" class="nav-apply">Apply</a></li>
         </ul>
     </nav>
+
+    <div class="hero">
+        <p class="hero-label">Vision</p>
+        <h1>What Learn Vibe Build is becoming.</h1>
+        <p>A candid look at where LVB is heading, how it fits into a larger vision, and what we're building together. For collaborators, partners, RegenHub members, and the builders who came through Cohort 1.</p>
+        <p class="meta">Last updated March 2026</p>
+    </div>
 
     <main>
 
         <!-- The Core Insight -->
         <section>
-            <p class="section-mark">01 — The Insight</p>
+            <p class="section-label">The Insight</p>
             <h2>Everyone is a builder</h2>
 
-            <p class="lead">People coming through LVB are not necessarily learning to be engineers or app developers. They're learning to use emerging AI technologies to be more effective <em>creators and builders</em> in the world.</p>
+            <p class="lead">People coming through LVB are not necessarily learning to be engineers or app developers. They're learning to use emerging AI technologies to be more effective creators and builders in the world.</p>
 
             <p>They may be a small business owner wanting to build their landing page or e-commerce platform. An artist wanting to create their website and social media strategy. Someone trying to eat healthier and build better practices. A writer with aspirations of structuring a book and giving it form.</p>
 
@@ -461,45 +420,45 @@
 
         <!-- Cohort 2 -->
         <section>
-            <p class="section-mark">02 — Cohort 2</p>
+            <p class="section-label">Cohort 2</p>
             <h2>The next cohort</h2>
-            <p style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--stone); letter-spacing: 0.1em; margin-bottom: 2rem;">Early April 2026 · 6 weeks</p>
+            <p style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-tertiary); margin-bottom: 1.5rem;">April 2026 · 6 weeks · Boulder, CO & Remote</p>
 
-            <p>We ran Cohort 1 in January, sponsored by Gitcoin — and it worked. People who had never written a line of code shipped real projects. The energy was strong, the community was real, and it was clear this format has legs.</p>
+            <p>We ran Cohort 1 in January — 13 builders, sponsored by Gitcoin — and it worked. People who had never written a line of code shipped real projects. The energy was strong, the community was real, and it was clear this format has legs.</p>
 
-            <p>Cohort 2 expands to <strong>6 weeks</strong>, with more depth and more space for building. We're aiming for early April, with advertising starting this week.</p>
+            <p>Cohort 2 expands to <strong>6 weeks</strong>, with more depth and more space for building.</p>
 
             <div class="info-card">
                 <h3>Format</h3>
                 <p><strong>Weekly 1–2 hour sessions</strong> — shorter with pre-recorded lectures, longer when done live. Core curriculum and demonstration.</p>
-                <p><strong>Weekly 2 hour co-work &amp; office hours</strong> — open working time together, hands-on help, peer learning.</p>
+                <p><strong>Weekly 2 hour co-work & office hours</strong> — open working time together, hands-on help, peer learning.</p>
                 <p><strong>Community platform</strong> — share projects, ask questions, get inspired by what others are building.</p>
             </div>
 
             <div class="info-card">
                 <h3>Facilitators</h3>
-                <p><strong>Aaron Gabriel</strong> and <strong>Jon</strong> as lead facilitators, with the possibility of <strong>Lucian</strong> as a third. Multiple facilitators means more perspectives and more support for participants.</p>
+                <p><strong>Aaron Gabriel</strong> and <strong>Jon</strong> as lead facilitators, with <strong>Lucian</strong> as a third. Multiple facilitators means more perspectives and more support for participants.</p>
             </div>
 
             <div class="info-card">
                 <h3>Pricing</h3>
-                <div class="tier-item">
-                    <span class="tier-label">General admission</span>
-                    <span class="tier-price">$500</span>
+                <div class="pricing-row">
+                    <span class="pricing-label">General admission</span>
+                    <span class="pricing-amount">$500</span>
                 </div>
-                <div class="tier-item">
-                    <span class="tier-label">Cohort 1 alumni</span>
-                    <span class="tier-price">$250</span>
+                <div class="pricing-row">
+                    <span class="pricing-label">Cohort 1 alumni</span>
+                    <span class="pricing-amount">$250</span>
                 </div>
-                <div class="tier-item">
-                    <span class="tier-label">RegenHub co-working members</span>
-                    <span class="tier-price">$250</span>
+                <div class="pricing-row">
+                    <span class="pricing-label">RegenHub co-working members</span>
+                    <span class="pricing-amount">$250</span>
                 </div>
-                <div class="tier-item">
-                    <span class="tier-label">RegenHub core members</span>
-                    <span class="tier-price">Free</span>
+                <div class="pricing-row">
+                    <span class="pricing-label">RegenHub core members</span>
+                    <span class="pricing-amount">Free</span>
                 </div>
-                <p style="margin-top: 1.5rem; font-size: 0.85rem; color: var(--stone);">Introductory pricing — future cohorts will be $1,000. We're keeping it accessible as we build the community.</p>
+                <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-tertiary);">Introductory pricing — future cohorts will be $1,000. Keeping it accessible as we build the community.</p>
             </div>
 
             <div class="info-card">
@@ -511,10 +470,10 @@
 
         <!-- Platform Vision -->
         <section>
-            <p class="section-mark">03 — The Platform</p>
+            <p class="section-label">The Platform</p>
             <h2>Beyond cohorts</h2>
 
-            <p class="lead">The cohort model is how we <em>bridge people in</em>. But the thing we're actually building is an ongoing <strong>community of practice</strong> — a place where people create and learn together, long after any single cohort ends.</p>
+            <p class="lead">The cohort model is how we bridge people in. But the thing we're actually building is an ongoing <strong>community of practice</strong> — a place where people create and learn together, long after any single cohort ends.</p>
 
             <p>The next major step is building out the platform. Our own version of what Circle, Teachable, and similar tools do — but built for this community, by this community:</p>
 
@@ -539,25 +498,25 @@
 
             <p>Some of this is already built. Much of it remains to be done. The immediate steps: onboard Cohort 1 alumni onto the platform, and prepare for Cohort 2.</p>
 
-            <p style="color: var(--stone);">Inspirations we're drawing from: <a href="https://tinkerer.club" target="_blank">Tinkerer.club</a> and Jonny Miller's <a href="https://www.nervoussystemmastery.com/" target="_blank">Nervous System Mastery</a> cohort model.</p>
+            <p class="muted">Inspirations: <a href="https://tinkerer.club" target="_blank">Tinkerer.club</a> and Jonny Miller's <a href="https://www.nervoussystemmastery.com/" target="_blank">Nervous System Mastery</a> cohort model.</p>
         </section>
 
         <!-- The Bigger Picture -->
         <section>
-            <p class="section-mark">04 — The Bigger Picture</p>
+            <p class="section-label">The Bigger Picture</p>
             <h2>Part of something larger</h2>
 
             <p>LVB is a program of <a href="https://regenhub.xyz" target="_blank">RegenHub</a>, the cooperative workspace at 1515 Walnut in Boulder. RegenHub is gaining real momentum — the co-working space is growing, membership is expanding, and the community is strengthening.</p>
 
             <p>This positions us as an <strong>AI-first cooperative</strong>: a cooperative looking at how to use technology well as a way to benefit people and planet.</p>
 
-            <div class="techne-card">
+            <div class="vision-card">
                 <h3>The Techne Vision</h3>
                 <p class="subtitle">Holding the vision. Growing into it.</p>
 
                 <p>We see the potential for all of this to eventually become <strong>Techne</strong> — from the Greek for craft, art, practical wisdom. A cooperative dedicated to building technology differently, innovating wisely, and helping to point a different direction for where technology can go.</p>
 
-                <ul class="techne-list">
+                <ul class="vision-list">
                     <li><strong>Techne Cooperative</strong> — the organizational structure, member-owned and governed</li>
                     <li><strong>Techne Foundation</strong> — the non-profit arm</li>
                     <li><strong>Techne Institute</strong> — the learning center (where LVB lives)</li>
@@ -565,26 +524,30 @@
                     <li><strong>Techne Builders</strong> — technology development and services</li>
                 </ul>
 
-                <p style="color: var(--stone); font-size: 0.9rem;">The brands we have — RegenHub, Learn Vibe Build — already have recognition and momentum. We're not rebranding overnight. We're growing into this vision organically, starting in Boulder and extending beyond.</p>
+                <p class="muted">The brands we have — RegenHub, Learn Vibe Build — already have recognition and momentum. We're not rebranding overnight. We're growing into this vision organically, starting in Boulder and extending beyond.</p>
             </div>
 
-            <p>Taking the LVB cohort is also a step toward <strong>cooperative membership</strong> — which means having a say in how funds are allocated and how we grow together. Right now it doesn't make sense to require the cohort for co-working members, but we're planting the seeds. That's why existing co-workers get the cohort at a discount — we're building the culture from where we are.</p>
+            <p>Taking the LVB cohort is also a step toward <strong>cooperative membership</strong> — which means having a say in how funds are allocated and how we grow together. We're planting the seeds and building the culture from where we are.</p>
         </section>
 
     </main>
 
     <!-- Call for Feedback -->
-    <section class="invitation">
-        <div class="invitation-content">
+    <section class="cta-section">
+        <div class="cta-content">
             <h2>This is a living vision</h2>
             <p>We're sharing this because we want your input. What resonates? What's missing? What would you want to see from LVB and the broader cooperative?</p>
-            <p>If you're reading this, you're part of this — as a collaborator, a past participant, a RegenHub member, or someone we trust. Your perspective shapes what this becomes.</p>
-            <a href="mailto:aaron@learnvibe.build?subject=LVB%20Vision%20Feedback" class="feedback-btn">Share your thoughts &rarr;</a>
+            <p>If you're reading this, you're part of this — as a collaborator, a past participant, a RegenHub member, or someone we trust.</p>
+            <a href="mailto:aaron@learnvibe.build?subject=LVB%20Vision%20Feedback" class="cta-btn">
+                Share your thoughts
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
         </div>
     </section>
 
     <footer>
-        <p><a href="https://learnvibe.build">Learn Vibe Build</a> &bull; Part of <a href="https://regenhub.xyz" target="_blank">Regen Hub</a> &bull; A program of the cooperative at 1515 Walnut, Boulder CO</p>
+        <p>Learn Vibe Build &middot; Boulder, Colorado &middot; 2026</p>
+        <p>Part of the cooperative at <a href="https://regenhub.xyz" target="_blank">Regen Hub</a></p>
     </footer>
 
 </body>

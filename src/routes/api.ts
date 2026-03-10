@@ -13,17 +13,10 @@ api.post('/api/applications', async (c) => {
   const background = String(body.background || '').trim()
   const projectInterest = String(body.project_interest || '').trim()
   const referralSource = String(body.referral_source || '').trim()
-  const pricingTier = String(body.pricing_tier || '').trim()
-
-  const validTiers = ['full', 'alumni', 'regenhub_member', 'core_member']
 
   // Validate required fields
-  if (!name || !email || !background || !projectInterest || !referralSource || !pricingTier) {
+  if (!name || !email || !background || !projectInterest || !referralSource) {
     return c.redirect('/apply?error=missing_fields')
-  }
-
-  if (!validTiers.includes(pricingTier)) {
-    return c.redirect('/apply?error=invalid_tier')
   }
 
   if (!email.includes('@') || !email.includes('.')) {
@@ -38,7 +31,7 @@ api.post('/api/applications', async (c) => {
       background,
       projectInterest,
       referralSource,
-      pricingTier,
+      pricingTier: 'pending',
     })
 
     return c.redirect('/apply/success')
