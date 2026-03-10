@@ -3,14 +3,24 @@ import { eq, desc, asc, and } from 'drizzle-orm'
 import { Layout } from '../components/Layout'
 import { getDb } from '../db'
 import { applications, cohorts, lessons, users, enrollments } from '../db/schema'
-import { isAdmin } from '../lib/auth'
+import { isAdmin, isClerkConfigured } from '../lib/auth'
 import type { AppContext } from '../types'
 
 const admin = new Hono<AppContext>()
 
 // ===== ADMIN GUARD =====
+// When Clerk is configured: require admin role
+// When Clerk is NOT configured (dev): allow access for development
 admin.use('/admin/*', async (c, next) => {
   const user = c.get('user')
+
+  // If Clerk is not configured, allow access (dev mode)
+  if (!isClerkConfigured(c)) {
+    await next()
+    return
+  }
+
+  // In production, require admin role
   if (!isAdmin(user)) {
     return c.html(
       <Layout title="Unauthorized" user={user}>
@@ -468,6 +478,19 @@ admin.get('/admin/lessons/:id/edit', async (c) => {
       </div>
     </Layout>
   )
+})
+
+// ===== API ADMIN GUARD =====
+admin.use('/api/admin/*', async (c, next) => {
+  if (!isClerkConfigured(c)) {
+    await next()
+    return
+  }
+  const user = c.get('user')
+  if (!isAdmin(user)) {
+    return c.json({ error: 'Forbidden' }, 403)
+  }
+  await next()
 })
 
 // ===== API: UPDATE APPLICATION STATUS =====
