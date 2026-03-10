@@ -1,0 +1,20 @@
+name = "learnvibe-build"
+main = "src/index.tsx"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./public"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "learnvibe-db"
+database_id = "placeholder-set-after-d1-create"
+
+[vars]
+CLERK_PUBLISHABLE_KEY = "pk_test_placeholder"
+
+# Custom domain (uncomment after DNS migration)
+# [[routes]]
+# pattern = "learnvibe.build/*"
+# custom_domain = true

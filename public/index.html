@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Learn Vibe Build — AI as Creative Partner</title>
-    <meta name="description" content="Cohort-based programs teaching you to build with AI as a creative partner. From idea to deployed project in 4 weeks.">
+    <meta name="description" content="Cohort-based programs teaching you to build with AI as a creative partner. From idea to deployed project.">
 
     <!-- Open Graph -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://learnvibe.build/">
     <meta property="og:title" content="Learn Vibe Build — AI as Creative Partner">
-    <meta property="og:description" content="Cohort-based programs teaching you to build with AI as a creative partner. From idea to deployed project in 4 weeks.">
+    <meta property="og:description" content="Cohort-based programs teaching you to build with AI as a creative partner. From idea to deployed project.">
     <meta property="og:image" content="https://learnvibe.build/og-image.png">
 
     <!-- Fonts -->
@@ -457,6 +457,60 @@
         .cohort-status.completed { background: var(--bone); color: var(--stone); }
         .cohort-status.upcoming { background: var(--ember-glow); color: var(--ember); }
 
+        /* ============ PRICING TIERS ============ */
+        .pricing-tiers {
+            margin-top: 3rem;
+        }
+
+        .pricing-tiers h3 {
+            margin-top: 0;
+        }
+
+        .tier-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem 0;
+            border-bottom: 1px solid var(--bone);
+        }
+
+        .tier-item:last-child { border-bottom: none; }
+
+        .tier-label {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--graphite);
+        }
+
+        .tier-price {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            font-weight: 400;
+            color: var(--charcoal);
+            letter-spacing: 0.05em;
+        }
+
+        /* ============ APPLY BUTTON ============ */
+        .apply-btn {
+            display: inline-block;
+            font-family: var(--font-display);
+            font-size: 1.15rem;
+            font-weight: 500;
+            background: var(--ember);
+            color: var(--parchment);
+            border: none;
+            padding: 1rem 2.5rem;
+            cursor: pointer;
+            letter-spacing: 0.02em;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+            margin-top: 2rem;
+        }
+
+        .apply-btn:hover {
+            background: var(--ember-dim);
+        }
+
         /* ============ LEARN GRID ============ */
         .learn-grid {
             display: grid;
@@ -634,7 +688,7 @@
             <p class="hero-tagline">Cohort-based programs teaching you to build with AI as a creative partner</p>
             <div class="hero-meta">
                 <p class="hero-location">Boulder, Colorado</p>
-                <p class="hero-status">Cohort 2 &middot; Applications Opening Soon</p>
+                <p class="hero-status">Cohort 2 &middot; April 2026</p>
             </div>
         </div>
     </section>
@@ -644,7 +698,8 @@
             <li><a href="#idea">The Idea</a></li>
             <li><a href="#cohorts">Cohorts</a></li>
             <li><a href="#learn">What You Build</a></li>
-            <li><a href="#guide">Your Guide</a></li>
+            <li><a href="#guide">Your Guides</a></li>
+            <li><a href="/apply">Apply</a></li>
         </ul>
     </nav>
 
@@ -670,7 +725,7 @@
 
         <section id="cohorts">
             <p class="section-mark">02 &mdash; Cohorts</p>
-            <h2>4-week programs</h2>
+            <h2>Cohort-based programs</h2>
             <p class="lead">Cohort-based for a reason. You learn from each other's projects, questions, and discoveries. Community that continues after the program ends.</p>
 
             <div class="cohort-track">
@@ -694,13 +749,34 @@
                     <div class="cohort-numeral">II</div>
                     <div class="cohort-info">
                         <h4>Practice</h4>
-                        <p>The next wave of builders. Same format: 4 weeks, live sessions, real projects shipped. Dates to be announced.</p>
-                        <span class="cohort-status upcoming">Applications Opening Soon</span>
+                        <p>6 weeks of deeper building. Starting early April 2026. Facilitated by Aaron Gabriel and Jon, with Lucian joining as a third guide. Weekly sessions, co-work hours, and a growing community platform.</p>
+                        <span class="cohort-status upcoming">Applications Open</span>
                     </div>
                     <div class="cohort-meta">
-                        <strong>4 weeks</strong>
-                        ~$225
+                        <strong>6 weeks</strong>
+                        $500
                     </div>
+                </div>
+            </div>
+
+            <div class="pricing-tiers">
+                <h3>Cohort 2 Pricing</h3>
+                <p style="font-size: 0.95rem; margin-bottom: 2rem;">Introductory pricing — future cohorts will be $1,000. We're keeping it accessible as we build the community.</p>
+                <div class="tier-item">
+                    <span class="tier-label">General admission</span>
+                    <span class="tier-price">$500</span>
+                </div>
+                <div class="tier-item">
+                    <span class="tier-label">Cohort 1 alumni</span>
+                    <span class="tier-price">$250</span>
+                </div>
+                <div class="tier-item">
+                    <span class="tier-label">RegenHub co-working members</span>
+                    <span class="tier-price">$250</span>
+                </div>
+                <div class="tier-item">
+                    <span class="tier-label">RegenHub core members</span>
+                    <span class="tier-price">Free</span>
                 </div>
             </div>
         </section>
@@ -759,14 +835,24 @@
         </section>
 
         <section id="guide">
-            <p class="section-mark">05 &mdash; Your Guide</p>
+            <p class="section-mark">05 &mdash; Your Guides</p>
             <h2>Who you'll learn with</h2>
 
             <div class="guide-card">
                 <h3 class="guide-name">Aaron Gabriel</h3>
-                <p class="guide-role">Founder of Parachute &bull; Graduate Student, ATLAS at CU Boulder</p>
+                <p class="guide-role">Lead Facilitator &bull; Founder of Parachute</p>
                 <p>I've spent the last year building with AI every day. I built <a href="https://openparachute.io" target="_blank">Parachute</a>, a voice-first tool for connected thinking, almost entirely through conversation with Claude.</p>
                 <p>Graduate student at CU Boulder's ATLAS program, founder of <a href="https://wovenweb.org" target="_blank">Woven Web</a>, and someone who believes the best technology comes from understanding people first, code second.</p>
+            </div>
+
+            <div class="guide-card">
+                <h3 class="guide-name">Jon</h3>
+                <p class="guide-role">Co-Facilitator</p>
+            </div>
+
+            <div class="guide-card">
+                <h3 class="guide-name">Lucian</h3>
+                <p class="guide-role">Guest Facilitator</p>
             </div>
         </section>
 
@@ -775,7 +861,8 @@
     <section class="invitation">
         <div class="invitation-content">
             <h2>Ready to build?</h2>
-            <p>Cohort 2 applications are opening soon. Join the waitlist to be notified when enrollment opens — and to get early access to curriculum materials from Cohort 1.</p>
+            <p>Cohort 2 starts early April 2026. Six weeks of building with AI as your creative partner. Apply now — spaces are limited.</p>
+            <a href="/apply" class="apply-btn">Apply for Cohort 2</a>
             <p class="invitation-cta">If something here resonates: reach out.<br>The next step is a conversation.</p>
         </div>
     </section>

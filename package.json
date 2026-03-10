@@ -1,0 +1,24 @@
+{
+  "name": "learnvibe-build",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate:local": "wrangler d1 migrations apply learnvibe-db --local",
+    "db:migrate:remote": "wrangler d1 migrations apply learnvibe-db --remote"
+  },
+  "dependencies": {
+    "hono": "^4",
+    "@hono/clerk-auth": "^2",
+    "@clerk/backend": "^1",
+    "drizzle-orm": "^0.36"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4",
+    "drizzle-kit": "^0.30",
+    "typescript": "^5.5",
+    "wrangler": "^4"
+  }
+}
