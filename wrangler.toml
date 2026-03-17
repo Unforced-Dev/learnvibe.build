@@ -2,6 +2,7 @@ name = "learnvibe-build"
 main = "src/index.tsx"
 compatibility_date = "2025-01-01"
 compatibility_flags = ["nodejs_compat"]
+workers_dev = true
 
 [assets]
 directory = "./public"
@@ -14,8 +15,9 @@ migrations_dir = "drizzle/migrations"
 
 [vars]
 CLERK_PUBLISHABLE_KEY = "pk_test_dG9waWNhbC1yYWJiaXQtNjAuY2xlcmsuYWNjb3VudHMuZGV2JA"
+EMAIL_FROM = "Learn Vibe Build <hello@mail.unforced.dev>"
 
-# Custom domain (uncomment after DNS migration)
-# [[routes]]
-# pattern = "learnvibe.build/*"
-# custom_domain = true
+# Custom domain
+[[routes]]
+pattern = "learnvibe.build"
+custom_domain = true

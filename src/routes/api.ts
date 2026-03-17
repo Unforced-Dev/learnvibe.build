@@ -3,6 +3,8 @@ import { eq } from 'drizzle-orm'
 import { applications, lessons } from '../db/schema'
 import { getDb } from '../db'
 import { isAdmin } from '../lib/auth'
+import { sendApplicationReceived, sendApplicationApproved, sendApplicationRejected } from '../lib/email'
+import { formatCents, getAmountForTier, getTierLabel } from '../lib/stripe'
 import type { AppContext } from '../types'
 
 const api = new Hono<AppContext>()
@@ -37,6 +39,11 @@ api.post('/api/applications', async (c) => {
       pricingTier: 'pending',
     })
 
+    // Send confirmation email (non-blocking — don't fail the request if email fails)
+    c.executionCtx.waitUntil(
+      sendApplicationReceived(c.env, email, name)
+    )
+
     return c.redirect('/apply/success')
   } catch (error) {
     console.error('Failed to save application:', error)
@@ -65,6 +72,12 @@ api.post('/api/admin/applications/:id/status', async (c) => {
     const db = getDb(c.env.DB)
     const newStatus = action === 'approve' ? 'approved' : 'rejected'
 
+    // Get the application first so we can email the applicant
+    const app = await db.select().from(applications).where(eq(applications.id, id)).get()
+    if (!app) {
+      return c.redirect(`/admin/applications/${id}?error=not_found`)
+    }
+
     await db.update(applications)
       .set({
         status: newStatus,
@@ -73,6 +86,28 @@ api.post('/api/admin/applications/:id/status', async (c) => {
         approvedAt: action === 'approve' ? new Date().toISOString() : null,
       })
       .where(eq(applications.id, id))
+
+    // Send email notification (non-blocking)
+    const baseUrl = new URL(c.req.url).origin
+    if (action === 'approve') {
+      const amountCents = getAmountForTier(pricingTier)
+      const paymentUrl = `${baseUrl}/payment/checkout/${id}`
+      c.executionCtx.waitUntil(
+        sendApplicationApproved(
+          c.env,
+          app.email,
+          app.name,
+          paymentUrl,
+          getTierLabel(pricingTier),
+          formatCents(amountCents),
+          amountCents === 0
+        )
+      )
+    } else {
+      c.executionCtx.waitUntil(
+        sendApplicationRejected(c.env, app.email, app.name)
+      )
+    }
 
     return c.redirect(`/admin/applications/${id}`)
   } catch (error) {

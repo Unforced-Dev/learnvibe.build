@@ -77,3 +77,18 @@ export const memberships = sqliteTable('memberships', {
   startedAt: text('started_at').notNull().$defaultFn(() => new Date().toISOString()),
   expiresAt: text('expires_at'), // nullable — for paid memberships
 })
+
+// ===== PAYMENTS =====
+export const payments = sqliteTable('payments', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').references(() => users.id),
+  applicationId: integer('application_id').references(() => applications.id),
+  cohortId: integer('cohort_id').references(() => cohorts.id),
+  stripeCheckoutSessionId: text('stripe_checkout_session_id').unique(),
+  stripePaymentIntentId: text('stripe_payment_intent_id'),
+  amountCents: integer('amount_cents').notNull(),
+  currency: text('currency').notNull().default('usd'),
+  status: text('status').notNull().default('pending'), // 'pending' | 'completed' | 'failed' | 'refunded'
+  paidAt: text('paid_at'),
+  createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
+})

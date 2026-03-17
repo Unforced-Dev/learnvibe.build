@@ -9,6 +9,7 @@ import authRoutes from './routes/auth'
 import dashboardRoutes from './routes/dashboard'
 import adminRoutes from './routes/admin'
 import webhookRoutes from './routes/webhooks'
+import paymentRoutes from './routes/payment'
 
 const app = new Hono<AppContext>()
 
@@ -45,6 +46,9 @@ app.route('/', dashboardRoutes)
 
 // Admin routes (requires admin role)
 app.route('/', adminRoutes)
+
+// Payment routes (checkout, success, cancelled)
+app.route('/', paymentRoutes)
 
 // Redirects from old static URLs to dynamic routes
 app.get('/cohort-1.html', (c) => c.redirect('/cohort/cohort-1', 301))

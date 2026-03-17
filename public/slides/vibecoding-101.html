@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vibecoding 101 — Learn Vibe Build</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #fafaf8;
+            --surface: #f3f1ed;
+            --border: #e5e2db;
+            --white: #ffffff;
+            --text: #1a1a1a;
+            --text-secondary: #555;
+            --text-tertiary: #999;
+            --accent: #e8612a;
+            --accent-hover: #d05520;
+            --accent-soft: #fef4f0;
+            --dark: #111;
+            --font-display: 'Space Grotesk', sans-serif;
+            --font-body: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg);
+            color: var(--text);
+            overflow: hidden;
+            height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .slide {
+            display: none;
+            height: 100vh;
+            padding: 4rem 6rem;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .slide.active {
+            display: flex;
+        }
+
+        /* Title slide */
+        .slide-title {
+            text-align: center;
+            align-items: center;
+        }
+
+        .slide-title h1 {
+            font-family: var(--font-display);
+            font-size: clamp(3rem, 7vw, 5.5rem);
+            font-weight: 700;
+            letter-spacing: -0.04em;
+            line-height: 1.05;
+        }
+
+        .slide-title h1 .dot { color: var(--accent); }
+
+        .slide-title .subtitle {
+            font-size: 1.4rem;
+            color: var(--text-secondary);
+            margin-top: 1.5rem;
+            max-width: 600px;
+        }
+
+        .slide-title .meta {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--text-tertiary);
+            margin-top: 3rem;
+        }
+
+        /* Content slides */
+        .slide-number {
+            font-family: var(--font-display);
+            font-size: 8rem;
+            font-weight: 700;
+            color: var(--accent);
+            opacity: 0.15;
+            position: absolute;
+            top: 2rem;
+            right: 4rem;
+            line-height: 1;
+        }
+
+        .slide h2 {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 4.5vw, 3.5rem);
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            line-height: 1.15;
+            max-width: 800px;
+        }
+
+        .slide h2 .highlight {
+            color: var(--accent);
+        }
+
+        .slide .body {
+            margin-top: 2.5rem;
+            max-width: 750px;
+        }
+
+        .slide .body p {
+            font-size: 1.35rem;
+            line-height: 1.7;
+            color: var(--text-secondary);
+            margin-bottom: 1.25rem;
+        }
+
+        .slide .body p strong {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .slide .body ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .slide .body ul li {
+            font-size: 1.3rem;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .slide .body ul li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 1rem;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+        }
+
+        .slide .body ul li strong {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .tool-grid {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tool-tag {
+            font-family: var(--font-mono);
+            font-size: 0.95rem;
+            padding: 0.5rem 1.25rem;
+            background: var(--surface);
+            border-radius: 8px;
+            color: var(--text-secondary);
+        }
+
+        .tool-tag.featured {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* Quote slide */
+        .slide-quote {
+            text-align: center;
+            align-items: center;
+        }
+
+        .slide-quote blockquote {
+            font-family: var(--font-display);
+            font-size: clamp(1.8rem, 4vw, 3rem);
+            font-weight: 500;
+            line-height: 1.4;
+            letter-spacing: -0.02em;
+            max-width: 800px;
+            color: var(--text);
+        }
+
+        .slide-quote .attribution {
+            margin-top: 2rem;
+            font-size: 1.1rem;
+            color: var(--text-tertiary);
+        }
+
+        .slide-dark .attribution {
+            color: #999;
+        }
+
+        .slide-dark blockquote {
+            color: #f0f0f0;
+        }
+
+        /* Flow diagram */
+        .flow {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .flow-step {
+            font-family: var(--font-display);
+            font-size: 1.15rem;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            background: var(--white);
+            color: var(--text);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+        }
+
+        .slide-dark .flow-step {
+            background: transparent;
+            color: #888;
+            border-color: #333;
+        }
+
+        .slide-dark .flow-step.active-step {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .slide-dark .flow-arrow {
+            color: #555;
+        }
+
+        .flow-step.active-step {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .flow-arrow {
+            color: var(--text-tertiary);
+            font-size: 1.5rem;
+        }
+
+        /* Navigation */
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 3rem;
+            z-index: 10;
+        }
+
+        .nav-bar .brand {
+            font-family: var(--font-display);
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text-tertiary);
+        }
+
+        .nav-bar .progress {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
+        }
+
+        .nav-bar .controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .nav-bar button {
+            background: var(--surface);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+
+        .nav-bar button:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* Dark slide variant */
+        .slide-dark {
+            background: var(--dark);
+            color: #f0f0f0;
+        }
+
+        .slide-dark h2 {
+            color: #f0f0f0;
+        }
+
+        .slide-dark .body p,
+        .slide-dark .body ul li {
+            color: #aaa;
+        }
+
+        .slide-dark .body p strong,
+        .slide-dark .body ul li strong {
+            color: #f0f0f0;
+        }
+
+        .slide-dark .slide-number {
+            color: var(--accent);
+            opacity: 0.2;
+        }
+
+        /* Transition */
+        .slide {
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SLIDE 0: Title -->
+    <div class="slide slide-title active" data-slide="0">
+        <h1>Vibe<span class="dot">.</span>coding</h1>
+        <p class="subtitle">From idea to software with AI as your creative partner.</p>
+        <p class="meta">Learn Vibe Build &middot; Spring 2026</p>
+    </div>
+
+    <!-- SLIDE 1: The Big Idea -->
+    <div class="slide" data-slide="1">
+        <h2>The bottleneck isn't coding<span class="highlight">.</span><br>It's clarity<span class="highlight">.</span></h2>
+        <div class="body">
+            <p>AI can write code faster than any of us. The hard part is knowing what you want — and being able to <strong>communicate it clearly</strong>.</p>
+            <p>Vibecoding is the practice of turning your ideas into working software through <strong>conversation with AI</strong>.</p>
+        </div>
+    </div>
+
+    <!-- SLIDE 2: Five Steps -->
+    <div class="slide slide-dark" data-slide="2">
+        <h2>Five steps<span class="highlight">.</span></h2>
+        <div class="body">
+            <ul>
+                <li><strong>Communicate Context</strong> — Get your thinking into the computer</li>
+                <li><strong>Design Iteratively</strong> — Shape ideas into form with quick experiments</li>
+                <li><strong>Make a Plan</strong> — Create a shared understanding with your agent</li>
+                <li><strong>Let 'er Rip</strong> — Execute, then verify</li>
+                <li><strong>Compound</strong> — Let every session make the next one better</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- SLIDE 3: Communicate Context -->
+    <div class="slide" data-slide="3">
+        <div class="slide-number">1</div>
+        <h2>Communicate <span class="highlight">context</span></h2>
+        <div class="body">
+            <p>Getting your thinking into the computer is <strong>lesson number one</strong>. The idea in your head needs to become words the AI can work with.</p>
+            <p><strong>Typing</strong> helps you slow down and look at the shape of your thinking. <strong>Voice</strong> lets you get context out of your brain and onto the computer quickly — messy thoughts and all.</p>
+        </div>
+        <div class="tool-grid">
+            <span class="tool-tag featured">Handy (free)</span>
+            <span class="tool-tag">SuperWhisper</span>
+            <span class="tool-tag">Wispr Flow</span>
+            <span class="tool-tag">Monologue</span>
+        </div>
+    </div>
+
+    <!-- SLIDE 4: Design Iteratively -->
+    <div class="slide" data-slide="4">
+        <div class="slide-number">2</div>
+        <h2>Design <span class="highlight">&</span> think iteratively</h2>
+        <div class="body">
+            <p>Use AI to start shaping your ideas into form. Don't try to build the whole thing — start with <strong>small prototypes</strong> that help you refine your own thinking.</p>
+            <ul>
+                <li>Quick documents to articulate your vision</li>
+                <li>Simple websites or landing pages as <strong>props for thinking</strong></li>
+                <li>Designs and mockups with tools like <strong>Pencil.dev</strong></li>
+                <li>Each experiment teaches you what you actually want</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- SLIDE 5: Plan -->
+    <div class="slide" data-slide="5">
+        <div class="slide-number">3</div>
+        <h2>Make a <span class="highlight">plan</span></h2>
+        <div class="body">
+            <p>Once you know what you're building, the first step is to generate a <strong>detailed plan with your agent</strong>.</p>
+            <ul>
+                <li>Be <strong>specific</strong> — vague plans create vague code</li>
+                <li>Ensure you and your agent have a <strong>shared understanding</strong></li>
+                <li>Include strategies for <strong>testing</strong></li>
+                <li>A good plan means the agent can work autonomously for longer</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- SLIDE 6: Let er rip -->
+    <div class="slide slide-dark" data-slide="6">
+        <div class="slide-number">4</div>
+        <h2>Let 'er <span class="highlight">rip</span></h2>
+        <div class="body">
+            <p>A good plan means the agent can work for a long time on its own, implementing what you designed together.</p>
+            <ul>
+                <li>Always <strong>manually test</strong> what it builds</li>
+                <li>Have the agent <strong>review its own code</strong> before submitting</li>
+                <li>You are the <strong>taste</strong> — the agent is the <strong>hands</strong></li>
+            </ul>
+        </div>
+        <div class="flow" style="margin-top: 2.5rem;">
+            <span class="flow-step">Plan</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step active-step">Build</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Review</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Test</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Ship</span>
+        </div>
+    </div>
+
+    <!-- SLIDE 7: Compound -->
+    <div class="slide" data-slide="7">
+        <div class="slide-number">5</div>
+        <h2><span class="highlight">Compound</span> your learnings</h2>
+        <div class="body">
+            <p>Figure out what works and let those learnings <strong>compound</strong> — not just in how you prompt, but in the system itself.</p>
+            <ul>
+                <li>Refine your prompting instincts with each session</li>
+                <li>Put learnings into <strong>CLAUDE.md</strong> or <strong>AGENTS.md</strong></li>
+                <li>Your agent orients itself better <strong>automatically</strong> next time</li>
+                <li>Every project makes the next one easier</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- SLIDE 8: Responsibility -->
+    <div class="slide slide-quote slide-dark" data-slide="8">
+        <blockquote>With great power comes great responsibility<span style="color: var(--accent);">.</span></blockquote>
+        <p class="attribution">Review what it builds. Understand what it does. Stay grounded.</p>
+    </div>
+
+    <!-- SLIDE 9: Demo time -->
+    <div class="slide slide-title" data-slide="9">
+        <h1>Demo time<span class="dot">.</span></h1>
+        <p class="subtitle">Let's build something together.</p>
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav-bar">
+        <span class="brand">Learn Vibe Build</span>
+        <span class="progress"><span id="current">1</span> / <span id="total">10</span></span>
+        <div class="controls">
+            <button onclick="prevSlide()">&#8592; Prev</button>
+            <button onclick="nextSlide()">Next &#8594;</button>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const total = slides.length;
+        document.getElementById('total').textContent = total;
+
+        function showSlide(n) {
+            slides.forEach(s => s.classList.remove('active'));
+            currentSlide = Math.max(0, Math.min(n, total - 1));
+            slides[currentSlide].classList.add('active');
+            document.getElementById('current').textContent = currentSlide + 1;
+        }
+
+        function nextSlide() { showSlide(currentSlide + 1); }
+        function prevSlide() { showSlide(currentSlide - 1); }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') {
+                e.preventDefault();
+                nextSlide();
+            }
+            if (e.key === 'ArrowLeft' || e.key === 'Backspace') {
+                e.preventDefault();
+                prevSlide();
+            }
+            // Press 'f' for fullscreen
+            if (e.key === 'f') {
+                document.documentElement.requestFullscreen?.();
+            }
+        });
+
+        // Touch support
+        let touchStartX = 0;
+        document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+        document.addEventListener('touchend', e => {
+            const diff = touchStartX - e.changedTouches[0].clientX;
+            if (Math.abs(diff) > 50) {
+                diff > 0 ? nextSlide() : prevSlide();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -15,6 +15,13 @@
       "when": 1773182175411,
       "tag": "0001_low_slyde",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1773522340971,
+      "tag": "0002_amazing_toad_men",
+      "breakpoints": true
     }
   ]
 }

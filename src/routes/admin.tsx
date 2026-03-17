@@ -2,8 +2,11 @@ import { Hono } from 'hono'
 import { eq, desc, asc, and } from 'drizzle-orm'
 import { Layout } from '../components/Layout'
 import { getDb } from '../db'
-import { applications, cohorts, lessons, users, enrollments } from '../db/schema'
+import { applications, cohorts, lessons, users, enrollments, payments } from '../db/schema'
 import { isAdmin, isClerkConfigured } from '../lib/auth'
+import { formatCents, getAmountForTier, getTierLabel } from '../lib/stripe'
+import { sendBroadcast, isEmailConfigured } from '../lib/email'
+import { marked } from 'marked'
 import type { AppContext } from '../types'
 
 const admin = new Hono<AppContext>()
@@ -80,6 +83,7 @@ admin.get('/admin', async (c) => {
             <a href="/admin/applications" class="admin-action-btn">Review Applications</a>
             <a href="/admin/lessons" class="admin-action-btn">Manage Lessons</a>
             <a href="/admin/lessons/new" class="admin-action-btn">Create Lesson</a>
+            <a href="/admin/email" class="admin-action-btn">Send Email</a>
           </div>
         </div>
 
@@ -230,6 +234,40 @@ admin.get('/admin/applications/:id', async (c) => {
           <div class="admin-detail-section" style="background: var(--accent-soft); border-radius: 8px; padding: 1rem;">
             <h3>Admin Notes</h3>
             <p>{app.notes}</p>
+          </div>
+        )}
+
+        {app.status === 'approved' && (
+          <div style="margin-top: 2rem; padding: 1.5rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px;">
+            <h3 style="font-family: var(--font-display); color: #166534; margin-bottom: 0.75rem;">✓ Approved — {getTierLabel(app.pricingTier)}</h3>
+            <p style="font-size: 0.9rem; color: #15803d; margin-bottom: 1rem;">
+              {getAmountForTier(app.pricingTier) > 0
+                ? `Payment required: ${formatCents(getAmountForTier(app.pricingTier))}`
+                : 'Sponsored — no payment needed'}
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <span style="font-size: 0.85rem; color: var(--text-secondary);">Payment link:</span>
+                <code style="font-family: var(--font-mono); font-size: 0.8rem; background: white; padding: 0.4rem 0.75rem; border-radius: 4px; border: 1px solid #e5e7eb; word-break: break-all;">
+                  {new URL(c.req.url).origin}/payment/checkout/{app.id}
+                </code>
+              </div>
+              <button
+                onclick={`navigator.clipboard.writeText('${new URL(c.req.url).origin}/payment/checkout/${app.id}').then(() => this.textContent = 'Copied!')`}
+                style="align-self: start; padding: 0.4rem 1rem; background: #166534; color: white; border: none; border-radius: 6px; font-size: 0.85rem; cursor: pointer;"
+              >
+                Copy Payment Link
+              </button>
+            </div>
+          </div>
+        )}
+
+        {(app.status as any) === 'enrolled' && (
+          <div style="margin-top: 2rem; padding: 1.5rem; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px;">
+            <h3 style="font-family: var(--font-display); color: #1e40af; margin-bottom: 0.5rem;">🎓 Enrolled</h3>
+            <p style="font-size: 0.9rem; color: #1e3a8a;">
+              This applicant has paid and is enrolled in {app.cohortSlug}.
+            </p>
           </div>
         )}
 
@@ -478,6 +516,149 @@ admin.get('/admin/lessons/:id/edit', async (c) => {
       </div>
     </Layout>
   )
+})
+
+// ===== EMAIL BROADCAST =====
+admin.get('/admin/email', async (c) => {
+  const user = c.get('user')!
+  const db = getDb(c.env.DB)
+  const success = c.req.query('success')
+  const sent = c.req.query('sent')
+  const failed = c.req.query('failed')
+
+  const cohortList = await db.select().from(cohorts).orderBy(asc(cohorts.id)).all()
+  const emailConfigured = isEmailConfigured(c.env.RESEND_API_KEY)
+
+  return c.html(
+    <Layout title="Send Email" user={user} noindex>
+      <div class="page-section" style="max-width: 700px; margin: 0 auto;">
+        <a href="/admin" class="back-link">← Admin</a>
+        <p class="section-label">Email</p>
+        <h2>Send Email to Cohort</h2>
+
+        {!emailConfigured && (
+          <div style="margin-top: 1rem; padding: 1rem; background: #fef3cd; border: 1px solid #ffc107; border-radius: 8px; font-size: 0.9rem; color: #856404;">
+            Email is not configured yet. Set the <code>RESEND_API_KEY</code> secret to enable sending.
+          </div>
+        )}
+
+        {success === 'true' && (
+          <div style="margin-top: 1rem; padding: 1rem; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; font-size: 0.9rem; color: #155724;">
+            Email sent to {sent} recipient{sent !== '1' ? 's' : ''}{parseInt(failed || '0') > 0 ? ` (${failed} failed)` : ''}.
+          </div>
+        )}
+
+        <form method="post" action="/api/admin/email/broadcast" class="apply-form" style="margin-top: 2rem;">
+          <div class="form-group">
+            <label for="audience">Send to</label>
+            <select id="audience" name="audience" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem;">
+              <option value="all_approved">All approved applicants (not yet enrolled)</option>
+              <option value="all_enrolled">All enrolled members</option>
+              {cohortList.map(co => (
+                <option value={`cohort_${co.id}`}>Enrolled in {co.title}</option>
+              ))}
+              <option value="all_applicants">All applicants (including pending)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="subject">Subject</label>
+            <input type="text" id="subject" name="subject" required placeholder="e.g., Cohort 2 starts next Monday!" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem;" />
+          </div>
+
+          <div class="form-group">
+            <label for="body_markdown">Message (Markdown)</label>
+            <textarea
+              id="body_markdown"
+              name="body_markdown"
+              rows={15}
+              required
+              style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-family: var(--font-mono); font-size: 0.9rem; line-height: 1.6;"
+              placeholder={"## Hey everyone!\n\nJust a quick update about Cohort 2...\n\n**Important:** We start next Monday at 6pm MT.\n\nSee you there!"}
+            ></textarea>
+          </div>
+
+          <div style="display: flex; gap: 1rem; align-items: center;">
+            <button type="submit" class="apply-btn" style="flex: 0 0 auto;">
+              Send Email
+            </button>
+            <span style="font-size: 0.85rem; color: var(--text-tertiary);">
+              This will send immediately — double-check before clicking.
+            </span>
+          </div>
+        </form>
+      </div>
+    </Layout>
+  )
+})
+
+// ===== API: BROADCAST EMAIL =====
+admin.post('/api/admin/email/broadcast', async (c) => {
+  const db = getDb(c.env.DB)
+  const body = await c.req.parseBody()
+
+  const audience = String(body.audience || '')
+  const subject = String(body.subject || '').trim()
+  const bodyMarkdown = String(body.body_markdown || '').trim()
+
+  if (!subject || !bodyMarkdown) {
+    return c.redirect('/admin/email?error=missing_fields')
+  }
+
+  // Render markdown to HTML
+  const htmlContent = await marked(bodyMarkdown)
+
+  // Build recipient list based on audience
+  let emails: string[] = []
+
+  if (audience === 'all_approved') {
+    const apps = await db.select().from(applications)
+      .where(eq(applications.status, 'approved'))
+      .all()
+    emails = apps.map(a => a.email)
+  } else if (audience === 'all_enrolled') {
+    const apps = await db.select().from(applications)
+      .where(eq(applications.status, 'enrolled' as any))
+      .all()
+    // Also get users with active enrollments
+    const enrolledUsers = await db.select({ email: users.email })
+      .from(enrollments)
+      .innerJoin(users, eq(enrollments.userId, users.id))
+      .all()
+    const allEmails = new Set([...apps.map(a => a.email), ...enrolledUsers.map(u => u.email)])
+    emails = Array.from(allEmails)
+  } else if (audience.startsWith('cohort_')) {
+    const cohortId = parseInt(audience.replace('cohort_', ''), 10)
+    const enrolledUsers = await db.select({ email: users.email })
+      .from(enrollments)
+      .innerJoin(users, eq(enrollments.userId, users.id))
+      .where(eq(enrollments.cohortId, cohortId))
+      .all()
+    // Also get approved/enrolled applications for this cohort
+    const cohort = await db.select().from(cohorts).where(eq(cohorts.id, cohortId)).get()
+    if (cohort) {
+      const apps = await db.select().from(applications)
+        .where(eq(applications.cohortSlug, cohort.slug))
+        .all()
+      const approvedApps = apps.filter(a => a.status === 'approved' || (a.status as any) === 'enrolled')
+      const allEmails = new Set([...enrolledUsers.map(u => u.email), ...approvedApps.map(a => a.email)])
+      emails = Array.from(allEmails)
+    } else {
+      emails = enrolledUsers.map(u => u.email)
+    }
+  } else if (audience === 'all_applicants') {
+    const apps = await db.select().from(applications).all()
+    emails = apps.map(a => a.email)
+  }
+
+  if (emails.length === 0) {
+    return c.redirect('/admin/email?error=no_recipients')
+  }
+
+  // Send broadcast
+  const result = await sendBroadcast(c.env, emails, subject, htmlContent)
+
+  return c.redirect(`/admin/email?success=true&sent=${result.sent}&failed=${result.failed}`)
 })
 
 // ===== API ADMIN GUARD =====
