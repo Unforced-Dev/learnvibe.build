@@ -8,7 +8,12 @@ export const users = sqliteTable('users', {
   name: text('name'),
   role: text('role').notNull().default('student'), // 'student' | 'alumni' | 'facilitator' | 'admin'
   bio: text('bio'),
+  avatarUrl: text('avatar_url'),
+  website: text('website'),
+  github: text('github'),
+  location: text('location'),
   createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
+  updatedAt: text('updated_at'),
 })
 
 // ===== APPLICATIONS =====
@@ -78,6 +83,20 @@ export const memberships = sqliteTable('memberships', {
   expiresAt: text('expires_at'), // nullable — for paid memberships
 })
 
+// ===== FEEDBACK =====
+export const feedback = sqliteTable('feedback', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text('name').notNull(),
+  email: text('email').notNull(),
+  cohortSlug: text('cohort_slug'), // e.g. 'cohort-1'
+  rating: integer('rating'), // 1-5
+  highlight: text('highlight'), // "What was the best part?"
+  testimonial: text('testimonial'), // quotable testimonial text
+  improvement: text('improvement'), // "What could be better?"
+  canFeature: integer('can_feature').notNull().default(0), // 1 = OK to use publicly
+  createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
+})
+
 // ===== PAYMENTS =====
 export const payments = sqliteTable('payments', {
   id: integer('id').primaryKey({ autoIncrement: true }),
@@ -90,5 +109,68 @@ export const payments = sqliteTable('payments', {
   currency: text('currency').notNull().default('usd'),
   status: text('status').notNull().default('pending'), // 'pending' | 'completed' | 'failed' | 'refunded'
   paidAt: text('paid_at'),
+  createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
+})
+
+// ===== PROJECTS =====
+export const projects = sqliteTable('projects', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').notNull().references(() => users.id),
+  title: text('title').notNull(),
+  description: text('description').notNull(), // markdown
+  url: text('url'), // live project URL
+  githubUrl: text('github_url'), // GitHub repo URL
+  cohortId: integer('cohort_id').references(() => cohorts.id),
+  status: text('status').notNull().default('active'), // 'active' | 'archived'
+  createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
+  updatedAt: text('updated_at').notNull().$defaultFn(() => new Date().toISOString()),
+})
+
+// ===== DISCUSSIONS =====
+export const discussions = sqliteTable('discussions', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  cohortId: integer('cohort_id').references(() => cohorts.id), // nullable = community-wide discussion
+  lessonId: integer('lesson_id').references(() => lessons.id), // nullable = general (not lesson-specific)
+  userId: integer('user_id').notNull().references(() => users.id),
+  title: text('title').notNull(),
+  body: text('body').notNull(), // markdown
+  isPinned: integer('is_pinned').notNull().default(0), // 1 = pinned by facilitator
+  status: text('status').notNull().default('active'), // 'active' | 'locked' | 'deleted'
+  createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
+  updatedAt: text('updated_at').notNull().$defaultFn(() => new Date().toISOString()),
+})
+
+// ===== COMMENTS =====
+export const comments = sqliteTable('comments', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  discussionId: integer('discussion_id').notNull().references(() => discussions.id),
+  userId: integer('user_id').notNull().references(() => users.id),
+  parentId: integer('parent_id'), // nullable self-ref for one level of threading
+  body: text('body').notNull(), // markdown
+  status: text('status').notNull().default('active'), // 'active' | 'deleted'
+  createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
+  updatedAt: text('updated_at').notNull().$defaultFn(() => new Date().toISOString()),
+})
+
+// ===== LESSON PROGRESS =====
+export const lessonProgress = sqliteTable('lesson_progress', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').notNull().references(() => users.id),
+  lessonId: integer('lesson_id').notNull().references(() => lessons.id),
+  cohortId: integer('cohort_id').notNull().references(() => cohorts.id),
+  completedAt: text('completed_at').notNull().$defaultFn(() => new Date().toISOString()),
+})
+
+// ===== API KEYS =====
+export const apiKeys = sqliteTable('api_keys', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').notNull().references(() => users.id),
+  name: text('name').notNull(), // user-friendly label, e.g. "My MCP Server"
+  keyHash: text('key_hash').notNull().unique(), // SHA-256 hash of the key
+  keyPrefix: text('key_prefix').notNull(), // first 8 chars for display, e.g. "lvb_a1b2..."
+  scopes: text('scopes').notNull().default('read'), // 'read' | 'read:write' | 'admin'
+  lastUsedAt: text('last_used_at'),
+  expiresAt: text('expires_at'), // nullable = no expiry
+  status: text('status').notNull().default('active'), // 'active' | 'revoked'
   createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
 })

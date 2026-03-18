@@ -69,6 +69,7 @@ export async function createCheckoutSession(params: CreateCheckoutParams): Promi
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',
     customer_email: applicantEmail,
+    allow_promotion_codes: true,
     line_items: [
       {
         price_data: {

@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { eq, and, asc } from 'drizzle-orm'
 import { Layout } from '../components/Layout'
 import { getDb } from '../db'
-import { cohorts, lessons } from '../db/schema'
+import { cohorts, lessons, lessonProgress } from '../db/schema'
 import { renderMarkdown } from '../lib/markdown'
 import { canAccessCohort } from '../lib/access'
 import type { AppContext } from '../types'
@@ -68,6 +68,26 @@ cohortRoutes.get('/cohort/:slug', async (c) => {
     .orderBy(asc(lessons.sortOrder), asc(lessons.weekNumber))
     .all()
 
+  // Get user's progress for this cohort
+  const completedLessonIds = new Set<number>()
+  if (user) {
+    const progress = await db
+      .select({ lessonId: lessonProgress.lessonId })
+      .from(lessonProgress)
+      .where(
+        and(
+          eq(lessonProgress.userId, user.id),
+          eq(lessonProgress.cohortId, cohort.id)
+        )
+      )
+      .all()
+    progress.forEach(p => completedLessonIds.add(p.lessonId))
+  }
+
+  const completedCount = completedLessonIds.size
+  const totalLessons = cohortLessons.length
+  const progressPercent = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0
+
   const statusBadge = cohort.status === 'completed'
     ? <span class="badge badge-completed">Completed</span>
     : cohort.status === 'active'
@@ -89,12 +109,27 @@ cohortRoutes.get('/cohort/:slug', async (c) => {
           {cohort.startDate && <> · Started {new Date(cohort.startDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</>}
         </p>
 
+        {user && totalLessons > 0 && (
+          <div style="margin-top: 1.5rem;">
+            <div class="progress-label">
+              <span>{completedCount} of {totalLessons} lessons complete</span>
+              <span>{progressPercent}%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style={`width: ${progressPercent}%`}></div>
+            </div>
+          </div>
+        )}
+
         {cohortLessons.length > 0 ? (
           <div class="week-grid">
             {cohortLessons.map((lesson) => (
               <a href={`/cohort/${slug}/week/${lesson.weekNumber}`} class="week-card">
                 <div class="week-card-info">
-                  <h3>Week {lesson.weekNumber}: {lesson.title}</h3>
+                  <h3>
+                    {completedLessonIds.has(lesson.id) && <span class="lesson-check" title="Completed">✓ </span>}
+                    Week {lesson.weekNumber}: {lesson.title}
+                  </h3>
                   {lesson.description && <p>{lesson.description}</p>}
                 </div>
                 <span class="week-card-meta">
@@ -107,6 +142,14 @@ cohortRoutes.get('/cohort/:slug', async (c) => {
           <p style="margin-top: 2rem; color: var(--text-tertiary);">
             No lessons published yet. Check back soon.
           </p>
+        )}
+
+        {user && (
+          <div style="margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+            <a href={`/cohort/${slug}/discussions`} style="color: var(--accent); font-weight: 500; font-size: 0.9rem;">
+              Discussions →
+            </a>
+          </div>
         )}
       </div>
     </Layout>
@@ -170,6 +213,22 @@ cohortRoutes.get('/cohort/:slug/week/:num', async (c) => {
 
   const renderedContent = renderMarkdown(lesson.contentMarkdown)
 
+  // Check if user has completed this lesson
+  let isCompleted = false
+  if (user) {
+    const progress = await db
+      .select()
+      .from(lessonProgress)
+      .where(
+        and(
+          eq(lessonProgress.userId, user.id),
+          eq(lessonProgress.lessonId, lesson.id)
+        )
+      )
+      .get()
+    isCompleted = !!progress
+  }
+
   // Get all lessons for prev/next navigation
   const allLessons = await db
     .select({ weekNumber: lessons.weekNumber, title: lessons.title })
@@ -197,6 +256,28 @@ cohortRoutes.get('/cohort/:slug/week/:num', async (c) => {
         )}
 
         <div class="lesson-content" dangerouslySetInnerHTML={{ __html: renderedContent }} />
+
+        {user && (
+          <div style="margin-top: 2rem; padding: 1.5rem; background: var(--surface); border-radius: 10px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+            <form method="POST" action={`/api/progress/${lesson.id}`}>
+              <input type="hidden" name="cohort_id" value={String(cohort.id)} />
+              <input type="hidden" name="return_url" value={`/cohort/${slug}/week/${weekNum}`} />
+              <button
+                type="submit"
+                style={`border: none; padding: 0.6rem 1.5rem; border-radius: 6px; font-size: 0.9rem; font-weight: 500; cursor: pointer; ${
+                  isCompleted
+                    ? 'background: #dcfce7; color: #166534;'
+                    : 'background: var(--accent); color: white;'
+                }`}
+              >
+                {isCompleted ? '✓ Completed — Click to Undo' : 'Mark as Complete'}
+              </button>
+            </form>
+            <a href={`/cohort/${slug}/discussions`} style="color: var(--accent); font-size: 0.9rem; font-weight: 500;">
+              Discuss this lesson →
+            </a>
+          </div>
+        )}
 
         <div class="week-nav">
           <div>

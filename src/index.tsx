@@ -10,6 +10,13 @@ import dashboardRoutes from './routes/dashboard'
 import adminRoutes from './routes/admin'
 import webhookRoutes from './routes/webhooks'
 import paymentRoutes from './routes/payment'
+import feedbackRoutes from './routes/feedback'
+import communityRoutes from './routes/community'
+import memberRoutes from './routes/members'
+import settingsRoutes from './routes/settings'
+import projectRoutes from './routes/projects'
+import discussionRoutes from './routes/discussions'
+import apiV1 from './routes/api-v1'
 
 const app = new Hono<AppContext>()
 
@@ -35,8 +42,11 @@ app.get('/api/health', (c) => {
 // Webhook routes (Clerk user sync — no auth middleware needed)
 app.route('/', webhookRoutes)
 
-// API routes
+// API routes (form submissions)
 app.route('/', api)
+
+// JSON API v1 (Bearer token auth — for MCP and external clients)
+app.route('/', apiV1)
 
 // Auth routes (sign-in, sign-up, sign-out, callback)
 app.route('/', authRoutes)
@@ -49,6 +59,16 @@ app.route('/', adminRoutes)
 
 // Payment routes (checkout, success, cancelled)
 app.route('/', paymentRoutes)
+
+// Feedback routes
+app.route('/', feedbackRoutes)
+
+// Community routes
+app.route('/', communityRoutes)
+app.route('/', memberRoutes)
+app.route('/', settingsRoutes)
+app.route('/', projectRoutes)
+app.route('/', discussionRoutes)
 
 // Redirects from old static URLs to dynamic routes
 app.get('/cohort-1.html', (c) => c.redirect('/cohort/cohort-1', 301))

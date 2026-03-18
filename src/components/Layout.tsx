@@ -34,6 +34,7 @@ export const Layout: FC<LayoutProps> = ({ title, description, noindex, user, chi
             <li><a href="/cohort/cohort-1">Cohort 1</a></li>
             {user ? (
               <>
+                <li><a href="/community">Community</a></li>
                 <li><a href="/dashboard">Dashboard</a></li>
                 {(user.role === 'admin' || user.role === 'facilitator') && (
                   <li><a href="/admin">Admin</a></li>

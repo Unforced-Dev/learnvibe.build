@@ -22,6 +22,27 @@
       "when": 1773522340971,
       "tag": "0002_amazing_toad_men",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1774070400000,
+      "tag": "0003_add_feedback_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1774156800000,
+      "tag": "0004_community_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1774243200000,
+      "tag": "0005_api_keys",
+      "breakpoints": true
     }
   ]
 }
