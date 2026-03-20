@@ -9,22 +9,21 @@ const auth = new Hono<AppContext>()
 
 const CLERK_CDN = 'https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js'
 
-function clerkScript(pubKey: string, action: string) {
+function clerkScript(action: string) {
   return `
     (async function() {
       try {
-        // Wait for Clerk to be available (async script)
-        if (typeof window.Clerk !== 'function') {
-          await new Promise(function(resolve, reject) {
-            var attempts = 0;
-            var check = setInterval(function() {
-              attempts++;
-              if (typeof window.Clerk === 'function') { clearInterval(check); resolve(); }
-              else if (attempts > 50) { clearInterval(check); reject(new Error('Clerk failed to load')); }
-            }, 100);
-          });
-        }
-        var clerk = new window.Clerk('${pubKey}');
+        // Clerk v5 CDN auto-initializes via data-clerk-publishable-key attribute.
+        // window.Clerk becomes the instance once loaded. Wait for it.
+        await new Promise(function(resolve, reject) {
+          var attempts = 0;
+          var check = setInterval(function() {
+            attempts++;
+            if (window.Clerk && window.Clerk.load) { clearInterval(check); resolve(); }
+            else if (attempts > 50) { clearInterval(check); reject(new Error('Clerk failed to load')); }
+          }, 100);
+        });
+        var clerk = window.Clerk;
         await clerk.load();
         ${action}
       } catch (e) {
@@ -65,8 +64,8 @@ auth.get('/sign-in', (c) => {
       <div class="page-section" style="max-width: 500px; margin: 0 auto; padding: 4rem 0;">
         <div id="clerk-sign-in" style="display: flex; justify-content: center;"></div>
       </div>
-      <script async crossorigin="anonymous" src={CLERK_CDN}></script>
-      <script dangerouslySetInnerHTML={{ __html: clerkScript(pubKey, `
+      <script async crossorigin="anonymous" data-clerk-publishable-key={pubKey} src={CLERK_CDN}></script>
+      <script dangerouslySetInnerHTML={{ __html: clerkScript(`
         if (clerk.user) {
           window.location.href = '/dashboard';
         } else {
@@ -103,8 +102,8 @@ auth.get('/sign-up', (c) => {
       <div class="page-section" style="max-width: 500px; margin: 0 auto; padding: 4rem 0;">
         <div id="clerk-sign-up" style="display: flex; justify-content: center;"></div>
       </div>
-      <script async crossorigin="anonymous" src={CLERK_CDN}></script>
-      <script dangerouslySetInnerHTML={{ __html: clerkScript(pubKey, `
+      <script async crossorigin="anonymous" data-clerk-publishable-key={pubKey} src={CLERK_CDN}></script>
+      <script dangerouslySetInnerHTML={{ __html: clerkScript(`
         if (clerk.user) {
           window.location.href = '/dashboard';
         } else {
@@ -162,8 +161,8 @@ auth.get('/sign-out', (c) => {
       <div class="page-section" style="max-width: 500px; margin: 0 auto; text-align: center; padding: 6rem 0;">
         <p style="color: var(--text-secondary);">Signing out...</p>
       </div>
-      <script async crossorigin="anonymous" src={CLERK_CDN}></script>
-      <script dangerouslySetInnerHTML={{ __html: clerkScript(pubKey, `
+      <script async crossorigin="anonymous" data-clerk-publishable-key={pubKey} src={CLERK_CDN}></script>
+      <script dangerouslySetInnerHTML={{ __html: clerkScript(`
         await clerk.signOut();
         window.location.href = '/';
       `) }} />
