@@ -563,7 +563,7 @@ admin.get('/admin/email', async (c) => {
 
           <div class="form-group">
             <label for="subject">Subject</label>
-            <input type="text" id="subject" name="subject" required placeholder="e.g., Cohort 2 starts next Monday!" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem;" />
+            <input type="text" id="subject" name="subject" required placeholder="e.g., Cohort 1 starts next Monday!" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem;" />
           </div>
 
           <div class="form-group">
@@ -574,7 +574,7 @@ admin.get('/admin/email', async (c) => {
               rows={15}
               required
               style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-family: var(--font-mono); font-size: 0.9rem; line-height: 1.6;"
-              placeholder={"## Hey everyone!\n\nJust a quick update about Cohort 2...\n\n**Important:** We start next Monday at 6pm MT.\n\nSee you there!"}
+              placeholder={"## Hey everyone!\n\nJust a quick update about Cohort 1...\n\n**Important:** We start next Monday at 6pm MT.\n\nSee you there!"}
             ></textarea>
           </div>
 

@@ -24,7 +24,7 @@ export const applications = sqliteTable('applications', {
   background: text('background').notNull(),
   projectInterest: text('project_interest').notNull(),
   referralSource: text('referral_source').notNull(),
-  cohortSlug: text('cohort_slug').notNull().default('cohort-2'),
+  cohortSlug: text('cohort_slug').notNull().default('cohort-1'),
   pricingTier: text('pricing_tier').notNull().default('pending'), // set by admin on approval
   status: text('status').notNull().default('pending'), // 'pending' | 'approved' | 'rejected'
   notes: text('notes'), // admin notes

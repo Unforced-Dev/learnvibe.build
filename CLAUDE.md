@@ -5,7 +5,7 @@ Cohort-based AI learning platform. Teaches people to build with AI as a creative
 
 **Live at:** https://learnvibe.build
 **Workers.dev:** https://learnvibe-build.ag-8f2.workers.dev
-**Repo:** https://github.com/unforced/learnvibe.build
+**Repo:** https://github.com/Unforced-Dev/learnvibe.build
 
 ## Tech Stack
 - **Runtime:** Cloudflare Workers
@@ -78,7 +78,7 @@ All routes mount off the root Hono app in this order:
 ## Current State (as of March 2026)
 
 ### What's Working
-- ✅ Homepage with "Now Enrolling" Cohort 2 messaging
+- ✅ Homepage with "Now Enrolling" Cohort 1 messaging
 - ✅ Application form → saves to D1 → sends confirmation email
 - ✅ Application status check page (`/apply/status`)
 - ✅ Admin dashboard with application review (approve/reject with pricing tiers)
@@ -115,7 +115,8 @@ All routes mount off the root Hono app in this order:
 
 ## D1 Data
 - Cohort 1: 4 weeks of lessons (seeded via `scripts/seed-cohort1.ts`)
-- Cohort 2: Record exists (slug: `cohort-2`, status: `upcoming`, $500)
+- Cohort 1: Record exists (slug: `cohort-1`, status: `enrolling`, $500)
+- Pilot (Cohort 0): Was the original January 2026 cohort, 13 builders, sponsored by Gitcoin
 
 ## Commands
 ```bash

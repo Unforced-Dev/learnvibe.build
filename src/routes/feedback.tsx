@@ -72,7 +72,7 @@ feedbackRoutes.get('/feedback', (c) => {
           <div class="form-group">
             <label for="cohort">Which cohort were you in?</label>
             <select id="cohort" name="cohort_slug">
-              <option value="cohort-1">Cohort 1 — Foundations</option>
+              <option value="cohort-0">Pilot Cohort (Cohort 0) — Foundations</option>
               <option value="other">Other / Just attended an event</option>
             </select>
           </div>

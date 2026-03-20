@@ -62,7 +62,7 @@ When connected via MCP, your AI can use these tools:
 
 Once connected, try asking your AI:
 
-- "What lessons do I have in Cohort 2?"
+- "What lessons do I have in Cohort 1?"
 - "Show me the content from Week 3"
 - "Mark Week 2 as complete"
 - "Share my project — it's called 'AI Todo App' and here's the description..."

@@ -28,7 +28,7 @@ const GatedMessage = ({ cohort, user }: { cohort: { title: string; slug: string 
           </a>
         )}
         <a href="/apply" style="display: inline-block; border: 1px solid var(--border); padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; color: var(--text); font-weight: 500;">
-          Apply for Cohort 2
+          Apply for Cohort 1
         </a>
       </div>
     </div>

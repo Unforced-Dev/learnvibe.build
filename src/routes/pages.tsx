@@ -19,13 +19,13 @@ pages.get('/apply', (c) => {
 
   return c.html(
     <Layout
-      title="Apply for Cohort 2"
-      description="Apply for Learn Vibe Build Cohort 2 — 6 weeks of building with AI as your creative partner."
+      title="Apply for Cohort 1"
+      description="Apply for Learn Vibe Build Cohort 1 — 6 weeks of building with AI as your creative partner."
       user={c.get('user')}
     >
       <div class="page-section">
         <p class="section-label">Apply</p>
-        <h2>Apply for Cohort 2</h2>
+        <h2>Apply for Cohort 1</h2>
         <p class="lead">
           6 weeks of building with AI as your creative partner. Starting April 2026 in Boulder, CO &amp; remote. $500.
         </p>
@@ -87,7 +87,7 @@ pages.get('/apply/success', (c) => {
       <div class="page-section success-message">
         <h2>Application received</h2>
         <p class="lead">
-          Thank you for applying to Cohort 2. We'll review your application and get back to you soon.
+          Thank you for applying to Cohort 1. We'll review your application and get back to you soon.
         </p>
         <p style="margin-top: 1.5rem; color: var(--text-secondary);">
           You can check your application status anytime at <a href="/apply/status" style="color: var(--accent);">/apply/status</a>
@@ -147,7 +147,7 @@ pages.post('/apply/status', async (c) => {
             We couldn't find an application for <strong>{email}</strong>.
           </p>
           <p style="margin-top: 1.5rem;">
-            <a href="/apply" style="color: var(--accent); font-weight: 500;">Apply for Cohort 2 →</a>
+            <a href="/apply" style="color: var(--accent); font-weight: 500;">Apply for Cohort 1 →</a>
           </p>
           <p style="margin-top: 1rem;">
             <a href="/apply/status" style="color: var(--text-tertiary);">← Try another email</a>

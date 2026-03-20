@@ -56,7 +56,7 @@ const TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {
-        cohortSlug: { type: 'string', description: 'Cohort slug, e.g. "cohort-1" or "cohort-2"' },
+        cohortSlug: { type: 'string', description: 'Cohort slug, e.g. "cohort-1"' },
       },
       required: ['cohortSlug'],
     },

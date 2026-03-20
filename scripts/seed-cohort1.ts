@@ -612,14 +612,14 @@ async function main() {
     console.log(`✓ Week ${week.weekNumber} created`)
   }
 
-  // 4. Also insert Cohort 2 record
-  console.log('Creating Cohort 2 record...')
+  // 4. Also insert Cohort 1 record (the upcoming cohort; pilot above is Cohort 0)
+  console.log('Creating Cohort 1 record...')
   await query(
     `INSERT INTO cohorts (slug, title, description, start_date, weeks, price_cents, is_public, status, created_at)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
-      'cohort-2',
-      'Cohort 2: Practice',
+      'cohort-1',
+      'Cohort 1: Practice',
       '6 weeks of deeper building. Build with AI as your creative partner.',
       '2026-04-07',
       6,
@@ -629,9 +629,9 @@ async function main() {
       now,
     ]
   )
-  console.log('✓ Cohort 2 created')
+  console.log('✓ Cohort 1 created')
 
-  console.log('\nDone! Seeded Cohort 1 (4 weeks) + Cohort 2 record.')
+  console.log('\nDone! Seeded Pilot Cohort (4 weeks) + Cohort 1 record.')
 }
 
 main().catch(console.error)

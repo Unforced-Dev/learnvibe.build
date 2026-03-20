@@ -67,7 +67,7 @@ export function applicationReceivedEmail(name: string): { subject: string; html:
     subject: 'Application received — Learn Vibe Build',
     html: emailWrapper(`
       <h2>Thanks for applying, ${firstName}</h2>
-      <p>We've received your application for Cohort 2. We'll review it and get back to you soon — typically within a few days.</p>
+      <p>We've received your application for Cohort 1. We'll review it and get back to you soon — typically within a few days.</p>
       <p>In the meantime, you can check your application status anytime:</p>
       <a href="https://learnvibe.build/apply/status" class="email-cta">Check Your Status</a>
       <hr class="email-divider">
@@ -87,10 +87,10 @@ export function applicationApprovedEmail(
 
   if (isSponsored) {
     return {
-      subject: "You're in! — Learn Vibe Build Cohort 2",
+      subject: "You're in! — Learn Vibe Build Cohort 1",
       html: emailWrapper(`
         <h2>Welcome, ${firstName}!</h2>
-        <p>Great news — your application for Cohort 2 has been approved, and your spot has been sponsored. No payment needed.</p>
+        <p>Great news — your application for Cohort 1 has been approved, and your spot has been sponsored. No payment needed.</p>
         <p>Complete your enrollment to get started:</p>
         <a href="${paymentUrl}" class="email-cta">Complete Enrollment →</a>
         <hr class="email-divider">
@@ -100,10 +100,10 @@ export function applicationApprovedEmail(
   }
 
   return {
-    subject: "You're approved! — Learn Vibe Build Cohort 2",
+    subject: "You're approved! — Learn Vibe Build Cohort 1",
     html: emailWrapper(`
       <h2>You're in, ${firstName}!</h2>
-      <p>Your application for Cohort 2 has been approved. We're excited to have you.</p>
+      <p>Your application for Cohort 1 has been approved. We're excited to have you.</p>
       <div class="email-highlight">
         <p><strong>${tierLabel}</strong> — ${amountFormatted}</p>
       </div>
@@ -121,7 +121,7 @@ export function applicationRejectedEmail(name: string): { subject: string; html:
     subject: 'Update on your application — Learn Vibe Build',
     html: emailWrapper(`
       <h2>Hi ${firstName},</h2>
-      <p>Thank you for applying to Learn Vibe Build Cohort 2. After careful consideration, we weren't able to offer you a spot in this cohort.</p>
+      <p>Thank you for applying to Learn Vibe Build Cohort 1. After careful consideration, we weren't able to offer you a spot in this cohort.</p>
       <p>This isn't a reflection of your potential — our cohorts are small and we can only take a limited number of participants each round.</p>
       <p>We'd love to see you apply again for a future cohort. We're always expanding what we offer, and there may be a better fit down the road.</p>
       <hr class="email-divider">
