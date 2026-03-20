@@ -214,7 +214,8 @@ api.post('/api/feedback', async (c) => {
   const testimonial = String(body.testimonial || '').trim() || null
   const improvement = String(body.improvement || '').trim() || null
   const canFeatureStr = String(body.can_feature || '0')
-  const canFeature = canFeatureStr === '1' ? 1 : canFeatureStr === '2' ? 2 : 0
+  // 0 = private, 1 = full name + link, 2 = anonymous, 3 = first name only
+  const canFeature = ['1', '2', '3'].includes(canFeatureStr) ? parseInt(canFeatureStr, 10) : 0
   const website = String(body.website || '').trim() || null
 
   if (!name || !email || (!highlight && !testimonial && !improvement)) {

@@ -146,8 +146,12 @@ feedbackRoutes.get('/feedback', (c) => {
                 <span>Yes, you can feature it anonymously</span>
               </label>
               <label style="display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer; text-transform: none; font-family: var(--font-body); font-size: 0.95rem; color: var(--text-secondary); letter-spacing: normal;">
+                <input type="radio" name="can_feature" value="3" style="margin-top: 0.2rem;" />
+                <span>Yes, with my first name</span>
+              </label>
+              <label style="display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer; text-transform: none; font-family: var(--font-body); font-size: 0.95rem; color: var(--text-secondary); letter-spacing: normal;">
                 <input type="radio" name="can_feature" value="1" style="margin-top: 0.2rem;" />
-                <span>Yes, and you can use my full name and link to my work</span>
+                <span>Yes, with my full name and a link to my work</span>
               </label>
             </div>
 
