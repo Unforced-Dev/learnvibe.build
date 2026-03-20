@@ -7,6 +7,41 @@ import type { AppContext } from '../types'
 
 const auth = new Hono<AppContext>()
 
+const CLERK_CDN = 'https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js'
+
+function clerkScript(pubKey: string, action: string) {
+  return `
+    (async function() {
+      try {
+        // Wait for Clerk to be available (async script)
+        if (typeof window.Clerk !== 'function') {
+          await new Promise(function(resolve, reject) {
+            var attempts = 0;
+            var check = setInterval(function() {
+              attempts++;
+              if (typeof window.Clerk === 'function') { clearInterval(check); resolve(); }
+              else if (attempts > 50) { clearInterval(check); reject(new Error('Clerk failed to load')); }
+            }, 100);
+          });
+        }
+        var clerk = new window.Clerk('${pubKey}');
+        await clerk.load();
+        ${action}
+      } catch (e) {
+        console.error('Clerk error:', e);
+        var el = document.getElementById('clerk-sign-in') || document.getElementById('clerk-sign-up');
+        if (el) {
+          el.innerHTML =
+            '<div style="text-align:center;padding:2rem;">' +
+            '<p style="color:#555;margin-bottom:1rem;">Authentication failed to load.</p>' +
+            '<p style="color:#999;font-size:0.85rem;">If you have an ad blocker, try disabling it for this page and refreshing.</p>' +
+            '</div>';
+        }
+      }
+    })();
+  `
+}
+
 // ===== SIGN-IN PAGE =====
 auth.get('/sign-in', (c) => {
   const pubKey = c.env.CLERK_PUBLISHABLE_KEY
@@ -30,21 +65,17 @@ auth.get('/sign-in', (c) => {
       <div class="page-section" style="max-width: 500px; margin: 0 auto; padding: 4rem 0;">
         <div id="clerk-sign-in" style="display: flex; justify-content: center;"></div>
       </div>
-      <script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
-      <script dangerouslySetInnerHTML={{ __html: `
-        (async function() {
-          const clerk = new window.Clerk('${pubKey}');
-          await clerk.load();
-          if (clerk.user) {
-            window.location.href = '/dashboard';
-          } else {
-            clerk.mountSignIn(document.getElementById('clerk-sign-in'), {
-              afterSignInUrl: '/auth/callback',
-              afterSignUpUrl: '/auth/callback',
-            });
-          }
-        })();
-      `}} />
+      <script async crossorigin="anonymous" src={CLERK_CDN}></script>
+      <script dangerouslySetInnerHTML={{ __html: clerkScript(pubKey, `
+        if (clerk.user) {
+          window.location.href = '/dashboard';
+        } else {
+          clerk.mountSignIn(document.getElementById('clerk-sign-in'), {
+            afterSignInUrl: '/auth/callback',
+            afterSignUpUrl: '/auth/callback',
+          });
+        }
+      `) }} />
     </Layout>
   )
 })
@@ -72,21 +103,17 @@ auth.get('/sign-up', (c) => {
       <div class="page-section" style="max-width: 500px; margin: 0 auto; padding: 4rem 0;">
         <div id="clerk-sign-up" style="display: flex; justify-content: center;"></div>
       </div>
-      <script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
-      <script dangerouslySetInnerHTML={{ __html: `
-        (async function() {
-          const clerk = new window.Clerk('${pubKey}');
-          await clerk.load();
-          if (clerk.user) {
-            window.location.href = '/dashboard';
-          } else {
-            clerk.mountSignUp(document.getElementById('clerk-sign-up'), {
-              afterSignInUrl: '/auth/callback',
-              afterSignUpUrl: '/auth/callback',
-            });
-          }
-        })();
-      `}} />
+      <script async crossorigin="anonymous" src={CLERK_CDN}></script>
+      <script dangerouslySetInnerHTML={{ __html: clerkScript(pubKey, `
+        if (clerk.user) {
+          window.location.href = '/dashboard';
+        } else {
+          clerk.mountSignUp(document.getElementById('clerk-sign-up'), {
+            afterSignInUrl: '/auth/callback',
+            afterSignUpUrl: '/auth/callback',
+          });
+        }
+      `) }} />
     </Layout>
   )
 })
@@ -135,15 +162,11 @@ auth.get('/sign-out', (c) => {
       <div class="page-section" style="max-width: 500px; margin: 0 auto; text-align: center; padding: 6rem 0;">
         <p style="color: var(--text-secondary);">Signing out...</p>
       </div>
-      <script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
-      <script dangerouslySetInnerHTML={{ __html: `
-        (async function() {
-          const clerk = new window.Clerk('${pubKey}');
-          await clerk.load();
-          await clerk.signOut();
-          window.location.href = '/';
-        })();
-      `}} />
+      <script async crossorigin="anonymous" src={CLERK_CDN}></script>
+      <script dangerouslySetInnerHTML={{ __html: clerkScript(pubKey, `
+        await clerk.signOut();
+        window.location.href = '/';
+      `) }} />
     </Layout>
   )
 })
