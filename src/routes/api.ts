@@ -213,7 +213,8 @@ api.post('/api/feedback', async (c) => {
   const highlight = String(body.highlight || '').trim() || null
   const testimonial = String(body.testimonial || '').trim() || null
   const improvement = String(body.improvement || '').trim() || null
-  const canFeature = body.can_feature === '1' ? 1 : 0
+  const canFeatureStr = String(body.can_feature || '0')
+  const canFeature = canFeatureStr === '1' ? 1 : canFeatureStr === '2' ? 2 : 0
 
   if (!name || !email || (!highlight && !testimonial && !improvement)) {
     return c.redirect('/feedback?error=missing_fields')

@@ -21,7 +21,7 @@ feedbackRoutes.get('/feedback', (c) => {
             Your feedback helps us make Learn Vibe Build better for everyone.
           </p>
           <p style="margin-top: 1.5rem; color: var(--text-secondary);">
-            If you shared a testimonial, we may feature it on the site (with your permission).
+            If you gave us permission to share your testimonial, we'll feature it on the site exactly as you specified.
           </p>
           <p style="margin-top: 2rem;">
             <a href="/">← Back to homepage</a>
@@ -78,14 +78,28 @@ feedbackRoutes.get('/feedback', (c) => {
           </div>
 
           <div class="form-group">
-            <label for="rating">Overall rating</label>
-            <div style="display: flex; gap: 0.5rem; margin-top: 0.25rem;">
-              {[1, 2, 3, 4, 5].map(n => (
-                <label key={n} style="display: flex; align-items: center; gap: 0.35rem; cursor: pointer; font-size: 1rem; color: var(--text-secondary);">
-                  <input type="radio" name="rating" value={String(n)} style="accent-color: var(--accent);" />
-                  {n}
-                </label>
-              ))}
+            <label>Overall rating</label>
+            <div style="display: flex; gap: 1.25rem; margin-top: 0.25rem;">
+              <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 1rem; color: var(--text-secondary); text-transform: none; font-family: var(--font-body); letter-spacing: normal;">
+                <input type="radio" name="rating" value="1" />
+                1
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 1rem; color: var(--text-secondary); text-transform: none; font-family: var(--font-body); letter-spacing: normal;">
+                <input type="radio" name="rating" value="2" />
+                2
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 1rem; color: var(--text-secondary); text-transform: none; font-family: var(--font-body); letter-spacing: normal;">
+                <input type="radio" name="rating" value="3" />
+                3
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 1rem; color: var(--text-secondary); text-transform: none; font-family: var(--font-body); letter-spacing: normal;">
+                <input type="radio" name="rating" value="4" />
+                4
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 1rem; color: var(--text-secondary); text-transform: none; font-family: var(--font-body); letter-spacing: normal;">
+                <input type="radio" name="rating" value="5" />
+                5
+              </label>
             </div>
             <span style="font-size: 0.8rem; color: var(--text-tertiary); margin-top: 0.5rem; display: block;">1 = needs work, 5 = amazing</span>
           </div>
@@ -121,10 +135,21 @@ feedbackRoutes.get('/feedback', (c) => {
           </div>
 
           <div class="form-group" style="margin-top: 1.5rem;">
-            <label style="display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer; text-transform: none; font-family: var(--font-body); font-size: 0.95rem; color: var(--text-secondary); letter-spacing: normal;">
-              <input type="checkbox" name="can_feature" value="1" style="accent-color: var(--accent); margin-top: 0.25rem;" />
-              <span>It's OK to feature my testimonial on the Learn Vibe Build website (we'll use your first name only)</span>
-            </label>
+            <label style="margin-bottom: 0.75rem;">Can we share your testimonial?</label>
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+              <label style="display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer; text-transform: none; font-family: var(--font-body); font-size: 0.95rem; color: var(--text-secondary); letter-spacing: normal;">
+                <input type="radio" name="can_feature" value="0" checked style="margin-top: 0.2rem;" />
+                <span>Keep it private — just for internal feedback</span>
+              </label>
+              <label style="display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer; text-transform: none; font-family: var(--font-body); font-size: 0.95rem; color: var(--text-secondary); letter-spacing: normal;">
+                <input type="radio" name="can_feature" value="2" style="margin-top: 0.2rem;" />
+                <span>Yes, you can feature it anonymously</span>
+              </label>
+              <label style="display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer; text-transform: none; font-family: var(--font-body); font-size: 0.95rem; color: var(--text-secondary); letter-spacing: normal;">
+                <input type="radio" name="can_feature" value="1" style="margin-top: 0.2rem;" />
+                <span>Yes, and you can use my first name</span>
+              </label>
+            </div>
           </div>
 
           <button type="submit" class="apply-btn">Submit Feedback</button>

@@ -204,7 +204,11 @@ a:hover { text-decoration: underline; }
     margin-bottom: 0.6rem;
 }
 
-.form-group input,
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"],
+.form-group input[type="url"],
+.form-group input[type="number"],
 .form-group textarea,
 .form-group select {
     width: 100%;
@@ -219,12 +223,33 @@ a:hover { text-decoration: underline; }
     -webkit-appearance: none;
 }
 
-.form-group input:focus,
+.form-group input[type="text"]:focus,
+.form-group input[type="email"]:focus,
+.form-group input[type="password"]:focus,
+.form-group input[type="url"]:focus,
+.form-group input[type="number"]:focus,
 .form-group textarea:focus,
 .form-group select:focus {
     outline: none;
     border-color: var(--accent);
     box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.form-group input[type="radio"],
+.form-group input[type="checkbox"] {
+    width: auto;
+    accent-color: var(--accent);
+    cursor: pointer;
+}
+
+.form-group input[type="radio"] {
+    width: 18px;
+    height: 18px;
+}
+
+.form-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
 }
 
 .form-group textarea {
