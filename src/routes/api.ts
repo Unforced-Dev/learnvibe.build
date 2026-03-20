@@ -37,6 +37,7 @@ api.post('/api/applications', async (c) => {
       background,
       projectInterest,
       referralSource,
+      cohortSlug: 'cohort-1',
       pricingTier: 'pending',
     })
 
