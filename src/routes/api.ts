@@ -215,6 +215,7 @@ api.post('/api/feedback', async (c) => {
   const improvement = String(body.improvement || '').trim() || null
   const canFeatureStr = String(body.can_feature || '0')
   const canFeature = canFeatureStr === '1' ? 1 : canFeatureStr === '2' ? 2 : 0
+  const website = String(body.website || '').trim() || null
 
   if (!name || !email || (!highlight && !testimonial && !improvement)) {
     return c.redirect('/feedback?error=missing_fields')
@@ -231,6 +232,7 @@ api.post('/api/feedback', async (c) => {
       testimonial,
       improvement,
       canFeature,
+      website,
     })
 
     return c.redirect('/feedback?submitted=true')

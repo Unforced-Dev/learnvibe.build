@@ -147,9 +147,14 @@ feedbackRoutes.get('/feedback', (c) => {
               </label>
               <label style="display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer; text-transform: none; font-family: var(--font-body); font-size: 0.95rem; color: var(--text-secondary); letter-spacing: normal;">
                 <input type="radio" name="can_feature" value="1" style="margin-top: 0.2rem;" />
-                <span>Yes, and you can use my first name</span>
+                <span>Yes, and you can use my full name and link to my work</span>
               </label>
             </div>
+
+          <div class="form-group" style="margin-top: 1rem;">
+            <label for="website">Your website or project URL <span style="text-transform: none; font-weight: 300; letter-spacing: normal;">(optional — we'll link your testimonial here)</span></label>
+            <input type="url" id="website" name="website" placeholder="https://yourproject.com" />
+          </div>
           </div>
 
           <button type="submit" class="apply-btn">Submit Feedback</button>

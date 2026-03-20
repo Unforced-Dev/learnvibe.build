@@ -93,7 +93,8 @@ export const feedback = sqliteTable('feedback', {
   highlight: text('highlight'), // "What was the best part?"
   testimonial: text('testimonial'), // quotable testimonial text
   improvement: text('improvement'), // "What could be better?"
-  canFeature: integer('can_feature').notNull().default(0), // 1 = OK to use publicly
+  canFeature: integer('can_feature').notNull().default(0), // 0 = private, 1 = named+linked, 2 = anonymous
+  website: text('website'), // URL to link in testimonial attribution
   createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
 })
 
