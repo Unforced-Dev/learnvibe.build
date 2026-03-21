@@ -67,7 +67,7 @@ auth.get('/sign-in', (c) => {
       <script async crossorigin="anonymous" data-clerk-publishable-key={pubKey} src={CLERK_CDN}></script>
       <script dangerouslySetInnerHTML={{ __html: clerkScript(`
         if (clerk.user) {
-          window.location.href = '/dashboard';
+          window.location.href = '/auth/callback';
         } else {
           clerk.mountSignIn(document.getElementById('clerk-sign-in'), {
             afterSignInUrl: '/auth/callback',
@@ -105,7 +105,7 @@ auth.get('/sign-up', (c) => {
       <script async crossorigin="anonymous" data-clerk-publishable-key={pubKey} src={CLERK_CDN}></script>
       <script dangerouslySetInnerHTML={{ __html: clerkScript(`
         if (clerk.user) {
-          window.location.href = '/dashboard';
+          window.location.href = '/auth/callback';
         } else {
           clerk.mountSignUp(document.getElementById('clerk-sign-up'), {
             afterSignInUrl: '/auth/callback',
@@ -144,7 +144,8 @@ auth.get('/auth/callback', async (c) => {
     return c.redirect('/dashboard')
   } catch (e) {
     console.error('Auth callback error:', e)
-    return c.redirect('/dashboard')
+    // If Clerk user was deleted or session is stale, sign out to clear cookies
+    return c.redirect('/sign-out')
   }
 })
 
