@@ -5,7 +5,8 @@ import { getDb } from '../db'
 import { applications, cohorts, lessons, users, enrollments, payments } from '../db/schema'
 import { isAdmin, isClerkConfigured } from '../lib/auth'
 import { formatCents, getAmountForTier, getTierLabel } from '../lib/stripe'
-import { sendBroadcast, isEmailConfigured } from '../lib/email'
+import { sendBroadcast, sendApplicationApproved, sendApplicationRejected, isEmailConfigured } from '../lib/email'
+import { isStripeConfigured, getStripe, createCheckoutSession } from '../lib/stripe'
 import { marked } from 'marked'
 import type { AppContext } from '../types'
 
@@ -707,6 +708,34 @@ admin.post('/api/admin/applications/:id/status', async (c) => {
     .update(applications)
     .set(updateData)
     .where(eq(applications.id, id))
+
+  // Get the updated application for email
+  const app = await db.select().from(applications).where(eq(applications.id, id)).get()
+
+  if (app && status === 'approved') {
+    const amountCents = getAmountForTier(pricingTier)
+    const isSponsored = amountCents === 0
+    const baseUrl = new URL(c.req.url).origin
+    const paymentUrl = `${baseUrl}/payment/checkout/${app.id}`
+
+    // Send approval email with payment link (non-blocking)
+    c.executionCtx.waitUntil(
+      sendApplicationApproved(
+        c.env,
+        app.email,
+        app.name,
+        paymentUrl,
+        getTierLabel(pricingTier),
+        formatCents(amountCents),
+        isSponsored
+      )
+    )
+  } else if (app && status === 'rejected') {
+    // Send rejection email (non-blocking)
+    c.executionCtx.waitUntil(
+      sendApplicationRejected(c.env, app.email, app.name)
+    )
+  }
 
   return c.redirect(`/admin/applications/${id}`)
 })
