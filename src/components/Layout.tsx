@@ -40,9 +40,12 @@ export const Layout: FC<LayoutProps> = ({ title, description, noindex, user, chi
                   <li><a href="/admin">Admin</a></li>
                 )}
                 <li>
-                  <a href="/sign-out" class="nav-user">
+                  <a href="/settings/profile" class="nav-user">
                     {user.name || user.email.split('@')[0]}
                   </a>
+                </li>
+                <li>
+                  <a href="/sign-out" style="font-size: 0.85rem; color: var(--text-tertiary);">Sign Out</a>
                 </li>
               </>
             ) : (
