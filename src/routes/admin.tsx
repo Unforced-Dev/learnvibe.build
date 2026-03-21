@@ -23,6 +23,11 @@ admin.use('/admin/*', async (c, next) => {
     return
   }
 
+  // If not logged in, redirect to sign-in (don't show 403 for transient auth failures)
+  if (!user) {
+    return c.redirect('/sign-in')
+  }
+
   // In production, require admin role
   if (!isAdmin(user)) {
     return c.html(
@@ -279,9 +284,8 @@ admin.get('/admin/applications/:id', async (c) => {
               <div class="form-group">
                 <label for="pricing_tier">Pricing Tier</label>
                 <select id="pricing_tier" name="pricing_tier" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem;">
-                  <option value="standard">Standard ($500)</option>
-                  <option value="early_bird">Early Bird ($350)</option>
-                  <option value="scholarship">Scholarship ($150)</option>
+                  <option value="standard">Full Price ($500)</option>
+                  <option value="discounted">Discounted ($250)</option>
                   <option value="sponsor">Sponsored ($0)</option>
                 </select>
               </div>

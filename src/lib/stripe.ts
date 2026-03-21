@@ -21,9 +21,8 @@ export function isStripeConfigured(secretKey: string | undefined): boolean {
  * Admin sets the tier when approving an application.
  */
 export const PRICING_TIERS: Record<string, { label: string; amountCents: number }> = {
-  standard: { label: 'Standard', amountCents: 50000 },     // $500
-  early_bird: { label: 'Early Bird', amountCents: 35000 },  // $350
-  scholarship: { label: 'Scholarship', amountCents: 15000 }, // $150
+  standard: { label: 'Full Price', amountCents: 50000 },     // $500
+  discounted: { label: 'Discounted', amountCents: 25000 },   // $250 (alumni, RegenHub)
   sponsor: { label: 'Sponsored', amountCents: 0 },           // $0 — free
 }
 

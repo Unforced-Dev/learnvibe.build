@@ -25,8 +25,14 @@ const app = new Hono<AppContext>()
 app.use('*', async (c, next) => {
   // Only run Clerk middleware if properly configured
   if (isClerkConfigured(c)) {
-    const middleware = clerkMiddleware()
-    await middleware(c, async () => {})
+    try {
+      const middleware = clerkMiddleware()
+      await middleware(c, async () => {})
+    } catch (e) {
+      console.error('Clerk middleware error (non-fatal):', e)
+      // Continue without auth — better to show the page without user
+      // than to break entirely on a transient Clerk failure
+    }
   }
   // Set user variable for downstream routes
   const user = await getUser(c)
