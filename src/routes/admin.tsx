@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { eq, desc, asc, and } from 'drizzle-orm'
 import { Layout } from '../components/Layout'
 import { getDb } from '../db'
-import { applications, cohorts, lessons, users, enrollments, payments } from '../db/schema'
+import { applications, cohorts, lessons, users, enrollments, payments, feedback } from '../db/schema'
 import { isAdmin, isClerkConfigured } from '../lib/auth'
 import { formatCents, getAmountForTier, getTierLabel } from '../lib/stripe'
 import { sendBroadcast, sendApplicationApproved, sendApplicationRejected, isEmailConfigured } from '../lib/email'
@@ -52,10 +52,11 @@ admin.get('/admin', async (c) => {
   const user = c.get('user')!
   const db = getDb(c.env.DB)
 
-  const [appCount, lessonCount, cohortList] = await Promise.all([
+  const [appCount, lessonCount, cohortList, feedbackList] = await Promise.all([
     db.select().from(applications).all(),
     db.select().from(lessons).all(),
     db.select().from(cohorts).orderBy(asc(cohorts.id)).all(),
+    db.select().from(feedback).all(),
   ])
 
   const pendingApps = appCount.filter(a => a.status === 'pending').length
@@ -77,6 +78,10 @@ admin.get('/admin', async (c) => {
             <span class="admin-stat-number">{lessonCount.length}</span>
             <span class="admin-stat-label">Lessons</span>
           </a>
+          <a href="/admin/feedback" class="admin-stat-card">
+            <span class="admin-stat-number">{feedbackList.length}</span>
+            <span class="admin-stat-label">Feedback</span>
+          </a>
           <div class="admin-stat-card">
             <span class="admin-stat-number">{cohortList.length}</span>
             <span class="admin-stat-label">Cohorts</span>
@@ -89,6 +94,7 @@ admin.get('/admin', async (c) => {
             <a href="/admin/applications" class="admin-action-btn">Review Applications</a>
             <a href="/admin/lessons" class="admin-action-btn">Manage Lessons</a>
             <a href="/admin/lessons/new" class="admin-action-btn">Create Lesson</a>
+            <a href="/admin/feedback" class="admin-action-btn">View Feedback</a>
             <a href="/admin/email" class="admin-action-btn">Send Email</a>
           </div>
         </div>
@@ -518,6 +524,94 @@ admin.get('/admin/lessons/:id/edit', async (c) => {
             </a>
           </div>
         </form>
+      </div>
+    </Layout>
+  )
+})
+
+// ===== FEEDBACK LIST =====
+admin.get('/admin/feedback', async (c) => {
+  const user = c.get('user')!
+  const db = getDb(c.env.DB)
+
+  const allFeedback = await db.select().from(feedback).orderBy(desc(feedback.createdAt)).all()
+
+  const featureLabels: Record<number, string> = {
+    0: 'Private',
+    1: 'Named + linked',
+    2: 'Anonymous',
+    3: 'First name only',
+  }
+
+  return c.html(
+    <Layout title="Feedback" user={user} noindex>
+      <div class="page-section" style="max-width: 900px; margin: 0 auto;">
+        <p class="section-label">Admin</p>
+        <h2>Feedback ({allFeedback.length})</h2>
+        <p style="margin-top: 0.5rem; color: var(--text-secondary);">
+          <a href="/admin" style="color: var(--text-tertiary);">← Back to Admin</a>
+        </p>
+
+        {allFeedback.length === 0 ? (
+          <div style="margin-top: 3rem; text-align: center; color: var(--text-tertiary);">
+            No feedback yet. Share the form: <a href="/feedback" style="color: var(--accent);">/feedback</a>
+          </div>
+        ) : (
+          <div style="margin-top: 2rem; display: flex; flex-direction: column; gap: 1.5rem;">
+            {allFeedback.map(fb => (
+              <div style="padding: 1.5rem; background: var(--surface); border-radius: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                  <div>
+                    <strong style="font-size: 1.05rem;">{fb.name}</strong>
+                    <span style="color: var(--text-tertiary); font-size: 0.85rem; margin-left: 0.5rem;">{fb.email}</span>
+                  </div>
+                  <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    {fb.rating && (
+                      <span style="font-family: var(--font-mono); font-size: 0.85rem; background: var(--accent-soft); color: var(--accent); padding: 0.25rem 0.5rem; border-radius: 4px;">
+                        {fb.rating}/5
+                      </span>
+                    )}
+                    <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-tertiary);">
+                      {fb.cohortSlug || 'n/a'}
+                    </span>
+                  </div>
+                </div>
+
+                {fb.highlight && (
+                  <div style="margin-bottom: 1rem;">
+                    <span style="font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Best part</span>
+                    <p style="margin-top: 0.25rem; color: var(--text-secondary); line-height: 1.6;">{fb.highlight}</p>
+                  </div>
+                )}
+
+                {fb.testimonial && (
+                  <div style="margin-bottom: 1rem; padding: 1rem; background: var(--white); border-radius: 8px; border-left: 3px solid var(--accent);">
+                    <span style="font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">
+                      Testimonial · {featureLabels[fb.canFeature] || 'Private'}
+                    </span>
+                    <p style="margin-top: 0.25rem; font-style: italic; color: var(--text); line-height: 1.6;">"{fb.testimonial}"</p>
+                    {fb.website && (
+                      <p style="margin-top: 0.5rem; font-size: 0.85rem;">
+                        <a href={fb.website} target="_blank" style="color: var(--accent);">{fb.website}</a>
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {fb.improvement && (
+                  <div style="margin-bottom: 0.5rem;">
+                    <span style="font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Could be better</span>
+                    <p style="margin-top: 0.25rem; color: var(--text-secondary); line-height: 1.6;">{fb.improvement}</p>
+                  </div>
+                )}
+
+                <div style="margin-top: 0.75rem; font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-tertiary);">
+                  {new Date(fb.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </Layout>
   )
