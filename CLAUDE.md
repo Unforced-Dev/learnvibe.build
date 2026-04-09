@@ -31,9 +31,9 @@ npx wrangler deploy
 ### Secrets (set via `wrangler secret put`):
 - `CLERK_SECRET_KEY` — ✅ Set (`sk_test_Cuu7T6G2qXttZa0Yqd4wB56nYNIab9iEdRe7SuraR4`)
 - `RESEND_API_KEY` — ✅ Set (`re_8kng4Lsu_EU331XhF7yBBZzLXDMRRrfnZ`)
-- `STRIPE_SECRET_KEY` — ❌ Not yet set
-- `STRIPE_WEBHOOK_SECRET` — ❌ Not yet set
-- `CLERK_WEBHOOK_SECRET` — ❌ Not yet set
+- `STRIPE_SECRET_KEY` — ✅ Set
+- `STRIPE_WEBHOOK_SECRET` — ✅ Set
+- `CLERK_WEBHOOK_SECRET` — ✅ Set
 
 ### Vars (in wrangler.toml):
 - `CLERK_PUBLISHABLE_KEY` — test key for Clerk
@@ -75,7 +75,7 @@ All routes mount off the root Hono app in this order:
 - `public/index.html` — Static homepage (not SSR)
 - `public/slides/vibecoding-101.html` — Slide deck for university class
 
-## Current State (as of March 2026)
+## Current State (as of April 2026)
 
 ### What's Working
 - ✅ Homepage with "Now Enrolling" Cohort 1 messaging
@@ -83,20 +83,21 @@ All routes mount off the root Hono app in this order:
 - ✅ Application status check page (`/apply/status`)
 - ✅ Admin dashboard with application review (approve/reject with pricing tiers)
 - ✅ Approval emails with payment links, rejection emails
+- ✅ Stripe payment flow (keys configured, webhook active)
+- ✅ Clerk auth (sign-in/sign-up/sign-out with callback + webhook)
 - ✅ Admin email broadcast to cohort members (`/admin/email`)
-- ✅ Clerk auth (sign-in/sign-up/sign-out with callback)
 - ✅ Member dashboard showing enrollments or application status
 - ✅ Cohort 1 content (4 weeks of lessons in D1)
 - ✅ Dynamic cohort content pages with markdown rendering
+- ✅ Admin user (Aaron) promoted in D1
+- ✅ Feedback viewer in admin panel
 
 ### What's Pending
-- 🔑 **Stripe payment flow** — Code is complete but needs Stripe keys configured
-  - Set `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` via `wrangler secret put`
-  - Create webhook in Stripe dashboard → `https://learnvibe.build/api/webhooks/stripe` → `checkout.session.completed`
-- 🔑 **Clerk webhook** — Code exists but needs `CLERK_WEBHOOK_SECRET` set
-- 👤 **Admin user promotion** — After Aaron signs in, need to update his role to 'admin' in D1
 - 🎨 **Personalized curriculum** — Future vision for AI-enabled learning paths (design phase)
 - 📅 **Free Vibecode session** — Event at Regen Hub (needs planning/page)
+
+### Key Dates
+- **Cohort 1 start date:** April 20, 2026 (delayed from April 6)
 
 ### Pricing Tiers (admin-selectable on approval)
 - Standard: $500
