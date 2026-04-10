@@ -66,7 +66,7 @@ payment.get('/payment/checkout/:applicationId', async (c) => {
   }
 
   // Check if already enrolled (already paid)
-  if (app.status === 'enrolled' as any) {
+  if (app.status === 'enrolled') {
     return c.redirect('/dashboard')
   }
 
@@ -139,7 +139,7 @@ payment.get('/payment/checkout/:applicationId', async (c) => {
       })
 
       // Update application status
-      await db.update(applications).set({ status: 'enrolled' as any }).where(eq(applications.id, app.id))
+      await db.update(applications).set({ status: 'enrolled' }).where(eq(applications.id, app.id))
 
       return c.redirect('/payment/success?sponsored=true')
     }
@@ -256,7 +256,7 @@ payment.get('/payment/success', async (c) => {
         // Update application status to enrolled
         if (applicationId) {
           await db.update(applications)
-            .set({ status: 'enrolled' as any })
+            .set({ status: 'enrolled' })
             .where(eq(applications.id, applicationId))
         }
 

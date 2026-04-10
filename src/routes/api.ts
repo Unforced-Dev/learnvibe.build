@@ -4,8 +4,7 @@ import { applications, lessons, feedback, users, projects, lessonProgress, discu
 import { getDb } from '../db'
 import { isAdmin } from '../lib/auth'
 import { generateApiKey, hashApiKey, getKeyPrefix } from '../lib/api-auth'
-import { sendApplicationReceived, sendApplicationApproved, sendApplicationRejected } from '../lib/email'
-import { formatCents, getAmountForTier, getTierLabel } from '../lib/stripe'
+import { sendApplicationReceived } from '../lib/email'
 import type { AppContext } from '../types'
 
 const api = new Hono<AppContext>()
@@ -31,9 +30,20 @@ api.post('/api/applications', async (c) => {
 
   try {
     const db = getDb(c.env.DB)
+
+    // Check for existing application with this email
+    const existing = await db.select({ id: applications.id })
+      .from(applications)
+      .where(eq(applications.email, email.toLowerCase()))
+      .get()
+
+    if (existing) {
+      return c.redirect('/apply/status')
+    }
+
     await db.insert(applications).values({
       name,
-      email,
+      email: email.toLowerCase(),
       background,
       projectInterest,
       referralSource,
@@ -50,71 +60,6 @@ api.post('/api/applications', async (c) => {
   } catch (error) {
     console.error('Failed to save application:', error)
     return c.redirect('/apply?error=server_error')
-  }
-})
-
-// ===== ADMIN: Update application status =====
-api.post('/api/admin/applications/:id/status', async (c) => {
-  const user = c.get('user')
-  if (!isAdmin(user)) {
-    return c.json({ error: 'Unauthorized' }, 403)
-  }
-
-  const id = parseInt(c.req.param('id'), 10)
-  const body = await c.req.parseBody()
-  const action = String(body.action || '')
-  const pricingTier = String(body.pricing_tier || 'standard')
-  const notes = String(body.notes || '').trim()
-
-  if (!['approve', 'reject'].includes(action)) {
-    return c.redirect(`/admin/applications/${id}?error=invalid_action`)
-  }
-
-  try {
-    const db = getDb(c.env.DB)
-    const newStatus = action === 'approve' ? 'approved' : 'rejected'
-
-    // Get the application first so we can email the applicant
-    const app = await db.select().from(applications).where(eq(applications.id, id)).get()
-    if (!app) {
-      return c.redirect(`/admin/applications/${id}?error=not_found`)
-    }
-
-    await db.update(applications)
-      .set({
-        status: newStatus,
-        pricingTier: action === 'approve' ? pricingTier : 'pending',
-        notes: notes || null,
-        approvedAt: action === 'approve' ? new Date().toISOString() : null,
-      })
-      .where(eq(applications.id, id))
-
-    // Send email notification (non-blocking)
-    const baseUrl = new URL(c.req.url).origin
-    if (action === 'approve') {
-      const amountCents = getAmountForTier(pricingTier)
-      const paymentUrl = `${baseUrl}/payment/checkout/${id}`
-      c.executionCtx.waitUntil(
-        sendApplicationApproved(
-          c.env,
-          app.email,
-          app.name,
-          paymentUrl,
-          getTierLabel(pricingTier),
-          formatCents(amountCents),
-          amountCents === 0
-        )
-      )
-    } else {
-      c.executionCtx.waitUntil(
-        sendApplicationRejected(c.env, app.email, app.name)
-      )
-    }
-
-    return c.redirect(`/admin/applications/${id}`)
-  } catch (error) {
-    console.error('Failed to update application:', error)
-    return c.redirect(`/admin/applications/${id}?error=server_error`)
   }
 })
 
@@ -373,7 +318,8 @@ api.post('/api/progress/:lessonId', async (c) => {
   const lessonId = parseInt(c.req.param('lessonId'), 10)
   const body = await c.req.parseBody()
   const cohortId = parseInt(String(body.cohort_id || '0'), 10)
-  const returnUrl = String(body.return_url || '/dashboard')
+  const rawReturnUrl = String(body.return_url || '/dashboard')
+  const returnUrl = rawReturnUrl.startsWith('/') && !rawReturnUrl.startsWith('//') ? rawReturnUrl : '/dashboard'
 
   if (isNaN(lessonId) || !cohortId) {
     return c.redirect(returnUrl)
@@ -470,7 +416,8 @@ api.post('/api/discussions/:id/comments', async (c) => {
   const commentBody = String(body.body || '').trim()
   const parentIdStr = String(body.parent_id || '').trim()
   const parentId = parentIdStr ? parseInt(parentIdStr, 10) : null
-  const returnUrl = String(body.return_url || '/community/discussions')
+  const rawReturnUrl = String(body.return_url || '/community/discussions')
+  const returnUrl = rawReturnUrl.startsWith('/') && !rawReturnUrl.startsWith('//') ? rawReturnUrl : '/community/discussions'
 
   if (!commentBody) {
     return c.redirect(returnUrl)

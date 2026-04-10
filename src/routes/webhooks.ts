@@ -173,7 +173,7 @@ webhookRoutes.post('/api/webhooks/stripe', async (c) => {
 
       // Update application status to enrolled
       await db.update(applications)
-        .set({ status: 'enrolled' as any })
+        .set({ status: 'enrolled' })
         .where(eq(applications.id, applicationId))
 
       // If the applicant has a user account, create enrollment

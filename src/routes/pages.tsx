@@ -170,8 +170,8 @@ pages.post('/apply/status', async (c) => {
             <span style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-tertiary);">
               Applied {new Date(app.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
             </span>
-            <span class={`badge badge-${app.status === 'approved' ? 'active' : (app.status as any) === 'enrolled' ? 'active' : app.status === 'rejected' ? 'completed' : 'pending'}`} style="font-size: 0.85rem;">
-              {(app.status as any) === 'enrolled' ? 'enrolled' : app.status}
+            <span class={`badge badge-${app.status === 'approved' ? 'active' : app.status === 'enrolled' ? 'active' : app.status === 'rejected' ? 'completed' : 'pending'}`} style="font-size: 0.85rem;">
+              {app.status === 'enrolled' ? 'enrolled' : app.status}
             </span>
           </div>
 
@@ -197,7 +197,7 @@ pages.post('/apply/status', async (c) => {
             </div>
           )}
 
-          {(app.status as any) === 'enrolled' && (
+          {app.status === 'enrolled' && (
             <div>
               <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.5rem;">
                 You're enrolled! Create your account (or sign in) to access your cohort content.

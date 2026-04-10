@@ -26,7 +26,7 @@ export const applications = sqliteTable('applications', {
   referralSource: text('referral_source').notNull(),
   cohortSlug: text('cohort_slug').notNull().default('cohort-1'),
   pricingTier: text('pricing_tier').notNull().default('pending'), // set by admin on approval
-  status: text('status').notNull().default('pending'), // 'pending' | 'approved' | 'rejected'
+  status: text('status').notNull().default('pending'), // 'pending' | 'approved' | 'rejected' | 'enrolled'
   notes: text('notes'), // admin notes
   approvedAt: text('approved_at'), // ISO timestamp
   userId: integer('user_id').references(() => users.id),
