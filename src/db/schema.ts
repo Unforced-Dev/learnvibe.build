@@ -162,6 +162,17 @@ export const lessonProgress = sqliteTable('lesson_progress', {
   completedAt: text('completed_at').notNull().$defaultFn(() => new Date().toISOString()),
 })
 
+// ===== EMAIL LOG =====
+export const emailLog = sqliteTable('email_log', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  to: text('to').notNull(), // recipient email
+  subject: text('subject').notNull(),
+  template: text('template').notNull(), // e.g. 'application_received', 'application_approved', 'broadcast'
+  status: text('status').notNull().default('sent'), // 'sent' | 'failed'
+  error: text('error'), // error message if failed
+  sentAt: text('sent_at').notNull().$defaultFn(() => new Date().toISOString()),
+})
+
 // ===== API KEYS =====
 export const apiKeys = sqliteTable('api_keys', {
   id: integer('id').primaryKey({ autoIncrement: true }),
