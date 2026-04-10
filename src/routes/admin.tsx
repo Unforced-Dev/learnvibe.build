@@ -1,8 +1,8 @@
 import { Hono } from 'hono'
-import { eq, desc, asc, and, like, or, sql } from 'drizzle-orm'
+import { eq, desc, asc, and, like, or } from 'drizzle-orm'
 import { Layout } from '../components/Layout'
 import { getDb } from '../db'
-import { applications, cohorts, lessons, users, enrollments, payments, feedback, emailLog, lessonProgress, projects, discussions, comments, apiKeys } from '../db/schema'
+import { applications, cohorts, lessons, users, enrollments, payments, feedback, emailLog, lessonProgress, projects, discussions, comments, apiKeys, memberships } from '../db/schema'
 import { isAdmin, isClerkConfigured } from '../lib/auth'
 import { formatCents, getAmountForTier, getTierLabel } from '../lib/stripe'
 import { sendBroadcast, sendApplicationApproved, sendApplicationRejected, sendEmail, isEmailConfigured } from '../lib/email'
@@ -897,6 +897,7 @@ admin.get('/admin/accounts/:id', async (c) => {
   const db = getDb(c.env.DB)
   const id = parseInt(c.req.param('id'), 10)
   const saved = c.req.query('saved')
+  const error = c.req.query('error')
 
   const account = await db.select().from(users).where(eq(users.id, id)).get()
   if (!account) {
@@ -928,6 +929,18 @@ admin.get('/admin/accounts/:id', async (c) => {
         {saved === 'true' && (
           <div style="margin-top: 1rem; padding: 0.75rem 1rem; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; font-size: 0.9rem; color: #155724;">
             Account updated.
+          </div>
+        )}
+
+        {error === 'self_delete' && (
+          <div style="margin-top: 1rem; padding: 0.75rem 1rem; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; font-size: 0.9rem; color: #721c24;">
+            You cannot delete your own account.
+          </div>
+        )}
+
+        {error === 'email_taken' && (
+          <div style="margin-top: 1rem; padding: 0.75rem 1rem; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; font-size: 0.9rem; color: #721c24;">
+            That email address is already in use by another account.
           </div>
         )}
 
@@ -1535,11 +1548,12 @@ admin.post('/api/admin/accounts/:id', async (c) => {
   const name = String(body.name || '').trim() || null
   const email = String(body.email || '').trim()
   const role = String(body.role || 'student')
+  const validRoles = ['student', 'alumni', 'facilitator', 'admin']
   const bio = String(body.bio || '').trim() || null
   const location = String(body.location || '').trim() || null
   const website = String(body.website || '').trim() || null
 
-  if (!email) {
+  if (!email || !validRoles.includes(role)) {
     return c.redirect(`/admin/accounts/${id}`)
   }
 
