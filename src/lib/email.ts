@@ -210,7 +210,7 @@ export async function sendEmail(params: SendEmailParams): Promise<{ success: boo
       console.error('[Email] Send error:', result.error)
       if (params.db && params.template) {
         for (const r of recipients) {
-          logEmailSend(params.db, r, params.subject, params.template, 'failed', result.error.message)
+          await logEmailSend(params.db, r, params.subject, params.template, 'failed', result.error.message)
         }
       }
       return { success: false, error: result.error.message }
@@ -219,7 +219,7 @@ export async function sendEmail(params: SendEmailParams): Promise<{ success: boo
     console.log(`[Email] Sent: "${params.subject}" → ${recipients.join(', ')}`)
     if (params.db && params.template) {
       for (const r of recipients) {
-        logEmailSend(params.db, r, params.subject, params.template, 'sent')
+        await logEmailSend(params.db, r, params.subject, params.template, 'sent')
       }
     }
     return { success: true }
@@ -227,7 +227,7 @@ export async function sendEmail(params: SendEmailParams): Promise<{ success: boo
     console.error('[Email] Exception:', err.message)
     if (params.db && params.template) {
       for (const r of recipients) {
-        logEmailSend(params.db, r, params.subject, params.template, 'failed', err.message)
+        await logEmailSend(params.db, r, params.subject, params.template, 'failed', err.message)
       }
     }
     return { success: false, error: err.message }
