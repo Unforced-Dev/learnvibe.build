@@ -274,7 +274,7 @@ admin.get('/admin/applications/:id', async (c) => {
           </div>
         )}
 
-        {(app.status as any) === 'enrolled' && (
+        {app.status === 'enrolled' && (
           <div style="margin-top: 2rem; padding: 1.5rem; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px;">
             <h3 style="font-family: var(--font-display); color: #1e40af; margin-bottom: 0.5rem;">🎓 Enrolled</h3>
             <p style="font-size: 0.9rem; color: #1e3a8a;">
@@ -717,7 +717,7 @@ admin.post('/api/admin/email/broadcast', async (c) => {
     emails = apps.map(a => a.email)
   } else if (audience === 'all_enrolled') {
     const apps = await db.select().from(applications)
-      .where(eq(applications.status, 'enrolled' as any))
+      .where(eq(applications.status, 'enrolled'))
       .all()
     // Also get users with active enrollments
     const enrolledUsers = await db.select({ email: users.email })
@@ -739,7 +739,7 @@ admin.post('/api/admin/email/broadcast', async (c) => {
       const apps = await db.select().from(applications)
         .where(eq(applications.cohortSlug, cohort.slug))
         .all()
-      const approvedApps = apps.filter(a => a.status === 'approved' || (a.status as any) === 'enrolled')
+      const approvedApps = apps.filter(a => a.status === 'approved' || a.status === 'enrolled')
       const allEmails = new Set([...enrolledUsers.map(u => u.email), ...approvedApps.map(a => a.email)])
       emails = Array.from(allEmails)
     } else {

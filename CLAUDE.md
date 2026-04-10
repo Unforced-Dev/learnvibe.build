@@ -100,9 +100,8 @@ All routes mount off the root Hono app in this order:
 - **Cohort 1 start date:** April 20, 2026 (delayed from April 6)
 
 ### Pricing Tiers (admin-selectable on approval)
-- Standard: $500
-- Early Bird: $350
-- Scholarship: $150
+- Full Price: $500
+- Discounted: $250 (alumni, RegenHub)
 - Sponsored: $0 (auto-enrolls without Stripe)
 
 ### Email Flow

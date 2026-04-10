@@ -66,12 +66,14 @@ auth.get('/sign-in', (c) => {
       </div>
       <script async crossorigin="anonymous" data-clerk-publishable-key={pubKey} src={CLERK_CDN}></script>
       <script dangerouslySetInnerHTML={{ __html: clerkScript(`
+        var redirectUrl = new URLSearchParams(window.location.search).get('redirect_url') || '';
+        var callbackUrl = '/auth/callback' + (redirectUrl ? '?redirect_url=' + encodeURIComponent(redirectUrl) : '');
         if (clerk.user) {
-          window.location.href = '/auth/callback';
+          window.location.href = callbackUrl;
         } else {
           clerk.mountSignIn(document.getElementById('clerk-sign-in'), {
-            afterSignInUrl: '/auth/callback',
-            afterSignUpUrl: '/auth/callback',
+            afterSignInUrl: callbackUrl,
+            afterSignUpUrl: callbackUrl,
           });
         }
       `) }} />
@@ -104,12 +106,14 @@ auth.get('/sign-up', (c) => {
       </div>
       <script async crossorigin="anonymous" data-clerk-publishable-key={pubKey} src={CLERK_CDN}></script>
       <script dangerouslySetInnerHTML={{ __html: clerkScript(`
+        var redirectUrl = new URLSearchParams(window.location.search).get('redirect_url') || '';
+        var callbackUrl = '/auth/callback' + (redirectUrl ? '?redirect_url=' + encodeURIComponent(redirectUrl) : '');
         if (clerk.user) {
-          window.location.href = '/auth/callback';
+          window.location.href = callbackUrl;
         } else {
           clerk.mountSignUp(document.getElementById('clerk-sign-up'), {
-            afterSignInUrl: '/auth/callback',
-            afterSignUpUrl: '/auth/callback',
+            afterSignInUrl: callbackUrl,
+            afterSignUpUrl: callbackUrl,
           });
         }
       `) }} />
@@ -141,7 +145,12 @@ auth.get('/auth/callback', async (c) => {
       `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || null
     )
 
-    return c.redirect('/dashboard')
+    // Redirect to original page if provided, otherwise dashboard
+    const redirectUrl = c.req.query('redirect_url') || '/dashboard'
+    // Sanitize: only allow relative paths to prevent open redirect.
+    // Hono's query parser decodes the value before we check, so encoded slashes are safe.
+    const safeRedirect = redirectUrl.startsWith('/') && !redirectUrl.startsWith('//') ? redirectUrl : '/dashboard'
+    return c.redirect(safeRedirect)
   } catch (e) {
     console.error('Auth callback error:', e)
     // If Clerk user was deleted or session is stale, sign out to clear cookies
