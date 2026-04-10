@@ -1319,12 +1319,19 @@ admin.post('/api/admin/email/broadcast', async (c) => {
 })
 
 // ===== API ADMIN GUARD =====
+// These endpoints are called by HTML form POSTs, so handle auth failures
+// with redirects (not JSON) to match the HTML admin guard behavior.
 admin.use('/api/admin/*', async (c, next) => {
   if (!isClerkConfigured(c)) {
     await next()
     return
   }
   const user = c.get('user')
+  if (!user) {
+    // Session expired or not authenticated — redirect to sign-in
+    // so Clerk can refresh the token, then back to the admin page.
+    return c.redirect('/sign-in?redirect_url=%2Fadmin')
+  }
   if (!isAdmin(user)) {
     return c.json({ error: 'Forbidden' }, 403)
   }
