@@ -147,7 +147,8 @@ auth.get('/auth/callback', async (c) => {
 
     // Redirect to original page if provided, otherwise dashboard
     const redirectUrl = c.req.query('redirect_url') || '/dashboard'
-    // Sanitize: only allow relative paths to prevent open redirect
+    // Sanitize: only allow relative paths to prevent open redirect.
+    // Hono's query parser decodes the value before we check, so encoded slashes are safe.
     const safeRedirect = redirectUrl.startsWith('/') && !redirectUrl.startsWith('//') ? redirectUrl : '/dashboard'
     return c.redirect(safeRedirect)
   } catch (e) {

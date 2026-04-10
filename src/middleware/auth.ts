@@ -36,7 +36,8 @@ export async function requireAuth(c: Context<AppContext>, next: Next) {
   if (!user) {
     const accept = c.req.header('Accept') || ''
     if (accept.includes('text/html')) {
-      const returnUrl = encodeURIComponent(c.req.url)
+      const url = new URL(c.req.url)
+      const returnUrl = encodeURIComponent(url.pathname + url.search)
       return c.redirect(`/sign-in?redirect_url=${returnUrl}`)
     }
     return c.json({ error: 'Unauthorized' }, 401)
@@ -52,7 +53,8 @@ export async function requireAdmin(c: Context<AppContext>, next: Next) {
   if (!user) {
     const accept = c.req.header('Accept') || ''
     if (accept.includes('text/html')) {
-      const returnUrl = encodeURIComponent(c.req.url)
+      const url = new URL(c.req.url)
+      const returnUrl = encodeURIComponent(url.pathname + url.search)
       return c.redirect(`/sign-in?redirect_url=${returnUrl}`)
     }
     return c.json({ error: 'Unauthorized' }, 401)
