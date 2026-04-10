@@ -1,4 +1,6 @@
 import { Resend } from 'resend'
+import { getDb } from '../db'
+import { emailLog } from '../db/schema'
 
 let resendClient: Resend | null = null
 
@@ -173,11 +175,24 @@ interface SendEmailParams {
   subject: string
   html: string
   replyTo?: string
+  db?: D1Database
+  template?: string
+}
+
+async function logEmailSend(db: D1Database, to: string, subject: string, template: string, status: 'sent' | 'failed', error?: string) {
+  try {
+    const database = getDb(db)
+    await database.insert(emailLog).values({ to, subject, template, status, error: error || null })
+  } catch (e) {
+    console.error('[Email] Failed to log email send:', e)
+  }
 }
 
 export async function sendEmail(params: SendEmailParams): Promise<{ success: boolean; error?: string }> {
+  const recipients = Array.isArray(params.to) ? params.to : [params.to]
+
   if (!isEmailConfigured(params.apiKey)) {
-    console.log(`[Email] Skipped (not configured): "${params.subject}" → ${Array.isArray(params.to) ? params.to.join(', ') : params.to}`)
+    console.log(`[Email] Skipped (not configured): "${params.subject}" → ${recipients.join(', ')}`)
     return { success: true } // Don't fail — just skip when not configured
   }
 
@@ -185,7 +200,7 @@ export async function sendEmail(params: SendEmailParams): Promise<{ success: boo
     const resend = getResend(params.apiKey)
     const result = await resend.emails.send({
       from: params.from,
-      to: Array.isArray(params.to) ? params.to : [params.to],
+      to: recipients,
       subject: params.subject,
       html: params.html,
       reply_to: params.replyTo || 'ag@unforced.dev',
@@ -193,13 +208,28 @@ export async function sendEmail(params: SendEmailParams): Promise<{ success: boo
 
     if (result.error) {
       console.error('[Email] Send error:', result.error)
+      if (params.db && params.template) {
+        for (const r of recipients) {
+          logEmailSend(params.db, r, params.subject, params.template, 'failed', result.error.message)
+        }
+      }
       return { success: false, error: result.error.message }
     }
 
-    console.log(`[Email] Sent: "${params.subject}" → ${Array.isArray(params.to) ? params.to.join(', ') : params.to}`)
+    console.log(`[Email] Sent: "${params.subject}" → ${recipients.join(', ')}`)
+    if (params.db && params.template) {
+      for (const r of recipients) {
+        logEmailSend(params.db, r, params.subject, params.template, 'sent')
+      }
+    }
     return { success: true }
   } catch (err: any) {
     console.error('[Email] Exception:', err.message)
+    if (params.db && params.template) {
+      for (const r of recipients) {
+        logEmailSend(params.db, r, params.subject, params.template, 'failed', err.message)
+      }
+    }
     return { success: false, error: err.message }
   }
 }
@@ -207,18 +237,22 @@ export async function sendEmail(params: SendEmailParams): Promise<{ success: boo
 // ===== CONVENIENCE WRAPPERS =====
 // These tie the templates + send together for easy use in routes
 
-export async function sendApplicationReceived(env: { RESEND_API_KEY: string; EMAIL_FROM: string }, email: string, name: string) {
-  const template = applicationReceivedEmail(name)
+type EmailEnv = { RESEND_API_KEY: string; EMAIL_FROM: string; DB?: D1Database }
+
+export async function sendApplicationReceived(env: EmailEnv, email: string, name: string) {
+  const tpl = applicationReceivedEmail(name)
   return sendEmail({
     apiKey: env.RESEND_API_KEY,
     from: env.EMAIL_FROM,
     to: email,
-    ...template,
+    ...tpl,
+    db: env.DB,
+    template: 'application_received',
   })
 }
 
 export async function sendApplicationApproved(
-  env: { RESEND_API_KEY: string; EMAIL_FROM: string },
+  env: EmailEnv,
   email: string,
   name: string,
   paymentUrl: string,
@@ -226,55 +260,63 @@ export async function sendApplicationApproved(
   amountFormatted: string,
   isSponsored: boolean
 ) {
-  const template = applicationApprovedEmail(name, paymentUrl, tierLabel, amountFormatted, isSponsored)
+  const tpl = applicationApprovedEmail(name, paymentUrl, tierLabel, amountFormatted, isSponsored)
   return sendEmail({
     apiKey: env.RESEND_API_KEY,
     from: env.EMAIL_FROM,
     to: email,
-    ...template,
+    ...tpl,
+    db: env.DB,
+    template: isSponsored ? 'application_approved_sponsored' : 'application_approved',
   })
 }
 
-export async function sendApplicationRejected(env: { RESEND_API_KEY: string; EMAIL_FROM: string }, email: string, name: string) {
-  const template = applicationRejectedEmail(name)
+export async function sendApplicationRejected(env: EmailEnv, email: string, name: string) {
+  const tpl = applicationRejectedEmail(name)
   return sendEmail({
     apiKey: env.RESEND_API_KEY,
     from: env.EMAIL_FROM,
     to: email,
-    ...template,
+    ...tpl,
+    db: env.DB,
+    template: 'application_rejected',
   })
 }
 
 export async function sendEnrollmentConfirmed(
-  env: { RESEND_API_KEY: string; EMAIL_FROM: string },
+  env: EmailEnv,
   email: string,
   name: string,
   cohortTitle: string,
 ) {
-  const template = enrollmentConfirmedEmail(name, cohortTitle)
+  const tpl = enrollmentConfirmedEmail(name, cohortTitle)
   return sendEmail({
     apiKey: env.RESEND_API_KEY,
     from: env.EMAIL_FROM,
     to: email,
-    ...template,
+    ...tpl,
+    db: env.DB,
+    template: 'enrollment_confirmed',
   })
 }
 
 export async function sendBroadcast(
-  env: { RESEND_API_KEY: string; EMAIL_FROM: string },
+  env: EmailEnv,
   emails: string[],
   subject: string,
   markdownHtml: string,
 ) {
-  // Resend supports batch sending, but for now send individually for better deliverability
+  // Send individually for better deliverability
   const results = await Promise.allSettled(
     emails.map(email => {
-      const template = cohortBroadcastEmail(subject, markdownHtml)
+      const tpl = cohortBroadcastEmail(subject, markdownHtml)
       return sendEmail({
         apiKey: env.RESEND_API_KEY,
         from: env.EMAIL_FROM,
         to: email,
-        ...template,
+        ...tpl,
+        db: env.DB,
+        template: 'broadcast',
       })
     })
   )

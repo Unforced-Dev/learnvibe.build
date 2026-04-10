@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { eq, desc, asc, and } from 'drizzle-orm'
 import { Layout } from '../components/Layout'
 import { getDb } from '../db'
-import { applications, cohorts, lessons, users, enrollments, payments, feedback } from '../db/schema'
+import { applications, cohorts, lessons, users, enrollments, payments, feedback, emailLog } from '../db/schema'
 import { isAdmin, isClerkConfigured } from '../lib/auth'
 import { formatCents, getAmountForTier, getTierLabel } from '../lib/stripe'
 import { sendBroadcast, sendApplicationApproved, sendApplicationRejected, isEmailConfigured } from '../lib/email'
@@ -52,11 +52,13 @@ admin.get('/admin', async (c) => {
   const user = c.get('user')!
   const db = getDb(c.env.DB)
 
-  const [appCount, lessonCount, cohortList, feedbackList] = await Promise.all([
+  const [appCount, lessonCount, cohortList, feedbackList, userCount, emailCount] = await Promise.all([
     db.select().from(applications).all(),
     db.select().from(lessons).all(),
     db.select().from(cohorts).orderBy(asc(cohorts.id)).all(),
     db.select().from(feedback).all(),
+    db.select().from(users).all(),
+    db.select().from(emailLog).all(),
   ])
 
   const pendingApps = appCount.filter(a => a.status === 'pending').length
@@ -82,6 +84,14 @@ admin.get('/admin', async (c) => {
             <span class="admin-stat-number">{feedbackList.length}</span>
             <span class="admin-stat-label">Feedback</span>
           </a>
+          <a href="/admin/accounts" class="admin-stat-card">
+            <span class="admin-stat-number">{userCount.length}</span>
+            <span class="admin-stat-label">Accounts</span>
+          </a>
+          <a href="/admin/emails" class="admin-stat-card">
+            <span class="admin-stat-number">{emailCount.length}</span>
+            <span class="admin-stat-label">Emails Sent</span>
+          </a>
           <div class="admin-stat-card">
             <span class="admin-stat-number">{cohortList.length}</span>
             <span class="admin-stat-label">Cohorts</span>
@@ -95,6 +105,8 @@ admin.get('/admin', async (c) => {
             <a href="/admin/lessons" class="admin-action-btn">Manage Lessons</a>
             <a href="/admin/lessons/new" class="admin-action-btn">Create Lesson</a>
             <a href="/admin/feedback" class="admin-action-btn">View Feedback</a>
+            <a href="/admin/accounts" class="admin-action-btn">All Accounts</a>
+            <a href="/admin/emails" class="admin-action-btn">Email Log</a>
             <a href="/admin/email" class="admin-action-btn">Send Email</a>
           </div>
         </div>
@@ -610,6 +622,199 @@ admin.get('/admin/feedback', async (c) => {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+      </div>
+    </Layout>
+  )
+})
+
+// ===== ALL ACCOUNTS =====
+admin.get('/admin/accounts', async (c) => {
+  const user = c.get('user')!
+  const db = getDb(c.env.DB)
+
+  const allUsers = await db.select().from(users).orderBy(desc(users.createdAt)).all()
+
+  // Get application and payment data for each user
+  const allApps = await db.select().from(applications).all()
+  const allPayments = await db.select().from(payments).where(eq(payments.status, 'completed')).all()
+  const allEnrollments = await db.select().from(enrollments).all()
+
+  const appByEmail = new Map(allApps.map(a => [a.email.toLowerCase(), a]))
+  const paymentByUserId = new Map(allPayments.map(p => [p.userId, p]))
+  const enrollmentsByUserId = new Map<number, typeof allEnrollments>()
+  for (const e of allEnrollments) {
+    const list = enrollmentsByUserId.get(e.userId) || []
+    list.push(e)
+    enrollmentsByUserId.set(e.userId, list)
+  }
+
+  return c.html(
+    <Layout title="All Accounts" user={user} noindex>
+      <div class="page-section" style="max-width: 1000px; margin: 0 auto;">
+        <a href="/admin" class="back-link">← Admin</a>
+        <p class="section-label">Accounts</p>
+        <h2>All Accounts ({allUsers.length})</h2>
+
+        <div style="margin-top: 2rem; overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+            <thead>
+              <tr style="border-bottom: 2px solid var(--border); text-align: left;">
+                <th style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Name</th>
+                <th style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Email</th>
+                <th style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Role</th>
+                <th style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Application</th>
+                <th style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Payment</th>
+                <th style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Enrolled</th>
+                <th style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Signed Up</th>
+              </tr>
+            </thead>
+            <tbody>
+              {allUsers.map(u => {
+                const app = appByEmail.get(u.email.toLowerCase())
+                const payment = paymentByUserId.get(u.id)
+                const userEnrollments = enrollmentsByUserId.get(u.id) || []
+
+                return (
+                  <tr style="border-bottom: 1px solid var(--border);">
+                    <td style="padding: 0.75rem 0.5rem;">
+                      <a href={`/members/${u.id}`} style="color: var(--text); font-weight: 500; text-decoration: none;">
+                        {u.name || '—'}
+                      </a>
+                    </td>
+                    <td style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-secondary);">
+                      {u.email}
+                    </td>
+                    <td style="padding: 0.75rem 0.5rem;">
+                      <span class={`badge badge-${u.role === 'admin' || u.role === 'facilitator' ? 'active' : u.role === 'deleted' ? 'completed' : 'pending'}`} style="font-size: 0.75rem;">
+                        {u.role}
+                      </span>
+                    </td>
+                    <td style="padding: 0.75rem 0.5rem;">
+                      {app ? (
+                        <a href={`/admin/applications/${app.id}`} style="text-decoration: none;">
+                          <span class={`badge badge-${app.status === 'approved' || app.status === 'enrolled' ? 'active' : app.status === 'rejected' ? 'completed' : 'pending'}`} style="font-size: 0.75rem;">
+                            {app.status}
+                          </span>
+                          {app.pricingTier !== 'pending' && (
+                            <span style="font-size: 0.75rem; color: var(--text-tertiary); margin-left: 0.25rem;">
+                              {app.pricingTier}
+                            </span>
+                          )}
+                        </a>
+                      ) : (
+                        <span style="color: var(--text-tertiary); font-size: 0.8rem;">—</span>
+                      )}
+                    </td>
+                    <td style="padding: 0.75rem 0.5rem;">
+                      {payment ? (
+                        <span style="font-family: var(--font-mono); font-size: 0.8rem; color: #16a34a;">
+                          {formatCents(payment.amountCents)}
+                        </span>
+                      ) : (
+                        <span style="color: var(--text-tertiary); font-size: 0.8rem;">—</span>
+                      )}
+                    </td>
+                    <td style="padding: 0.75rem 0.5rem;">
+                      {userEnrollments.length > 0 ? (
+                        <span style="font-size: 0.8rem; color: #16a34a; font-weight: 500;">
+                          {userEnrollments.length} cohort{userEnrollments.length > 1 ? 's' : ''}
+                        </span>
+                      ) : (
+                        <span style="color: var(--text-tertiary); font-size: 0.8rem;">—</span>
+                      )}
+                    </td>
+                    <td style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-tertiary);">
+                      {new Date(u.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </Layout>
+  )
+})
+
+// ===== EMAIL LOG =====
+admin.get('/admin/emails', async (c) => {
+  const user = c.get('user')!
+  const db = getDb(c.env.DB)
+
+  const logs = await db.select().from(emailLog).orderBy(desc(emailLog.sentAt)).limit(200).all()
+
+  const templateLabels: Record<string, string> = {
+    application_received: 'App Received',
+    application_approved: 'Approved',
+    application_approved_sponsored: 'Approved (Sponsored)',
+    application_rejected: 'Rejected',
+    enrollment_confirmed: 'Enrollment',
+    broadcast: 'Broadcast',
+  }
+
+  return c.html(
+    <Layout title="Email Log" user={user} noindex>
+      <div class="page-section" style="max-width: 1000px; margin: 0 auto;">
+        <a href="/admin" class="back-link">← Admin</a>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <p class="section-label">Emails</p>
+            <h2>Email Log</h2>
+          </div>
+          <a href="/admin/email" style="display: inline-block; background: var(--accent); color: white; padding: 0.6rem 1.25rem; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.9rem;">
+            Send Email
+          </a>
+        </div>
+
+        {logs.length === 0 ? (
+          <div style="margin-top: 3rem; text-align: center; color: var(--text-tertiary);">
+            <p>No emails logged yet. Emails sent going forward will appear here.</p>
+          </div>
+        ) : (
+          <div style="margin-top: 2rem; overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+              <thead>
+                <tr style="border-bottom: 2px solid var(--border); text-align: left;">
+                  <th style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">To</th>
+                  <th style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Subject</th>
+                  <th style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Type</th>
+                  <th style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Status</th>
+                  <th style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Sent</th>
+                </tr>
+              </thead>
+              <tbody>
+                {logs.map(log => (
+                  <tr style="border-bottom: 1px solid var(--border);">
+                    <td style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-secondary); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                      {log.to}
+                    </td>
+                    <td style="padding: 0.75rem 0.5rem; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                      {log.subject}
+                    </td>
+                    <td style="padding: 0.75rem 0.5rem;">
+                      <span style="font-size: 0.8rem; padding: 0.2rem 0.5rem; background: var(--surface); border-radius: 4px; white-space: nowrap;">
+                        {templateLabels[log.template] || log.template}
+                      </span>
+                    </td>
+                    <td style="padding: 0.75rem 0.5rem;">
+                      {log.status === 'sent' ? (
+                        <span style="color: #16a34a; font-size: 0.85rem;">Sent</span>
+                      ) : (
+                        <span style="color: #dc2626; font-size: 0.85rem;" title={log.error || ''}>Failed</span>
+                      )}
+                    </td>
+                    <td style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-tertiary); white-space: nowrap;">
+                      {new Date(log.sentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      {' '}
+                      {new Date(log.sentAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
