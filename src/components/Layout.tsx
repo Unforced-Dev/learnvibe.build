@@ -7,9 +7,12 @@ type LayoutProps = PropsWithChildren<{
   description?: string
   noindex?: boolean
   user?: AuthUser | null
+  clerkPubKey?: string
 }>
 
-export const Layout: FC<LayoutProps> = ({ title, description, noindex, user, children }) => {
+const CLERK_CDN = 'https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js'
+
+export const Layout: FC<LayoutProps> = ({ title, description, noindex, user, clerkPubKey, children }) => {
   return (
     <html lang="en">
       <head>
@@ -26,6 +29,19 @@ export const Layout: FC<LayoutProps> = ({ title, description, noindex, user, chi
           rel="stylesheet"
         />
         <style dangerouslySetInnerHTML={{ __html: DESIGN_SYSTEM_CSS }} />
+        {clerkPubKey && (
+          <>
+            <script async crossorigin="anonymous" data-clerk-publishable-key={clerkPubKey} src={CLERK_CDN}></script>
+            <script dangerouslySetInnerHTML={{ __html: `
+              (async function(){
+                try {
+                  await new Promise(function(r,j){var a=0,c=setInterval(function(){a++;if(window.Clerk&&window.Clerk.load){clearInterval(c);r()}else if(a>50){clearInterval(c);j()}},100)});
+                  await window.Clerk.load();
+                } catch(e) { console.log('Clerk session keepalive: load skipped'); }
+              })();
+            `}} />
+          </>
+        )}
       </head>
       <body>
         <nav class="nav">
