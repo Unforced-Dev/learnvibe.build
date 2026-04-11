@@ -32,7 +32,7 @@ admin.use('/admin/*', async (c, next) => {
   // In production, require admin role
   if (!isAdmin(user)) {
     return c.html(
-      <Layout title="Unauthorized" user={user}>
+      <Layout title="Unauthorized" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY}>
         <div class="page-section" style="max-width: 500px; margin: 0 auto; text-align: center; padding: 6rem 0;">
           <h2>Unauthorized</h2>
           <p style="margin-top: 1rem; color: var(--text-secondary);">
@@ -71,7 +71,7 @@ admin.get('/admin', async (c) => {
   const conversionRate = allApps.length > 0 ? Math.round((enrolledApps / allApps.length) * 100) : 0
 
   return c.html(
-    <Layout title="Admin Dashboard" user={user} noindex>
+    <Layout title="Admin Dashboard" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY} noindex>
       <div class="page-section" style="max-width: 900px; margin: 0 auto;">
         <p class="section-label">Admin</p>
         <h2>Dashboard</h2>
@@ -194,7 +194,7 @@ admin.get('/admin/applications', async (c) => {
   }
 
   return c.html(
-    <Layout title="Applications" user={user} noindex>
+    <Layout title="Applications" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY} noindex>
       <div class="page-section" style="max-width: 900px; margin: 0 auto;">
         <a href="/admin" class="back-link">← Admin</a>
         <p class="section-label">Applications</p>
@@ -287,7 +287,7 @@ admin.get('/admin/applications/:id', async (c) => {
 
   if (!app) {
     return c.html(
-      <Layout title="Not Found" user={user} noindex>
+      <Layout title="Not Found" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY} noindex>
         <div class="page-section" style="text-align: center; padding: 6rem 0;">
           <h2>Application not found</h2>
           <a href="/admin/applications" class="back-link">← Back to applications</a>
@@ -298,7 +298,7 @@ admin.get('/admin/applications/:id', async (c) => {
   }
 
   return c.html(
-    <Layout title={`Application: ${app.name}`} user={user} noindex>
+    <Layout title={`Application: ${app.name}`} user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY} noindex>
       <div class="page-section" style="max-width: 700px; margin: 0 auto;">
         <a href="/admin/applications" class="back-link">← All Applications</a>
 
@@ -461,7 +461,7 @@ admin.get('/admin/lessons', async (c) => {
     .all()
 
   return c.html(
-    <Layout title="Manage Lessons" user={user} noindex>
+    <Layout title="Manage Lessons" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY} noindex>
       <div class="page-section" style="max-width: 900px; margin: 0 auto;">
         <a href="/admin" class="back-link">← Admin</a>
         <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -502,7 +502,7 @@ admin.get('/admin/lessons/new', async (c) => {
   const cohortList = await db.select().from(cohorts).orderBy(asc(cohorts.id)).all()
 
   return c.html(
-    <Layout title="New Lesson" user={user} noindex>
+    <Layout title="New Lesson" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY} noindex>
       <div class="page-section" style="max-width: 700px; margin: 0 auto;">
         <a href="/admin/lessons" class="back-link">← All Lessons</a>
         <p class="section-label">Create</p>
@@ -574,7 +574,7 @@ admin.get('/admin/lessons/:id/edit', async (c) => {
   const lesson = await db.select().from(lessons).where(eq(lessons.id, id)).get()
   if (!lesson) {
     return c.html(
-      <Layout title="Not Found" user={user} noindex>
+      <Layout title="Not Found" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY} noindex>
         <div class="page-section" style="text-align: center; padding: 6rem 0;">
           <h2>Lesson not found</h2>
           <a href="/admin/lessons" class="back-link">← Back to lessons</a>
@@ -587,7 +587,7 @@ admin.get('/admin/lessons/:id/edit', async (c) => {
   const cohortList = await db.select().from(cohorts).orderBy(asc(cohorts.id)).all()
 
   return c.html(
-    <Layout title={`Edit: ${lesson.title}`} user={user} noindex>
+    <Layout title={`Edit: ${lesson.title}`} user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY} noindex>
       <div class="page-section" style="max-width: 700px; margin: 0 auto;">
         <a href="/admin/lessons" class="back-link">← All Lessons</a>
         <p class="section-label">Edit Lesson</p>
@@ -671,7 +671,7 @@ admin.get('/admin/feedback', async (c) => {
   }
 
   return c.html(
-    <Layout title="Feedback" user={user} noindex>
+    <Layout title="Feedback" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY} noindex>
       <div class="page-section" style="max-width: 900px; margin: 0 auto;">
         <p class="section-label">Admin</p>
         <h2>Feedback ({allFeedback.length})</h2>
@@ -780,7 +780,7 @@ admin.get('/admin/accounts', async (c) => {
   const thStyle = "padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;"
 
   return c.html(
-    <Layout title="All Accounts" user={user} noindex>
+    <Layout title="All Accounts" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY} noindex>
       <div class="page-section" style="max-width: 1100px; margin: 0 auto;">
         <a href="/admin" class="back-link">← Admin</a>
         <p class="section-label">Accounts</p>
@@ -902,7 +902,7 @@ admin.get('/admin/accounts/:id', async (c) => {
   const account = await db.select().from(users).where(eq(users.id, id)).get()
   if (!account) {
     return c.html(
-      <Layout title="Not Found" user={currentUser} noindex>
+      <Layout title="Not Found" user={currentUser} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY} noindex>
         <div class="page-section" style="text-align: center; padding: 6rem 0;">
           <h2>Account not found</h2>
           <a href="/admin/accounts" class="back-link">← Back to accounts</a>
@@ -922,7 +922,7 @@ admin.get('/admin/accounts/:id', async (c) => {
   const userPayments = await db.select().from(payments).where(eq(payments.userId, id)).all()
 
   return c.html(
-    <Layout title={`Account: ${account.name || account.email}`} user={currentUser} noindex>
+    <Layout title={`Account: ${account.name || account.email}`} user={currentUser} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY} noindex>
       <div class="page-section" style="max-width: 700px; margin: 0 auto;">
         <a href="/admin/accounts" class="back-link">← All Accounts</a>
 
@@ -1054,7 +1054,7 @@ admin.get('/admin/emails', async (c) => {
   }
 
   return c.html(
-    <Layout title="Email Log" user={user} noindex>
+    <Layout title="Email Log" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY} noindex>
       <div class="page-section" style="max-width: 1000px; margin: 0 auto;">
         <a href="/admin" class="back-link">← Admin</a>
         <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -1129,7 +1129,7 @@ admin.get('/admin/email/compose', async (c) => {
   const emailConfigured = isEmailConfigured(c.env.RESEND_API_KEY)
 
   return c.html(
-    <Layout title="Compose Email" user={user} noindex>
+    <Layout title="Compose Email" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY} noindex>
       <div class="page-section" style="max-width: 700px; margin: 0 auto;">
         <a href="/admin" class="back-link">← Admin</a>
         <p class="section-label">Email</p>
@@ -1187,7 +1187,7 @@ admin.get('/admin/email', async (c) => {
   const emailConfigured = isEmailConfigured(c.env.RESEND_API_KEY)
 
   return c.html(
-    <Layout title="Send Email" user={user} noindex>
+    <Layout title="Send Email" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY} noindex>
       <div class="page-section" style="max-width: 700px; margin: 0 auto;">
         <a href="/admin" class="back-link">← Admin</a>
         <p class="section-label">Email</p>
@@ -1328,9 +1328,17 @@ admin.use('/api/admin/*', async (c, next) => {
   }
   const user = c.get('user')
   if (!user) {
-    // Session expired or not authenticated — redirect to sign-in
-    // so Clerk can refresh the token, then back to the admin page.
-    return c.redirect('/sign-in?redirect_url=%2Fadmin')
+    // Session expired or not authenticated — redirect to sign-in.
+    // Use the Referer header to send the user back to the page they were on.
+    const referer = c.req.header('referer')
+    let redirectUrl = '/admin'
+    if (referer) {
+      try {
+        const refPath = new URL(referer).pathname
+        if (refPath.startsWith('/admin')) redirectUrl = refPath
+      } catch {}
+    }
+    return c.redirect(`/sign-in?redirect_url=${encodeURIComponent(redirectUrl)}`)
   }
   if (!isAdmin(user)) {
     return c.json({ error: 'Forbidden' }, 403)

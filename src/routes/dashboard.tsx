@@ -65,7 +65,7 @@ dashboard.get('/dashboard', async (c) => {
     : []
 
   return c.html(
-    <Layout title="Dashboard" user={user}>
+    <Layout title="Dashboard" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY}>
       <div class="page-section" style="max-width: 800px; margin: 0 auto;">
         <p class="section-label">Dashboard</p>
         <h2>Welcome back{user.name ? `, ${user.name.split(' ')[0]}` : ''}</h2>
