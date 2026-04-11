@@ -105,6 +105,7 @@ pages.get('/curriculum', (c) => {
       description="Six weeks from Conversation to Coordinator. The Learn Vibe Build curriculum takes you from your first AI conversation to orchestrating your own personal AI agent."
       user={user}
     >
+      <style dangerouslySetInnerHTML={{ __html: `@media (max-width: 600px) { .curriculum-detail-grid { grid-template-columns: 1fr !important; } }` }} />
       <div class="page-section" style="max-width: 800px; margin: 0 auto;">
         <a href="/" style="font-size: 0.85rem; color: var(--text-tertiary); text-decoration: none;">&larr; Home</a>
 
@@ -125,7 +126,7 @@ pages.get('/curriculum', (c) => {
               <p style="font-size: 0.95rem; color: var(--accent); font-weight: 500; margin-bottom: 1rem;">{week.tagline}</p>
               <p style="color: var(--text-secondary); line-height: 1.7; margin-bottom: 1.25rem;">{week.description}</p>
 
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+              <div class="curriculum-detail-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
                 <div>
                   <h4 style="font-family: var(--font-mono); font-size: 0.7rem; font-weight: 500; color: var(--text-tertiary); letter-spacing: 0.03em; text-transform: uppercase; margin-bottom: 0.75rem;">What you'll learn</h4>
                   <ul style="list-style: none; padding: 0; margin: 0;">
