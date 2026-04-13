@@ -66,6 +66,8 @@ export const Layout: FC<LayoutProps> = ({ title, description, noindex, user, cle
               </>
             ) : (
               <>
+                <li><a href="/curriculum">Curriculum</a></li>
+                <li><a href="/sign-in">Sign In</a></li>
                 <li><a href="/apply" class="nav-apply">Apply</a></li>
               </>
             )}
