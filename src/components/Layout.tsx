@@ -8,11 +8,15 @@ type LayoutProps = PropsWithChildren<{
   noindex?: boolean
   user?: AuthUser | null
   clerkPubKey?: string
+  fullWidth?: boolean
 }>
 
 const CLERK_CDN = 'https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js'
 
-export const Layout: FC<LayoutProps> = ({ title, description, noindex, user, clerkPubKey, children }) => {
+export const Layout: FC<LayoutProps> = ({ title, description, noindex, user, clerkPubKey, fullWidth, children }) => {
+  const isEnrolled = user?.isEnrolled ?? false
+  const isAdmin = user?.role === 'admin' || user?.role === 'facilitator'
+
   return (
     <html lang="en">
       <head>
@@ -47,33 +51,46 @@ export const Layout: FC<LayoutProps> = ({ title, description, noindex, user, cle
         <nav class="nav">
           <a href="/" class="nav-brand">Learn Vibe Build</a>
           <ul class="nav-links">
-            <li><a href="/cohort/cohort-1">Cohort 1</a></li>
             {user ? (
-              <>
-                <li><a href="/community">Community</a></li>
-                <li><a href="/dashboard">Dashboard</a></li>
-                {(user.role === 'admin' || user.role === 'facilitator') && (
-                  <li><a href="/admin">Admin</a></li>
-                )}
-                <li>
-                  <a href="/settings/profile" class="nav-user">
-                    {user.name || user.email.split('@')[0]}
-                  </a>
-                </li>
-                <li>
-                  <a href="/sign-out" style="font-size: 0.85rem; color: var(--text-tertiary);">Sign Out</a>
-                </li>
-              </>
+              isEnrolled ? (
+                <>
+                  {/* Enrolled (or admin/facilitator): Cohort 1 | Community | Dashboard | [Admin] | Profile */}
+                  <li><a href="/cohort/cohort-1">Cohort 1</a></li>
+                  <li><a href="/community">Community</a></li>
+                  <li><a href="/dashboard">Dashboard</a></li>
+                  {isAdmin && (
+                    <li><a href="/admin">Admin</a></li>
+                  )}
+                  <li>
+                    <a href="/settings/profile" class="nav-user">
+                      {user.name || user.email.split('@')[0]}
+                    </a>
+                  </li>
+                </>
+              ) : (
+                <>
+                  {/* Logged in, not enrolled: Curriculum | Dashboard | Apply | Profile */}
+                  <li class="nav-hide-mobile"><a href="/curriculum">Curriculum</a></li>
+                  <li><a href="/dashboard">Dashboard</a></li>
+                  <li><a href="/apply" class="nav-apply">Apply</a></li>
+                  <li>
+                    <a href="/settings/profile" class="nav-user">
+                      {user.name || user.email.split('@')[0]}
+                    </a>
+                  </li>
+                </>
+              )
             ) : (
               <>
-                <li><a href="/curriculum">Curriculum</a></li>
-                <li><a href="/sign-in">Sign In</a></li>
+                {/* Logged out: Curriculum | Sign In | Apply */}
+                <li class="nav-hide-mobile"><a href="/curriculum">Curriculum</a></li>
+                <li class="nav-hide-mobile"><a href="/sign-in">Sign In</a></li>
                 <li><a href="/apply" class="nav-apply">Apply</a></li>
               </>
             )}
           </ul>
         </nav>
-        <main>{children}</main>
+        <main class={fullWidth ? 'main-full' : ''}>{children}</main>
         <footer>
           <p>Learn Vibe Build &middot; Boulder, Colorado &middot; 2026</p>
           <p>Part of the cooperative at <a href="https://regenhub.xyz" target="_blank">Regen Hub</a></p>

@@ -1,8 +1,8 @@
 import { Context } from 'hono'
 import { getAuth } from '@hono/clerk-auth'
-import { eq } from 'drizzle-orm'
+import { eq, and, ne } from 'drizzle-orm'
 import { getDb } from '../db'
-import { users } from '../db/schema'
+import { users, enrollments, memberships } from '../db/schema'
 import type { AppContext } from '../types'
 
 export type AuthUser = {
@@ -11,6 +11,7 @@ export type AuthUser = {
   email: string
   name: string | null
   role: string
+  isEnrolled: boolean
 }
 
 /**
@@ -29,7 +30,43 @@ export async function getUser(c: Context<AppContext>): Promise<AuthUser | null> 
       .where(eq(users.clerkId, auth.userId))
       .get()
 
-    return user || null
+    if (!user) return null
+
+    // Check enrollment status for nav display
+    let isEnrolled = false
+    if (user.role === 'admin' || user.role === 'facilitator') {
+      isEnrolled = true
+    } else {
+      const enrollment = await db
+        .select()
+        .from(enrollments)
+        .where(
+          and(
+            eq(enrollments.userId, user.id),
+            ne(enrollments.status, 'dropped')
+          )
+        )
+        .get()
+
+      if (enrollment) {
+        isEnrolled = true
+      } else {
+        const membership = await db
+          .select()
+          .from(memberships)
+          .where(
+            and(
+              eq(memberships.userId, user.id),
+              eq(memberships.status, 'active')
+            )
+          )
+          .get()
+
+        if (membership) isEnrolled = true
+      }
+    }
+
+    return { ...user, isEnrolled }
   } catch {
     // Clerk not configured or error — return null
     return null
@@ -62,7 +99,7 @@ export async function syncUser(
         .set({ email, name: name || null })
         .where(eq(users.clerkId, clerkId))
     }
-    return existing
+    return { ...existing, isEnrolled: false }
   }
 
   // Create new user
@@ -76,7 +113,7 @@ export async function syncUser(
     })
     .returning()
 
-  return result[0]
+  return { ...result[0], isEnrolled: false }
 }
 
 /**

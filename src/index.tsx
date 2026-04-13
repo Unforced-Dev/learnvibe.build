@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { clerkMiddleware } from '@hono/clerk-auth'
 import type { AppContext } from './types'
 import { getUser, isClerkConfigured } from './lib/auth'
+import home from './routes/home'
 import pages from './routes/pages'
 import api from './routes/api'
 import cohortRoutes from './routes/cohort'
@@ -75,6 +76,9 @@ app.route('/', memberRoutes)
 app.route('/', settingsRoutes)
 app.route('/', projectRoutes)
 app.route('/', discussionRoutes)
+
+// SSR homepage (replaces static public/index.html)
+app.route('/', home)
 
 // Redirects from old static URLs to dynamic routes
 app.get('/cohort-1.html', (c) => c.redirect('/cohort/cohort-1', 301))
