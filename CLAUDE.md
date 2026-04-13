@@ -10,7 +10,7 @@ Cohort-based AI learning platform. Teaches people to build with AI as a creative
 ## Tech Stack
 - **Runtime:** Cloudflare Workers
 - **Framework:** Hono v4 with JSX SSR (no client-side React)
-- **Database:** Cloudflare D1 (SQLite) — `learnvibe-db` (ID: `3d67d43b-4840-4f33-a297-83d94f355a20`)
+- **Database:** Cloudflare D1 (SQLite) — `learnvibe-db` (see wrangler.toml for database ID)
 - **ORM:** Drizzle ORM with migrations in `drizzle/migrations/`
 - **Auth:** Clerk (client-side JS embed, @clerk/backend for server verification)
 - **Payments:** Stripe (SDK installed, checkout flow built, awaiting keys)
@@ -21,16 +21,15 @@ Cohort-based AI learning platform. Teaches people to build with AI as a creative
 
 ## Deployment
 ```bash
-export CLOUDFLARE_API_TOKEN="9gLFBSQz4r5tHvONbxxDO018C7naGY3Nct7QE7oo"
+# CLOUDFLARE_API_TOKEN must be set in environment (see Cloudflare dashboard → API Tokens)
 npx wrangler deploy
 ```
 
-**Cloudflare Account:** Unforced Development (`8f2a7eb9d5e21ffa902a76cf62975c82`)
-**Zone ID (learnvibe.build):** `4359d95afe35b49da4be0b84de7c0c6b`
+**Cloudflare Account:** Unforced Development (see Cloudflare dashboard for account/zone IDs)
 
 ### Secrets (set via `wrangler secret put`):
-- `CLERK_SECRET_KEY` — ✅ Set (`sk_test_Cuu7T6G2qXttZa0Yqd4wB56nYNIab9iEdRe7SuraR4`)
-- `RESEND_API_KEY` — ✅ Set (`re_8kng4Lsu_EU331XhF7yBBZzLXDMRRrfnZ`)
+- `CLERK_SECRET_KEY` — ✅ Set (rotate via Clerk dashboard)
+- `RESEND_API_KEY` — ✅ Set (rotate via Resend dashboard)
 - `STRIPE_SECRET_KEY` — ✅ Set
 - `STRIPE_WEBHOOK_SECRET` — ✅ Set
 - `CLERK_WEBHOOK_SECRET` — ✅ Set

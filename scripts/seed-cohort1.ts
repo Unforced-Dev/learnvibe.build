@@ -5,12 +5,12 @@
  * This uses the Cloudflare API directly to insert data.
  */
 
-const ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID || '8f2a7eb9d5e21ffa902a76cf62975c82'
-const DATABASE_ID = '3d67d43b-4840-4f33-a297-83d94f355a20'
+const ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID
+const DATABASE_ID = process.env.CLOUDFLARE_D1_DATABASE_ID
 const API_TOKEN = process.env.CLOUDFLARE_API_TOKEN
 
-if (!API_TOKEN) {
-  console.error('Set CLOUDFLARE_API_TOKEN env var')
+if (!API_TOKEN || !ACCOUNT_ID || !DATABASE_ID) {
+  console.error('Set CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID, and CLOUDFLARE_D1_DATABASE_ID env vars')
   process.exit(1)
 }
 
