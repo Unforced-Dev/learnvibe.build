@@ -117,6 +117,47 @@ export function applicationApprovedEmail(
   }
 }
 
+export function applicationPriceChangedEmail(
+  name: string,
+  oldAmountFormatted: string,
+  newAmountFormatted: string,
+  tierLabel: string,
+  paymentUrl: string,
+  isSponsored: boolean,
+): { subject: string; html: string } {
+  const firstName = name.split(' ')[0]
+
+  if (isSponsored) {
+    return {
+      subject: 'Your Cohort 1 spot is now sponsored — Learn Vibe Build',
+      html: emailWrapper(`
+        <h2>Good news, ${firstName}!</h2>
+        <p>We've updated your enrollment — your spot in Cohort 1 is now <strong>sponsored</strong>. No payment required.</p>
+        <p>Complete your enrollment to get started:</p>
+        <a href="${paymentUrl}" class="email-cta">Complete Enrollment →</a>
+        <hr class="email-divider">
+        <p class="email-muted">Questions? Reply to this email or reach out at ag@unforced.dev.</p>
+      `),
+    }
+  }
+
+  return {
+    subject: 'Your Cohort 1 pricing has been updated — Learn Vibe Build',
+    html: emailWrapper(`
+      <h2>Hi ${firstName},</h2>
+      <p>We've updated the pricing on your Cohort 1 enrollment.</p>
+      <div class="email-highlight">
+        <p><strong>New price:</strong> ${tierLabel} — ${newAmountFormatted}<br>
+        <span style="color: #6b7280; font-size: 0.9em;">(was ${oldAmountFormatted})</span></p>
+      </div>
+      <p>If you haven't paid yet, the updated amount will apply when you do:</p>
+      <a href="${paymentUrl}" class="email-cta">Pay ${newAmountFormatted} & Enroll →</a>
+      <hr class="email-divider">
+      <p class="email-muted">Questions or need a different arrangement? Just reply — cost should never be a barrier.</p>
+    `),
+  }
+}
+
 export function applicationRejectedEmail(name: string): { subject: string; html: string } {
   const firstName = name.split(' ')[0]
   return {
@@ -268,6 +309,27 @@ export async function sendApplicationApproved(
     ...tpl,
     db: env.DB,
     template: isSponsored ? 'application_approved_sponsored' : 'application_approved',
+  })
+}
+
+export async function sendApplicationPriceChanged(
+  env: EmailEnv,
+  email: string,
+  name: string,
+  oldAmountFormatted: string,
+  newAmountFormatted: string,
+  tierLabel: string,
+  paymentUrl: string,
+  isSponsored: boolean,
+) {
+  const tpl = applicationPriceChangedEmail(name, oldAmountFormatted, newAmountFormatted, tierLabel, paymentUrl, isSponsored)
+  return sendEmail({
+    apiKey: env.RESEND_API_KEY,
+    from: env.EMAIL_FROM,
+    to: email,
+    ...tpl,
+    db: env.DB,
+    template: isSponsored ? 'application_price_changed_sponsored' : 'application_price_changed',
   })
 }
 

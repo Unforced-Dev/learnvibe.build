@@ -4,8 +4,8 @@ import { Layout } from '../components/Layout'
 import { getDb } from '../db'
 import { applications, cohorts, lessons, users, enrollments, payments, feedback, emailLog, lessonProgress, projects, discussions, comments, apiKeys, memberships } from '../db/schema'
 import { isAdmin, isClerkConfigured } from '../lib/auth'
-import { formatCents, getAmountForTier, getTierLabel } from '../lib/stripe'
-import { sendBroadcast, sendApplicationApproved, sendApplicationRejected, sendEmail, isEmailConfigured } from '../lib/email'
+import { formatCents, getAmountForTier, getTierLabel, getApplicationAmount, getApplicationLabel } from '../lib/stripe'
+import { sendBroadcast, sendApplicationApproved, sendApplicationRejected, sendApplicationPriceChanged, sendEmail, isEmailConfigured } from '../lib/email'
 import { isStripeConfigured, getStripe, createCheckoutSession } from '../lib/stripe'
 import { marked } from 'marked'
 import type { AppContext } from '../types'
@@ -350,10 +350,10 @@ admin.get('/admin/applications/:id', async (c) => {
 
         {app.status === 'approved' && (
           <div style="margin-top: 2rem; padding: 1.5rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px;">
-            <h3 style="font-family: var(--font-display); color: #166534; margin-bottom: 0.75rem;">✓ Approved — {getTierLabel(app.pricingTier)}</h3>
+            <h3 style="font-family: var(--font-display); color: #166534; margin-bottom: 0.75rem;">✓ Approved — {getApplicationLabel(app)}</h3>
             <p style="font-size: 0.9rem; color: #15803d; margin-bottom: 1rem;">
-              {getAmountForTier(app.pricingTier) > 0
-                ? `Payment required: ${formatCents(getAmountForTier(app.pricingTier))}`
+              {getApplicationAmount(app) > 0
+                ? `Payment required: ${formatCents(getApplicationAmount(app))}`
                 : 'Sponsored — no payment needed'}
             </p>
             <div style="display: flex; flex-direction: column; gap: 0.5rem;">
@@ -372,18 +372,35 @@ admin.get('/admin/applications/:id', async (c) => {
                 </button>
               </div>
             </div>
-            {/* Change pricing tier */}
-            <form method="post" action={`/api/admin/applications/${app.id}/tier`} style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #bbf7d0; display: flex; gap: 0.5rem; align-items: center;">
+            {/* Change pricing tier or set custom amount */}
+            <form method="post" action={`/api/admin/applications/${app.id}/tier`} style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #bbf7d0; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">
               <label style="font-size: 0.85rem; color: #15803d;">Change tier:</label>
               <select name="pricing_tier" style="padding: 0.4rem 0.75rem; border: 1px solid #bbf7d0; border-radius: 4px; font-size: 0.85rem; background: white;">
                 <option value="standard" selected={app.pricingTier === 'standard'}>Full Price ($500)</option>
                 <option value="discounted" selected={app.pricingTier === 'discounted'}>Discounted ($250)</option>
                 <option value="sponsor" selected={app.pricingTier === 'sponsor'}>Sponsored ($0)</option>
               </select>
+              <label style="font-size: 0.85rem; color: #15803d;">or custom $</label>
+              <input
+                type="number"
+                name="custom_amount_dollars"
+                min="0"
+                step="1"
+                placeholder="e.g. 150"
+                value={app.approvedAmountCents != null ? String(app.approvedAmountCents / 100) : ''}
+                style="padding: 0.4rem 0.5rem; border: 1px solid #bbf7d0; border-radius: 4px; font-size: 0.85rem; background: white; width: 6rem;"
+              />
+              <label style="display: flex; align-items: center; gap: 0.3rem; font-size: 0.8rem; color: #15803d;">
+                <input type="checkbox" name="notify" value="true" checked />
+                Email applicant
+              </label>
               <button type="submit" style="padding: 0.4rem 1rem; background: #166534; color: white; border: none; border-radius: 4px; font-size: 0.85rem; cursor: pointer;">
                 Update
               </button>
             </form>
+            <p style="font-size: 0.75rem; color: #15803d; margin-top: 0.5rem; opacity: 0.8;">
+              Custom amount overrides the tier. Leave custom blank to use the tier's default.
+            </p>
           </div>
         )}
 
@@ -408,6 +425,20 @@ admin.get('/admin/applications/:id', async (c) => {
                   <option value="discounted">Discounted ($250)</option>
                   <option value="sponsor">Sponsored ($0)</option>
                 </select>
+                <p style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-tertiary);">Or set a custom amount below (overrides tier).</p>
+              </div>
+
+              <div class="form-group">
+                <label for="custom_amount_dollars">Custom Amount ($, optional)</label>
+                <input
+                  type="number"
+                  id="custom_amount_dollars"
+                  name="custom_amount_dollars"
+                  min="0"
+                  step="1"
+                  placeholder="e.g. 150"
+                  style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem;"
+                />
               </div>
 
               <div class="form-group">
@@ -1355,15 +1386,25 @@ admin.post('/api/admin/applications/:id/status', async (c) => {
   const action = String(body.action || '')
   const pricingTier = String(body.pricing_tier || 'pending')
   const notes = String(body.notes || '').trim() || null
+  const customAmountDollarsRaw = String(body.custom_amount_dollars || '').trim()
+  const customAmountCents = customAmountDollarsRaw === ''
+    ? null
+    : Math.round(Number(customAmountDollarsRaw) * 100)
+  const customAmountValid = customAmountCents == null || (Number.isFinite(customAmountCents) && customAmountCents >= 0)
 
   if (action !== 'approve' && action !== 'reject') {
     return c.redirect(`/admin/applications/${id}`)
+  }
+
+  if (!customAmountValid) {
+    return c.redirect(`/admin/applications/${id}?error=invalid_amount`)
   }
 
   const status = action === 'approve' ? 'approved' : 'rejected'
   const updateData: Record<string, any> = {
     status,
     pricingTier,
+    approvedAmountCents: status === 'approved' ? customAmountCents : null,
     notes,
   }
 
@@ -1380,7 +1421,7 @@ admin.post('/api/admin/applications/:id/status', async (c) => {
   const app = await db.select().from(applications).where(eq(applications.id, id)).get()
 
   if (app && status === 'approved') {
-    const amountCents = getAmountForTier(pricingTier)
+    const amountCents = getApplicationAmount(app)
     const isSponsored = amountCents === 0
     const baseUrl = new URL(c.req.url).origin
     const paymentUrl = `${baseUrl}/payment/checkout/${app.id}`
@@ -1392,7 +1433,7 @@ admin.post('/api/admin/applications/:id/status', async (c) => {
         app.email,
         app.name,
         paymentUrl,
-        getTierLabel(pricingTier),
+        getApplicationLabel(app),
         formatCents(amountCents),
         isSponsored
       )
@@ -1486,21 +1527,61 @@ admin.post('/api/admin/applications/:id/delete', async (c) => {
   return c.redirect('/admin/applications')
 })
 
-// ===== API: CHANGE APPLICATION TIER =====
+// ===== API: CHANGE APPLICATION TIER / PRICE =====
 admin.post('/api/admin/applications/:id/tier', async (c) => {
   const db = getDb(c.env.DB)
   const id = parseInt(c.req.param('id'), 10)
   const body = await c.req.parseBody()
   const pricingTier = String(body.pricing_tier || 'standard')
   const validTiers = ['standard', 'discounted', 'sponsor', 'pending']
+  const notify = String(body.notify || '') === 'true'
+  const customAmountDollarsRaw = String(body.custom_amount_dollars || '').trim()
+  const customAmountCents = customAmountDollarsRaw === ''
+    ? null
+    : Math.round(Number(customAmountDollarsRaw) * 100)
 
   if (!validTiers.includes(pricingTier)) {
-    return c.redirect(`/admin/applications/${id}`)
+    return c.redirect(`/admin/applications/${id}?error=invalid_tier`)
+  }
+  if (customAmountCents != null && (!Number.isFinite(customAmountCents) || customAmountCents < 0)) {
+    return c.redirect(`/admin/applications/${id}?error=invalid_amount`)
   }
 
+  // Capture the previous amount BEFORE updating, so we can detect a real change for the email.
+  const prev = await db.select().from(applications).where(eq(applications.id, id)).get()
+  if (!prev) {
+    return c.redirect(`/admin/applications`)
+  }
+  const prevAmountCents = getApplicationAmount(prev)
+
   await db.update(applications)
-    .set({ pricingTier })
+    .set({ pricingTier, approvedAmountCents: customAmountCents })
     .where(eq(applications.id, id))
+
+  const updated = await db.select().from(applications).where(eq(applications.id, id)).get()
+  if (!updated) {
+    return c.redirect(`/admin/applications/${id}`)
+  }
+  const newAmountCents = getApplicationAmount(updated)
+
+  // Notify the applicant if the price actually changed and notify is requested.
+  // Skip the email entirely for already-enrolled applicants (they've paid).
+  if (notify && newAmountCents !== prevAmountCents && updated.status === 'approved') {
+    const baseUrl = new URL(c.req.url).origin
+    const paymentUrl = `${baseUrl}/payment/checkout/${updated.id}`
+    c.executionCtx.waitUntil(
+      sendApplicationPriceChanged(
+        c.env,
+        updated.email,
+        updated.name,
+        formatCents(prevAmountCents),
+        formatCents(newAmountCents),
+        getApplicationLabel(updated),
+        paymentUrl,
+        newAmountCents === 0
+      )
+    )
+  }
 
   return c.redirect(`/admin/applications/${id}`)
 })

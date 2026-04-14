@@ -4,7 +4,7 @@ import { Layout } from '../components/Layout'
 import { getDb } from '../db'
 import { enrollments, cohorts, applications, lessons, lessonProgress, projects } from '../db/schema'
 import { isClerkConfigured } from '../lib/auth'
-import { formatCents, getAmountForTier } from '../lib/stripe'
+import { formatCents, getApplicationAmount } from '../lib/stripe'
 import { getRecentActivity } from '../lib/activity'
 import type { AppContext } from '../types'
 
@@ -112,7 +112,7 @@ dashboard.get('/dashboard', async (c) => {
               .get()
 
             if (userApp && userApp.status === 'approved') {
-              const amountCents = getAmountForTier(userApp.pricingTier)
+              const amountCents = getApplicationAmount(userApp)
               return (
                 <div style="margin-top: 2rem; padding: 2rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px;">
                   <h3 style="font-family: var(--font-display); color: #166534; margin-bottom: 0.5rem;">Application Approved!</h3>

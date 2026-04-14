@@ -3,7 +3,7 @@ import { eq, and } from 'drizzle-orm'
 import { Layout } from '../components/Layout'
 import { getDb } from '../db'
 import { applications, cohorts, payments, enrollments, users } from '../db/schema'
-import { getStripe, isStripeConfigured, getAmountForTier, formatCents, createCheckoutSession } from '../lib/stripe'
+import { getStripe, isStripeConfigured, getApplicationAmount, formatCents, createCheckoutSession } from '../lib/stripe'
 import { syncUser } from '../lib/auth'
 import type { AppContext } from '../types'
 
@@ -109,7 +109,7 @@ payment.get('/payment/checkout/:applicationId', async (c) => {
     )
   }
 
-  const amountCents = getAmountForTier(app.pricingTier)
+  const amountCents = getApplicationAmount(app)
 
   // Sponsored applicants ($0) — skip Stripe, auto-enroll
   if (amountCents === 0) {
