@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm'
 import { Layout } from '../components/Layout'
 import { getDb } from '../db'
 import { applications } from '../db/schema'
-import { formatCents, getAmountForTier, getTierLabel } from '../lib/stripe'
+import { formatCents, getApplicationAmount, getApplicationLabel } from '../lib/stripe'
 import type { AppContext } from '../types'
 
 const pages = new Hono<AppContext>()
@@ -313,7 +313,7 @@ pages.post('/apply/status', async (c) => {
     )
   }
 
-  const amountCents = getAmountForTier(app.pricingTier)
+  const amountCents = getApplicationAmount(app)
 
   return c.html(
     <Layout title="Application Status" user={user}>
@@ -344,7 +344,7 @@ pages.post('/apply/status', async (c) => {
               <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.5rem;">
                 Great news — your application has been approved!
                 {amountCents > 0
-                  ? ` Complete your payment of ${formatCents(amountCents)} (${getTierLabel(app.pricingTier)}) to secure your spot.`
+                  ? ` Complete your payment of ${formatCents(amountCents)} (${getApplicationLabel(app)}) to secure your spot.`
                   : ` Your spot has been sponsored — create your account to get started.`}
               </p>
               <a href={`/payment/checkout/${app.id}`} style="display: inline-block; background: var(--accent); color: white; padding: 0.85rem 2rem; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 1.05rem;">

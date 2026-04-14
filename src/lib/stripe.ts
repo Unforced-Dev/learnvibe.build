@@ -30,6 +30,27 @@ export function getAmountForTier(tier: string): number {
   return PRICING_TIERS[tier]?.amountCents ?? 50000
 }
 
+/**
+ * Compute the actual amount to charge for an application.
+ * If the admin set a custom `approvedAmountCents`, that wins.
+ * Otherwise fall back to the tier's default amount.
+ */
+export function getApplicationAmount(app: { pricingTier: string; approvedAmountCents?: number | null }): number {
+  if (app.approvedAmountCents != null) return app.approvedAmountCents
+  return getAmountForTier(app.pricingTier)
+}
+
+/**
+ * Human-readable label for an application's approved price.
+ * Uses the tier label if the amount matches the tier, otherwise "Custom".
+ */
+export function getApplicationLabel(app: { pricingTier: string; approvedAmountCents?: number | null }): string {
+  if (app.approvedAmountCents == null) return getTierLabel(app.pricingTier)
+  const tierAmount = getAmountForTier(app.pricingTier)
+  if (app.approvedAmountCents === tierAmount) return getTierLabel(app.pricingTier)
+  return 'Custom'
+}
+
 export function getTierLabel(tier: string): string {
   return PRICING_TIERS[tier]?.label ?? 'Standard'
 }
