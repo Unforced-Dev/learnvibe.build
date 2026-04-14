@@ -30,7 +30,7 @@ home.get('/', (c) => {
           Apply for Cohort 1
           <ArrowSvg />
         </a>
-        <p class="hero-meta">April 20, 2026<span class="sep">&middot;</span>6 Weeks<span class="sep">&middot;</span>$500<span class="sep">&middot;</span>Boulder, CO &amp; Remote</p>
+        <p class="hero-meta">Mondays 5:30&ndash;7:30pm MT<span class="sep">&middot;</span>Starting April 20, 2026<span class="sep">&middot;</span>6 Weeks<span class="sep">&middot;</span>$500<span class="sep">&middot;</span>Boulder, CO &amp; Remote</p>
         <p style="margin-top: 1rem; font-size: 0.85rem;"><a href="/apply/status" style="color: var(--text-tertiary); text-decoration: none;">Already applied? Check your status &rarr;</a></p>
       </section>
 
@@ -100,8 +100,8 @@ home.get('/', (c) => {
         <div class="cohort-card">
           <span class="cohort-badge badge-open">Now Enrolling</span>
           <h3>Cohort 1 &mdash; Practice</h3>
-          <p class="cohort-detail">Starting April 20, 2026 &middot; 6 weeks &middot; Boulder, CO &amp; Remote</p>
-          <p>Weekly 1&ndash;2 hour sessions with core curriculum and live demonstration. Weekly 2-hour co-working &amp; office hours for hands-on building. Plus a community platform to share projects, ask questions, and learn from each other.</p>
+          <p class="cohort-detail">Mondays 5:30&ndash;7:30pm MT &middot; Starting April 20, 2026 &middot; 6 weeks &middot; Boulder, CO &amp; Remote</p>
+          <p>Weekly 2-hour live session (Mondays 5:30&ndash;7:30pm MT) with core curriculum and live demonstration. Weekly 2-hour co-working &amp; office hours for hands-on building. Plus a community platform to share projects, ask questions, and learn from each other.</p>
 
           <div class="cohort-weeks">
             <div class="cohort-week"><strong>Conversation</strong><span>Week 1</span></div>
