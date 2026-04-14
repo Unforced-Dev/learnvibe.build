@@ -153,7 +153,7 @@ pages.get('/curriculum', (c) => {
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </a>
           <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-tertiary);">
-            Starting April 20, 2026 &middot; 6 weeks &middot; $500 &middot; Boulder, CO &amp; Remote
+            Mondays 5:30&ndash;7:30pm MT &middot; Starting April 20, 2026 &middot; 6 weeks &middot; $500 &middot; Boulder, CO &amp; Remote
           </p>
           <p style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-tertiary);">
             Discounted and sponsored spots available &mdash; cost should never be a barrier.
@@ -183,7 +183,7 @@ pages.get('/apply', (c) => {
         <p class="section-label">Apply</p>
         <h2>Apply for Cohort 1</h2>
         <p class="lead">
-          6 weeks of building with AI as your creative partner. Starting April 2026 in Boulder, CO &amp; remote. $500. Discounted and sponsored spots available.
+          6 weeks of building with AI as your creative partner. Mondays 5:30&ndash;7:30pm MT, starting April 20, 2026 in Boulder, CO &amp; remote. $500. Discounted and sponsored spots available.
         </p>
 
         {error && errorMessages[error] && (
