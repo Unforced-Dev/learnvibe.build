@@ -28,6 +28,10 @@ export const applications = sqliteTable('applications', {
   pricingTier: text('pricing_tier').notNull().default('pending'), // set by admin on approval (kept for label/back-compat)
   /** Custom amount in cents. If set, overrides the tier's default amount (enables dynamic pricing). */
   approvedAmountCents: integer('approved_amount_cents'),
+  /** Pay-what-you-can: amount the applicant asked to contribute (cents). Null = paying full price. */
+  requestedAmountCents: integer('requested_amount_cents'),
+  /** Pay-what-you-can: optional reasoning the applicant shared for a lower contribution. */
+  requestedAmountReason: text('requested_amount_reason'),
   status: text('status').notNull().default('pending'), // 'pending' | 'approved' | 'rejected' | 'enrolled'
   notes: text('notes'), // admin notes
   approvedAt: text('approved_at'), // ISO timestamp

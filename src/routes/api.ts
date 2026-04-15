@@ -18,6 +18,9 @@ api.post('/api/applications', async (c) => {
   const background = String(body.background || '').trim()
   const projectInterest = String(body.project_interest || '').trim()
   const referralSource = String(body.referral_source || '').trim()
+  const contribution = String(body.contribution || 'full').trim()
+  const requestedAmountRaw = String(body.requested_amount || '').trim()
+  const requestedReason = String(body.requested_reason || '').trim() || null
 
   // Validate required fields
   if (!name || !email || !background || !projectInterest || !referralSource) {
@@ -26,6 +29,16 @@ api.post('/api/applications', async (c) => {
 
   if (!email.includes('@') || !email.includes('.')) {
     return c.redirect('/apply?error=invalid_email')
+  }
+
+  // Pay-what-you-can: if the applicant chose custom contribution, parse + clamp.
+  let requestedAmountCents: number | null = null
+  if (contribution === 'pwyc') {
+    const dollars = parseInt(requestedAmountRaw || '0', 10)
+    if (Number.isNaN(dollars) || dollars < 0 || dollars > 500) {
+      return c.redirect('/apply?error=invalid_amount')
+    }
+    requestedAmountCents = dollars * 100
   }
 
   try {
@@ -49,6 +62,8 @@ api.post('/api/applications', async (c) => {
       referralSource,
       cohortSlug: 'cohort-1',
       pricingTier: 'pending',
+      requestedAmountCents,
+      requestedAmountReason: requestedAmountCents != null ? requestedReason : null,
     })
 
     // Send confirmation email (non-blocking — don't fail the request if email fails)

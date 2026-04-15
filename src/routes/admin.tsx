@@ -328,6 +328,19 @@ admin.get('/admin/applications/:id', async (c) => {
             <p>{app.referralSource}</p>
           </div>
 
+          {app.requestedAmountCents != null && (
+            <div class="admin-detail-section" style="background: #fef9c3; border: 1px solid #fde047; border-radius: 8px; padding: 1rem 1.25rem;">
+              <h3 style="font-family: var(--font-display); color: #854d0e; margin: 0 0 0.35rem 0;">
+                💭 Self-selected contribution: {formatCents(app.requestedAmountCents)}
+              </h3>
+              {app.requestedAmountReason ? (
+                <p style="margin: 0.5rem 0 0 0; color: #713f12; font-size: 0.95rem; white-space: pre-wrap;">{app.requestedAmountReason}</p>
+              ) : (
+                <p style="margin: 0.5rem 0 0 0; color: #854d0e; font-size: 0.85rem; font-style: italic;">No reasoning provided.</p>
+              )}
+            </div>
+          )}
+
           <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.5rem;">
             <span style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-tertiary);">
               Applied {new Date(app.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
@@ -437,8 +450,12 @@ admin.get('/admin/applications/:id', async (c) => {
                   min="0"
                   step="1"
                   placeholder="e.g. 150"
+                  value={app.requestedAmountCents != null ? String(app.requestedAmountCents / 100) : ''}
                   style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem;"
                 />
+                {app.requestedAmountCents != null && (
+                  <p style="margin-top: 0.5rem; font-size: 0.85rem; color: #854d0e;">Pre-filled with applicant's self-selected contribution (${app.requestedAmountCents / 100}). Adjust if you want to honor a different amount.</p>
+                )}
               </div>
 
               <div class="form-group">
