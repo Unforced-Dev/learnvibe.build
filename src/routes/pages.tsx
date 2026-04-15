@@ -230,6 +230,32 @@ pages.get('/apply', (c) => {
             <input type="text" id="referral_source" name="referral_source" required />
           </div>
 
+          <div class="form-group" style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+            <p style="font-weight: 600; font-size: 1rem; margin-bottom: 0.5rem;">Financial</p>
+            <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.5; margin-bottom: 1rem;">
+              The cohort is <strong>$500</strong>. We'd rather have you in Cohort 1 at a price that works for you than not at all &mdash; so if something lower feels right, tell us what and we'll honor it.
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              <label style="display: flex; gap: 0.5rem; align-items: center; padding: 0.6rem 0.85rem; border: 1px solid var(--border); border-radius: 6px; cursor: pointer;">
+                <input type="radio" name="contribution" value="full" required onchange="document.getElementById('pwyc-box').style.display='none'" checked />
+                <span>Yes, $500 works.</span>
+              </label>
+              <label style="display: flex; gap: 0.5rem; align-items: center; padding: 0.6rem 0.85rem; border: 1px solid var(--border); border-radius: 6px; cursor: pointer;">
+                <input type="radio" name="contribution" value="pwyc" onchange="document.getElementById('pwyc-box').style.display='block'" />
+                <span>I'd like to contribute a different amount.</span>
+              </label>
+            </div>
+            <div id="pwyc-box" style="display: none; margin-top: 1rem; padding: 1rem 1.25rem; background: var(--surface); border-radius: 8px;">
+              <label for="requested_amount" style="display: block; font-size: 0.9rem; font-weight: 500; margin-bottom: 0.35rem;">What feels right?</label>
+              <div style="display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.85rem;">
+                <span style="font-size: 1.05rem; color: var(--text-secondary);">$</span>
+                <input type="number" id="requested_amount" name="requested_amount" min="0" max="500" step="1" placeholder="0" style="width: 8rem; font-size: 1rem;" />
+              </div>
+              <label for="requested_reason" style="display: block; font-size: 0.9rem; font-weight: 500; margin-bottom: 0.35rem;">Tell us a little about your reasoning <span style="color: var(--text-tertiary); font-weight: 400;">(optional)</span></label>
+              <textarea id="requested_reason" name="requested_reason" rows={3} placeholder="Whatever feels true — your situation, what this contribution means to you, anything you want us to know."></textarea>
+            </div>
+          </div>
+
           <button type="submit" class="apply-btn">Submit Application</button>
         </form>
       </div>
