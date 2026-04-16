@@ -254,9 +254,15 @@ admin.get('/admin/applications', async (c) => {
                   </div>
                   <div style="display: flex; gap: 0.5rem; align-items: center;">
                     {app.requestedAmountCents != null && (
-                      <span style="font-size: 0.75rem; background: #fef9c3; color: #854d0e; border: 1px solid #fde047; border-radius: 999px; padding: 0.15rem 0.55rem; font-weight: 500;">
-                        💭 {formatCents(app.requestedAmountCents)}
-                      </span>
+                      app.requestedAmountCents === 50000 && !app.requestedAmountReason ? (
+                        <span style="font-size: 0.75rem; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; border-radius: 999px; padding: 0.15rem 0.55rem; font-weight: 500;">
+                          ✓ {formatCents(app.requestedAmountCents)}
+                        </span>
+                      ) : (
+                        <span style="font-size: 0.75rem; background: #fef9c3; color: #854d0e; border: 1px solid #fde047; border-radius: 999px; padding: 0.15rem 0.55rem; font-weight: 500;">
+                          💭 {formatCents(app.requestedAmountCents)}
+                        </span>
+                      )
                     )}
                     {app.pricingTier !== 'pending' && (
                       <span style="font-size: 0.75rem; color: var(--text-tertiary);">{getTierLabel(app.pricingTier)}</span>
@@ -339,16 +345,24 @@ admin.get('/admin/applications/:id', async (c) => {
           </div>
 
           {app.requestedAmountCents != null && (
-            <div class="admin-detail-section" style="background: #fef9c3; border: 1px solid #fde047; border-radius: 8px; padding: 1rem 1.25rem;">
-              <h3 style="font-family: var(--font-display); color: #854d0e; margin: 0 0 0.35rem 0;">
-                💭 Self-selected contribution: {formatCents(app.requestedAmountCents)}
-              </h3>
-              {app.requestedAmountReason ? (
-                <p style="margin: 0.5rem 0 0 0; color: #713f12; font-size: 0.95rem; white-space: pre-wrap;">{app.requestedAmountReason}</p>
-              ) : (
-                <p style="margin: 0.5rem 0 0 0; color: #854d0e; font-size: 0.85rem; font-style: italic;">No reasoning provided.</p>
-              )}
-            </div>
+            app.requestedAmountCents === 50000 && !app.requestedAmountReason ? (
+              <div class="admin-detail-section" style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 0.75rem 1.25rem;">
+                <p style="margin: 0; color: #166534; font-size: 0.95rem;">
+                  ✓ Applicant confirmed full price ($500).
+                </p>
+              </div>
+            ) : (
+              <div class="admin-detail-section" style="background: #fef9c3; border: 1px solid #fde047; border-radius: 8px; padding: 1rem 1.25rem;">
+                <h3 style="font-family: var(--font-display); color: #854d0e; margin: 0 0 0.35rem 0;">
+                  💭 Self-selected contribution: {formatCents(app.requestedAmountCents)}
+                </h3>
+                {app.requestedAmountReason ? (
+                  <p style="margin: 0.5rem 0 0 0; color: #713f12; font-size: 0.95rem; white-space: pre-wrap;">{app.requestedAmountReason}</p>
+                ) : (
+                  <p style="margin: 0.5rem 0 0 0; color: #854d0e; font-size: 0.85rem; font-style: italic;">No reasoning provided.</p>
+                )}
+              </div>
+            )
           )}
 
           <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.5rem;">

@@ -31,7 +31,8 @@ api.post('/api/applications', async (c) => {
     return c.redirect('/apply?error=invalid_email')
   }
 
-  // Pay-what-you-can: if the applicant chose custom contribution, parse + clamp.
+  // Pay-what-you-can: record the applicant's chosen contribution.
+  // "full" → they confirmed $500. "pwyc" → parse + clamp their custom amount.
   let requestedAmountCents: number | null = null
   if (contribution === 'pwyc') {
     const dollars = parseInt(requestedAmountRaw || '0', 10)
@@ -39,6 +40,8 @@ api.post('/api/applications', async (c) => {
       return c.redirect('/apply?error=invalid_amount')
     }
     requestedAmountCents = dollars * 100
+  } else if (contribution === 'full') {
+    requestedAmountCents = 50000
   }
 
   try {
