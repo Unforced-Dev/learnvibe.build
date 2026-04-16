@@ -253,6 +253,11 @@ admin.get('/admin/applications', async (c) => {
                     <span style="font-size: 0.85rem; color: var(--text-tertiary); margin-left: 0.5rem;">{app.email}</span>
                   </div>
                   <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    {app.requestedAmountCents != null && (
+                      <span style="font-size: 0.75rem; background: #fef9c3; color: #854d0e; border: 1px solid #fde047; border-radius: 999px; padding: 0.15rem 0.55rem; font-weight: 500;">
+                        💭 {formatCents(app.requestedAmountCents)}
+                      </span>
+                    )}
                     {app.pricingTier !== 'pending' && (
                       <span style="font-size: 0.75rem; color: var(--text-tertiary);">{getTierLabel(app.pricingTier)}</span>
                     )}
@@ -264,6 +269,11 @@ admin.get('/admin/applications', async (c) => {
                 <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem; line-height: 1.5;">
                   {app.background.length > 150 ? app.background.substring(0, 150) + '...' : app.background}
                 </p>
+                {app.requestedAmountReason && (
+                  <p style="font-size: 0.8rem; color: #713f12; background: #fef9c3; border-left: 3px solid #fde047; padding: 0.4rem 0.65rem; margin-top: 0.5rem; line-height: 1.4; border-radius: 4px; font-style: italic;">
+                    {app.requestedAmountReason.length > 180 ? app.requestedAmountReason.substring(0, 180) + '…' : app.requestedAmountReason}
+                  </p>
+                )}
                 <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-tertiary);">
                   {new Date(app.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   {app.cohortSlug && <> · {app.cohortSlug}</>}
