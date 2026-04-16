@@ -154,16 +154,31 @@ admin.get('/admin', async (c) => {
           {cohortList.map(cohort => {
             const cohortEnrollments = allEnrollments.filter(e => e.cohortId === cohort.id)
             return (
-              <div style="padding: 1rem; background: var(--surface); border-radius: 8px; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                  <strong>{cohort.title}</strong>
-                  <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-tertiary); margin-left: 0.75rem;">
-                    {cohort.slug} · {cohort.status} · {cohort.isPublic ? 'Public' : 'Gated'}
+              <div style="padding: 1rem; background: var(--surface); border-radius: 8px; margin-bottom: 0.75rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <strong>{cohort.title}</strong>
+                    <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-tertiary); margin-left: 0.75rem;">
+                      {cohort.slug} · {cohort.status} · {cohort.isPublic ? 'Public' : 'Gated'}
+                    </span>
+                  </div>
+                  <span style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-secondary);">
+                    {cohortEnrollments.length} enrolled
                   </span>
                 </div>
-                <span style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-secondary);">
-                  {cohortEnrollments.length} enrolled
-                </span>
+                <form method="post" action={`/api/admin/cohorts/${cohort.id}/meeting-url`} style="display: flex; gap: 0.5rem; margin-top: 0.75rem; align-items: center;">
+                  <label style="font-size: 0.8rem; color: var(--text-tertiary); white-space: nowrap;">Live session link:</label>
+                  <input
+                    type="url"
+                    name="meeting_url"
+                    value={cohort.meetingUrl || ''}
+                    placeholder="https://zoom.us/j/…"
+                    style="flex: 1; padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 4px; font-size: 0.85rem; font-family: var(--font-mono);"
+                  />
+                  <button type="submit" style="padding: 0.4rem 0.85rem; background: var(--accent); color: white; border: none; border-radius: 4px; font-size: 0.85rem; cursor: pointer;">
+                    Save
+                  </button>
+                </form>
               </div>
             )
           })}
@@ -1487,6 +1502,23 @@ admin.post('/api/admin/applications/:id/status', async (c) => {
   }
 
   return c.redirect(`/admin/applications/${id}`)
+})
+
+// ===== API: UPDATE COHORT MEETING URL =====
+admin.post('/api/admin/cohorts/:id/meeting-url', async (c) => {
+  const db = getDb(c.env.DB)
+  const id = parseInt(c.req.param('id'), 10)
+  const body = await c.req.parseBody()
+  const rawUrl = String(body.meeting_url || '').trim()
+
+  // Allow clearing. Otherwise require http(s).
+  const meetingUrl = rawUrl === '' ? null : rawUrl
+  if (meetingUrl && !/^https?:\/\//i.test(meetingUrl)) {
+    return c.redirect('/admin?error=invalid_meeting_url')
+  }
+
+  await db.update(cohorts).set({ meetingUrl }).where(eq(cohorts.id, id))
+  return c.redirect('/admin')
 })
 
 // ===== API: CREATE LESSON =====

@@ -121,6 +121,21 @@ cohortRoutes.get('/cohort/:slug', async (c) => {
           </div>
         )}
 
+        {cohort.meetingUrl && (
+          <a
+            href={cohort.meetingUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding: 1rem 1.25rem; background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%); border: 1px solid #f59e0b; border-radius: 10px; text-decoration: none; color: #78350f; gap: 1rem;"
+          >
+            <div>
+              <div style="font-weight: 600; font-size: 1rem;">🔴 Join live session</div>
+              <div style="font-size: 0.85rem; color: #92400e; margin-top: 0.15rem;">Mondays 5:30–7:30pm MT</div>
+            </div>
+            <span style="font-weight: 500; white-space: nowrap;">Join →</span>
+          </a>
+        )}
+
         {cohortLessons.length > 0 ? (
           <div class="week-grid">
             {cohortLessons.map((lesson) => (

@@ -72,6 +72,23 @@ dashboard.get('/dashboard', async (c) => {
 
         {userEnrollments.length > 0 ? (
           <>
+            {userEnrollments
+              .filter(({ enrollment, cohort }) => enrollment.status === 'active' && cohort.meetingUrl)
+              .map(({ cohort }) => (
+                <a
+                  href={cohort.meetingUrl!}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding: 1rem 1.25rem; background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%); border: 1px solid #f59e0b; border-radius: 10px; text-decoration: none; color: #78350f; gap: 1rem;"
+                >
+                  <div>
+                    <div style="font-weight: 600; font-size: 1rem;">🔴 Join live session — {cohort.title}</div>
+                    <div style="font-size: 0.85rem; color: #92400e; margin-top: 0.15rem;">Mondays 5:30–7:30pm MT</div>
+                  </div>
+                  <span style="font-weight: 500; white-space: nowrap;">Join →</span>
+                </a>
+              ))}
+
             <p class="lead" style="margin-top: 0.5rem;">Your cohorts</p>
             <div class="week-grid" style="margin-top: 1.5rem;">
               {userEnrollments.map(({ enrollment, cohort }) => {

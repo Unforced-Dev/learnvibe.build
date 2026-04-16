@@ -52,6 +52,8 @@ export const cohorts = sqliteTable('cohorts', {
   priceCents: integer('price_cents').notNull(),
   isPublic: integer('is_public').notNull().default(0), // 1 = content visible without auth
   status: text('status').notNull().default('upcoming'), // 'upcoming' | 'enrolling' | 'active' | 'completed'
+  /** Live session URL (Zoom / Meet / etc). Shown to enrolled members on dashboard + cohort page. */
+  meetingUrl: text('meeting_url'),
   createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
 })
 
