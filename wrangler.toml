@@ -16,6 +16,7 @@ migrations_dir = "drizzle/migrations"
 [vars]
 CLERK_PUBLISHABLE_KEY = "pk_test_dG9waWNhbC1yYWJiaXQtNjAuY2xlcmsuYWNjb3VudHMuZGV2JA"
 EMAIL_FROM = "Learn Vibe Build <hello@mail.unforced.dev>"
+EMAIL_REPLY_TO = "ag@unforced.org"
 
 # Custom domain
 [[routes]]

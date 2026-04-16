@@ -1,7 +1,7 @@
 # Learn Vibe Build — Project Context
 
 ## What This Is
-Cohort-based AI learning platform. Teaches people to build with AI as a creative partner. Based in Boulder, CO + remote. Run by Aaron Gabriel (ag@unforced.dev) and Jon Bo.
+Cohort-based AI learning platform. Teaches people to build with AI as a creative partner. Based in Boulder, CO + remote. Run by Aaron Gabriel (ag@unforced.org) and Jon Bo.
 
 **Live at:** https://learnvibe.build
 **Workers.dev:** https://learnvibe-build.ag-8f2.workers.dev
@@ -110,7 +110,7 @@ All routes mount off the root Hono app in this order:
 - **Stripe payment** → "You're enrolled!" welcome email
 - **Admin broadcast** → Custom markdown email to selected audience
 - **From:** `Learn Vibe Build <hello@mail.unforced.dev>`
-- **Reply-to:** `ag@unforced.dev`
+- **Reply-to:** `ag@unforced.org` (configurable via `EMAIL_REPLY_TO` in wrangler.toml)
 
 ## D1 Data
 - Cohort 1: 4 weeks of lessons (seeded via `scripts/seed-cohort1.ts`)

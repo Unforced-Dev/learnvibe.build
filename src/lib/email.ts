@@ -73,7 +73,7 @@ export function applicationReceivedEmail(name: string): { subject: string; html:
       <p>In the meantime, you can check your application status anytime:</p>
       <a href="https://learnvibe.build/apply/status" class="email-cta">Check Your Status</a>
       <hr class="email-divider">
-      <p class="email-muted">If you have any questions, reply to this email or reach out at aaron@learnvibe.build.</p>
+      <p class="email-muted">If you have any questions, reply to this email or reach out at ag@unforced.org.</p>
     `),
   }
 }
@@ -136,7 +136,7 @@ export function applicationPriceChangedEmail(
         <p>Complete your enrollment to get started:</p>
         <a href="${paymentUrl}" class="email-cta">Complete Enrollment →</a>
         <hr class="email-divider">
-        <p class="email-muted">Questions? Reply to this email or reach out at ag@unforced.dev.</p>
+        <p class="email-muted">Questions? Reply to this email or reach out at ag@unforced.org.</p>
       `),
     }
   }
@@ -244,7 +244,7 @@ export async function sendEmail(params: SendEmailParams): Promise<{ success: boo
       to: recipients,
       subject: params.subject,
       html: params.html,
-      reply_to: params.replyTo || 'ag@unforced.dev',
+      reply_to: params.replyTo || 'ag@unforced.org',
     })
 
     if (result.error) {
@@ -278,13 +278,14 @@ export async function sendEmail(params: SendEmailParams): Promise<{ success: boo
 // ===== CONVENIENCE WRAPPERS =====
 // These tie the templates + send together for easy use in routes
 
-type EmailEnv = { RESEND_API_KEY: string; EMAIL_FROM: string; DB?: D1Database }
+type EmailEnv = { RESEND_API_KEY: string; EMAIL_FROM: string; EMAIL_REPLY_TO?: string; DB?: D1Database }
 
 export async function sendApplicationReceived(env: EmailEnv, email: string, name: string) {
   const tpl = applicationReceivedEmail(name)
   return sendEmail({
     apiKey: env.RESEND_API_KEY,
     from: env.EMAIL_FROM,
+    replyTo: env.EMAIL_REPLY_TO,
     to: email,
     ...tpl,
     db: env.DB,
@@ -305,6 +306,7 @@ export async function sendApplicationApproved(
   return sendEmail({
     apiKey: env.RESEND_API_KEY,
     from: env.EMAIL_FROM,
+    replyTo: env.EMAIL_REPLY_TO,
     to: email,
     ...tpl,
     db: env.DB,
@@ -326,6 +328,7 @@ export async function sendApplicationPriceChanged(
   return sendEmail({
     apiKey: env.RESEND_API_KEY,
     from: env.EMAIL_FROM,
+    replyTo: env.EMAIL_REPLY_TO,
     to: email,
     ...tpl,
     db: env.DB,
@@ -338,6 +341,7 @@ export async function sendApplicationRejected(env: EmailEnv, email: string, name
   return sendEmail({
     apiKey: env.RESEND_API_KEY,
     from: env.EMAIL_FROM,
+    replyTo: env.EMAIL_REPLY_TO,
     to: email,
     ...tpl,
     db: env.DB,
@@ -355,6 +359,7 @@ export async function sendEnrollmentConfirmed(
   return sendEmail({
     apiKey: env.RESEND_API_KEY,
     from: env.EMAIL_FROM,
+    replyTo: env.EMAIL_REPLY_TO,
     to: email,
     ...tpl,
     db: env.DB,
