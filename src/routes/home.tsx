@@ -112,7 +112,7 @@ home.get('/', (c) => {
             <div class="cohort-week"><strong>Coordinator</strong><span>Week 6</span></div>
           </div>
 
-          <p style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);"><strong style="font-family: var(--font-mono); font-size: 1.1rem;">$500</strong> <span style="color: var(--text-tertiary);">&mdash; Discounted and sponsored spots available. Cost should never be a barrier &mdash; <a href="mailto:ag@unforced.org" style="color: var(--accent);">reach out</a>.</span></p>
+          <p style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);"><strong style="font-family: var(--font-mono); font-size: 1.1rem;">$500</strong> <span style="color: var(--text-tertiary);">&mdash; Discounted and sponsored spots available. Cost should never be a barrier &mdash; <a href="mailto:ag@unforced.dev" style="color: var(--accent);">reach out</a>.</span></p>
 
           <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
             <a href="/apply" class="hero-cta" style="font-size: 0.95rem; padding: 0.75rem 1.5rem;">
@@ -258,7 +258,7 @@ home.get('/', (c) => {
           </div>
           <div class="faq-item">
             <h3 class="faq-q">What's the pricing?</h3>
-            <p class="faq-a"><strong>$500</strong> general admission. Discounted and sponsored spots are available &mdash; cost should never be a barrier. <a href="mailto:ag@unforced.org" style="color: var(--accent);">Reach out</a> and we'll work with you.</p>
+            <p class="faq-a"><strong>$500</strong> general admission. Discounted and sponsored spots are available &mdash; cost should never be a barrier. <a href="mailto:ag@unforced.dev" style="color: var(--accent);">Reach out</a> and we'll work with you.</p>
           </div>
         </div>
       </section>
@@ -272,7 +272,7 @@ home.get('/', (c) => {
             Apply for Cohort 1
             <ArrowSvg />
           </a>
-          <p class="cta-aside">Questions? <a href="mailto:ag@unforced.org">Reach out</a> &mdash; the next step is a conversation.</p>
+          <p class="cta-aside">Questions? <a href="mailto:ag@unforced.dev">Reach out</a> &mdash; the next step is a conversation.</p>
         </div>
       </section>
     </Layout>

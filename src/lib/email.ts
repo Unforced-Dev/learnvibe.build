@@ -73,7 +73,7 @@ export function applicationReceivedEmail(name: string): { subject: string; html:
       <p>In the meantime, you can check your application status anytime:</p>
       <a href="https://learnvibe.build/apply/status" class="email-cta">Check Your Status</a>
       <hr class="email-divider">
-      <p class="email-muted">If you have any questions, reply to this email or reach out at ag@unforced.org.</p>
+      <p class="email-muted">If you have any questions, reply to this email or reach out at ag@unforced.dev.</p>
     `),
   }
 }
@@ -136,7 +136,7 @@ export function applicationPriceChangedEmail(
         <p>Complete your enrollment to get started:</p>
         <a href="${paymentUrl}" class="email-cta">Complete Enrollment →</a>
         <hr class="email-divider">
-        <p class="email-muted">Questions? Reply to this email or reach out at ag@unforced.org.</p>
+        <p class="email-muted">Questions? Reply to this email or reach out at ag@unforced.dev.</p>
       `),
     }
   }
@@ -244,7 +244,7 @@ export async function sendEmail(params: SendEmailParams): Promise<{ success: boo
       to: recipients,
       subject: params.subject,
       html: params.html,
-      reply_to: params.replyTo || 'ag@unforced.org',
+      replyTo: params.replyTo || 'ag@unforced.dev',
     })
 
     if (result.error) {
