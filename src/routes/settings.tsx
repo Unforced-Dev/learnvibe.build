@@ -23,7 +23,7 @@ settingsRoutes.get('/settings/profile', async (c) => {
   const error = c.req.query('error')
 
   return c.html(
-    <Layout title="Edit Profile" user={user}>
+    <Layout title="Edit Profile" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY}>
       <div class="page-section" style="max-width: 600px; margin: 0 auto;">
         <a href="/community" class="back-link">← Community</a>
 
@@ -163,7 +163,7 @@ settingsRoutes.get('/settings/api-keys', async (c) => {
   const error = c.req.query('error')
 
   return c.html(
-    <Layout title="API Keys" user={user}>
+    <Layout title="API Keys" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY}>
       <div class="page-section" style="max-width: 600px; margin: 0 auto;">
         <a href="/settings/profile" class="back-link">← Profile Settings</a>
 
