@@ -1,0 +1,565 @@
+// Minimal MCP (Model Context Protocol) server for Learn Vibe Build.
+// Exposes a JSON-RPC 2.0 endpoint at POST /mcp. Bearer-token auth via
+// the existing API key system — get a key at /settings/api-keys and
+// configure it in your MCP client's Authorization header.
+//
+// OAuth 2.1 flow is out of scope for this phase; tracked separately.
+
+import { Hono } from 'hono'
+import { eq, and, asc, desc, or, isNull } from 'drizzle-orm'
+import { getDb } from '../db'
+import {
+  cohorts, lessons, enrollments, lessonProgress, projects,
+  discussions, comments, users, applications,
+} from '../db/schema'
+import { authenticateApiKey } from '../lib/api-auth'
+import { isAdmin } from '../lib/auth'
+import type { AppContext } from '../types'
+import type { AuthUser } from '../lib/auth'
+
+const mcp = new Hono<AppContext>()
+
+const PROTOCOL_VERSION = '2025-06-18'
+const SERVER_INFO = {
+  name: 'learnvibe',
+  version: '1.0.0',
+}
+
+type JsonRpcRequest = {
+  jsonrpc: '2.0'
+  id?: number | string | null
+  method: string
+  params?: any
+}
+
+type JsonRpcResponse = {
+  jsonrpc: '2.0'
+  id: number | string | null
+  result?: any
+  error?: { code: number; message: string; data?: any }
+}
+
+function ok(id: number | string | null | undefined, result: any): JsonRpcResponse {
+  return { jsonrpc: '2.0', id: id ?? null, result }
+}
+
+function err(id: number | string | null | undefined, code: number, message: string, data?: any): JsonRpcResponse {
+  return { jsonrpc: '2.0', id: id ?? null, error: { code, message, ...(data !== undefined && { data }) } }
+}
+
+// MCP responses wrap tool output in { content: [{ type: 'text', text: ... }] }.
+function textResult(obj: any): any {
+  return {
+    content: [{
+      type: 'text',
+      text: typeof obj === 'string' ? obj : JSON.stringify(obj, null, 2),
+    }],
+  }
+}
+
+// ===== TOOL DEFINITIONS =====
+
+type ToolHandler = (args: any, user: AuthUser, db: ReturnType<typeof getDb>) => Promise<any>
+
+interface ToolDef {
+  name: string
+  description: string
+  inputSchema: any
+  adminOnly?: boolean
+  handler: ToolHandler
+}
+
+const TOOLS: ToolDef[] = [
+  {
+    name: 'get_my_profile',
+    description: "Get the current user's profile, role, and cohort enrollments.",
+    inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+    handler: async (_args, user, db) => {
+      const profile = await db.select().from(users).where(eq(users.id, user.id)).get()
+      const userEnrollments = await db
+        .select({ cohort: cohorts, enrollment: enrollments })
+        .from(enrollments)
+        .innerJoin(cohorts, eq(enrollments.cohortId, cohorts.id))
+        .where(eq(enrollments.userId, user.id))
+        .all()
+      return textResult({
+        id: profile?.id,
+        email: profile?.email,
+        name: profile?.name,
+        role: profile?.role,
+        bio: profile?.bio,
+        location: profile?.location,
+        website: profile?.website,
+        github: profile?.github,
+        enrollments: userEnrollments.map(e => ({
+          cohortSlug: e.cohort.slug,
+          cohortTitle: e.cohort.title,
+          status: e.enrollment.status,
+          enrolledAt: e.enrollment.enrolledAt,
+        })),
+      })
+    },
+  },
+  {
+    name: 'list_cohorts',
+    description: 'List all cohorts (past, current, upcoming).',
+    inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+    handler: async (_args, _user, db) => {
+      const rows = await db.select().from(cohorts).orderBy(asc(cohorts.id)).all()
+      return textResult(rows.map(c => ({
+        slug: c.slug, title: c.title, description: c.description,
+        startDate: c.startDate, endDate: c.endDate, weeks: c.weeks,
+        status: c.status,
+      })))
+    },
+  },
+  {
+    name: 'get_cohort',
+    description: 'Get details for a cohort by slug (e.g. "cohort-1").',
+    inputSchema: {
+      type: 'object',
+      properties: { slug: { type: 'string' } },
+      required: ['slug'],
+    },
+    handler: async (args, _user, db) => {
+      const cohort = await db.select().from(cohorts).where(eq(cohorts.slug, args.slug)).get()
+      if (!cohort) throw new Error(`Cohort '${args.slug}' not found`)
+      return textResult(cohort)
+    },
+  },
+  {
+    name: 'list_lessons',
+    description: 'List published lessons for a cohort, with your completion status. Returns drafts too if you are an admin.',
+    inputSchema: {
+      type: 'object',
+      properties: { cohortSlug: { type: 'string' } },
+      required: ['cohortSlug'],
+    },
+    handler: async (args, user, db) => {
+      const cohort = await db.select().from(cohorts).where(eq(cohorts.slug, args.cohortSlug)).get()
+      if (!cohort) throw new Error(`Cohort '${args.cohortSlug}' not found`)
+      const admin = isAdmin(user)
+      const rows = await db.select()
+        .from(lessons)
+        .where(admin
+          ? eq(lessons.cohortId, cohort.id)
+          : and(eq(lessons.cohortId, cohort.id), eq(lessons.status, 'published')))
+        .orderBy(asc(lessons.weekNumber))
+        .all()
+      const progress = await db.select()
+        .from(lessonProgress)
+        .where(and(eq(lessonProgress.userId, user.id), eq(lessonProgress.cohortId, cohort.id)))
+        .all()
+      const completed = new Set(progress.map(p => p.lessonId))
+      return textResult(rows.map(l => ({
+        weekNumber: l.weekNumber,
+        title: l.title,
+        description: l.description,
+        date: l.date,
+        status: l.status,
+        completed: completed.has(l.id),
+      })))
+    },
+  },
+  {
+    name: 'get_lesson',
+    description: 'Get full markdown content for a lesson by cohort slug and week number.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        cohortSlug: { type: 'string' },
+        weekNumber: { type: 'integer', minimum: 1 },
+      },
+      required: ['cohortSlug', 'weekNumber'],
+    },
+    handler: async (args, user, db) => {
+      const cohort = await db.select().from(cohorts).where(eq(cohorts.slug, args.cohortSlug)).get()
+      if (!cohort) throw new Error(`Cohort '${args.cohortSlug}' not found`)
+      const admin = isAdmin(user)
+      const lesson = await db.select()
+        .from(lessons)
+        .where(and(
+          eq(lessons.cohortId, cohort.id),
+          eq(lessons.weekNumber, args.weekNumber),
+          ...(admin ? [] : [eq(lessons.status, 'published')]),
+        ))
+        .get()
+      if (!lesson) throw new Error(`Lesson Week ${args.weekNumber} not found in ${args.cohortSlug}`)
+      return textResult({
+        weekNumber: lesson.weekNumber,
+        title: lesson.title,
+        description: lesson.description,
+        date: lesson.date,
+        status: lesson.status,
+        contentMarkdown: lesson.contentMarkdown,
+      })
+    },
+  },
+  {
+    name: 'toggle_lesson_complete',
+    description: 'Toggle your completion status for a lesson. Returns the new state.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        cohortSlug: { type: 'string' },
+        weekNumber: { type: 'integer', minimum: 1 },
+      },
+      required: ['cohortSlug', 'weekNumber'],
+    },
+    handler: async (args, user, db) => {
+      const cohort = await db.select().from(cohorts).where(eq(cohorts.slug, args.cohortSlug)).get()
+      if (!cohort) throw new Error(`Cohort '${args.cohortSlug}' not found`)
+      const lesson = await db.select()
+        .from(lessons)
+        .where(and(eq(lessons.cohortId, cohort.id), eq(lessons.weekNumber, args.weekNumber)))
+        .get()
+      if (!lesson) throw new Error(`Lesson Week ${args.weekNumber} not found`)
+      const existing = await db.select().from(lessonProgress)
+        .where(and(eq(lessonProgress.userId, user.id), eq(lessonProgress.lessonId, lesson.id)))
+        .get()
+      if (existing) {
+        await db.delete(lessonProgress).where(eq(lessonProgress.id, existing.id))
+        return textResult({ completed: false, weekNumber: args.weekNumber })
+      }
+      await db.insert(lessonProgress).values({
+        userId: user.id,
+        lessonId: lesson.id,
+        cohortId: cohort.id,
+      })
+      return textResult({ completed: true, weekNumber: args.weekNumber })
+    },
+  },
+  {
+    name: 'list_my_projects',
+    description: "List your active projects.",
+    inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+    handler: async (_args, user, db) => {
+      const rows = await db.select().from(projects)
+        .where(and(eq(projects.userId, user.id), eq(projects.status, 'active')))
+        .orderBy(desc(projects.createdAt))
+        .all()
+      return textResult(rows.map(p => ({
+        id: p.id, title: p.title, url: p.url, githubUrl: p.githubUrl,
+        description: p.description, createdAt: p.createdAt,
+      })))
+    },
+  },
+  {
+    name: 'create_project',
+    description: 'Add a project to the community gallery. Returns the created project id.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        title: { type: 'string' },
+        description: { type: 'string', description: 'Markdown allowed.' },
+        url: { type: 'string', description: 'Live URL (optional).' },
+        githubUrl: { type: 'string', description: 'GitHub repo URL (optional).' },
+        cohortSlug: { type: 'string', description: "Cohort to associate with (optional)." },
+      },
+      required: ['title', 'description'],
+    },
+    handler: async (args, user, db) => {
+      let cohortId: number | null = null
+      if (args.cohortSlug) {
+        const c = await db.select({ id: cohorts.id }).from(cohorts).where(eq(cohorts.slug, args.cohortSlug)).get()
+        if (c) cohortId = c.id
+      }
+      const inserted = await db.insert(projects).values({
+        userId: user.id,
+        title: args.title,
+        description: args.description,
+        url: args.url || null,
+        githubUrl: args.githubUrl || null,
+        cohortId,
+      }).returning().get()
+      return textResult({ id: inserted.id, title: inserted.title })
+    },
+  },
+  {
+    name: 'list_discussions',
+    description: 'List discussions. Optionally filter by cohort slug.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        cohortSlug: { type: 'string', description: 'Filter to this cohort; omit for community-wide.' },
+        limit: { type: 'integer', default: 20, minimum: 1, maximum: 100 },
+      },
+    },
+    handler: async (args, _user, db) => {
+      const limit = Math.min(Math.max(args.limit ?? 20, 1), 100)
+      let cohortId: number | null = null
+      if (args.cohortSlug) {
+        const c = await db.select({ id: cohorts.id }).from(cohorts).where(eq(cohorts.slug, args.cohortSlug)).get()
+        if (!c) throw new Error(`Cohort '${args.cohortSlug}' not found`)
+        cohortId = c.id
+      }
+      const rows = await db.select({ d: discussions, user: { name: users.name, id: users.id } })
+        .from(discussions)
+        .innerJoin(users, eq(discussions.userId, users.id))
+        .where(and(
+          eq(discussions.status, 'active'),
+          cohortId != null ? eq(discussions.cohortId, cohortId) : isNull(discussions.cohortId),
+        ))
+        .orderBy(desc(discussions.isPinned), desc(discussions.updatedAt))
+        .limit(limit)
+        .all()
+      return textResult(rows.map(r => ({
+        id: r.d.id,
+        title: r.d.title,
+        author: r.user.name,
+        isPinned: !!r.d.isPinned,
+        createdAt: r.d.createdAt,
+        updatedAt: r.d.updatedAt,
+      })))
+    },
+  },
+  {
+    name: 'get_discussion',
+    description: 'Get a discussion with all its comments.',
+    inputSchema: {
+      type: 'object',
+      properties: { id: { type: 'integer' } },
+      required: ['id'],
+    },
+    handler: async (args, _user, db) => {
+      const disc = await db.select({ d: discussions, user: { name: users.name } })
+        .from(discussions)
+        .innerJoin(users, eq(discussions.userId, users.id))
+        .where(eq(discussions.id, args.id))
+        .get()
+      if (!disc) throw new Error(`Discussion ${args.id} not found`)
+      const cmts = await db.select({ c: comments, user: { name: users.name } })
+        .from(comments)
+        .innerJoin(users, eq(comments.userId, users.id))
+        .where(and(eq(comments.discussionId, args.id), eq(comments.status, 'active')))
+        .orderBy(asc(comments.createdAt))
+        .all()
+      return textResult({
+        id: disc.d.id,
+        title: disc.d.title,
+        body: disc.d.body,
+        author: disc.user.name,
+        createdAt: disc.d.createdAt,
+        comments: cmts.map(c => ({
+          id: c.c.id,
+          body: c.c.body,
+          author: c.user.name,
+          parentId: c.c.parentId,
+          createdAt: c.c.createdAt,
+        })),
+      })
+    },
+  },
+  {
+    name: 'create_discussion',
+    description: 'Start a new discussion thread. Returns the created id.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        title: { type: 'string' },
+        body: { type: 'string', description: 'Markdown allowed.' },
+        cohortSlug: { type: 'string', description: 'Scope to a cohort; omit for community-wide.' },
+      },
+      required: ['title', 'body'],
+    },
+    handler: async (args, user, db) => {
+      let cohortId: number | null = null
+      if (args.cohortSlug) {
+        const c = await db.select({ id: cohorts.id }).from(cohorts).where(eq(cohorts.slug, args.cohortSlug)).get()
+        if (c) cohortId = c.id
+      }
+      const inserted = await db.insert(discussions).values({
+        userId: user.id,
+        title: args.title,
+        body: args.body,
+        cohortId,
+      }).returning().get()
+      return textResult({ id: inserted.id, title: inserted.title })
+    },
+  },
+  {
+    name: 'add_comment',
+    description: 'Add a comment to a discussion.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        discussionId: { type: 'integer' },
+        body: { type: 'string', description: 'Markdown allowed.' },
+        parentId: { type: 'integer', description: 'Reply to another comment (optional).' },
+      },
+      required: ['discussionId', 'body'],
+    },
+    handler: async (args, user, db) => {
+      const inserted = await db.insert(comments).values({
+        userId: user.id,
+        discussionId: args.discussionId,
+        body: args.body,
+        parentId: args.parentId || null,
+      }).returning().get()
+      return textResult({ id: inserted.id })
+    },
+  },
+
+  // ===== ADMIN TOOLS =====
+  {
+    name: 'admin_upsert_lesson',
+    description: 'ADMIN: create or update a lesson by (cohortSlug, weekNumber). Only cohort slug, week, and at least one field to set are needed.',
+    adminOnly: true,
+    inputSchema: {
+      type: 'object',
+      properties: {
+        cohortSlug: { type: 'string' },
+        weekNumber: { type: 'integer', minimum: 1 },
+        title: { type: 'string' },
+        description: { type: 'string' },
+        date: { type: 'string', description: 'ISO date (YYYY-MM-DD).' },
+        contentMarkdown: { type: 'string' },
+        status: { type: 'string', enum: ['draft', 'published'] },
+      },
+      required: ['cohortSlug', 'weekNumber'],
+    },
+    handler: async (args, _user, db) => {
+      const cohort = await db.select().from(cohorts).where(eq(cohorts.slug, args.cohortSlug)).get()
+      if (!cohort) throw new Error(`Cohort '${args.cohortSlug}' not found`)
+      const existing = await db.select()
+        .from(lessons)
+        .where(and(eq(lessons.cohortId, cohort.id), eq(lessons.weekNumber, args.weekNumber)))
+        .get()
+      const now = new Date().toISOString()
+      if (existing) {
+        const updates: Record<string, any> = { updatedAt: now }
+        if (args.title !== undefined) updates.title = args.title
+        if (args.description !== undefined) updates.description = args.description
+        if (args.date !== undefined) updates.date = args.date
+        if (args.contentMarkdown !== undefined) updates.contentMarkdown = args.contentMarkdown
+        if (args.status !== undefined) updates.status = args.status
+        await db.update(lessons).set(updates).where(eq(lessons.id, existing.id))
+        return textResult({ action: 'updated', id: existing.id, weekNumber: args.weekNumber })
+      }
+      if (!args.title) throw new Error('title is required when creating a new lesson')
+      const inserted = await db.insert(lessons).values({
+        cohortId: cohort.id,
+        weekNumber: args.weekNumber,
+        title: args.title,
+        description: args.description ?? null,
+        date: args.date ?? null,
+        contentMarkdown: args.contentMarkdown ?? '',
+        status: args.status ?? 'draft',
+        sortOrder: args.weekNumber,
+        createdAt: now,
+        updatedAt: now,
+      }).returning().get()
+      return textResult({ action: 'created', id: inserted.id, weekNumber: args.weekNumber })
+    },
+  },
+  {
+    name: 'admin_list_applications',
+    description: 'ADMIN: list applications, optionally filtered by status.',
+    adminOnly: true,
+    inputSchema: {
+      type: 'object',
+      properties: {
+        status: { type: 'string', enum: ['pending', 'approved', 'rejected', 'enrolled'] },
+        limit: { type: 'integer', default: 50, minimum: 1, maximum: 200 },
+      },
+    },
+    handler: async (args, _user, db) => {
+      const limit = Math.min(Math.max(args.limit ?? 50, 1), 200)
+      const rows = args.status
+        ? await db.select().from(applications).where(eq(applications.status, args.status)).orderBy(desc(applications.createdAt)).limit(limit).all()
+        : await db.select().from(applications).orderBy(desc(applications.createdAt)).limit(limit).all()
+      return textResult(rows.map(a => ({
+        id: a.id, name: a.name, email: a.email, status: a.status,
+        pricingTier: a.pricingTier, createdAt: a.createdAt,
+      })))
+    },
+  },
+]
+
+// ===== JSON-RPC HANDLER =====
+
+mcp.post('/mcp', async (c) => {
+  // Auth: Bearer API key via existing api-auth.
+  const authUser = await authenticateApiKey(c)
+  if (!authUser) {
+    return c.json(err(null, -32001, 'Unauthorized — provide a Bearer token (get one at /settings/api-keys)'), 401)
+  }
+
+  const body = await c.req.json().catch(() => null) as JsonRpcRequest | JsonRpcRequest[] | null
+  if (!body) {
+    return c.json(err(null, -32700, 'Parse error — body must be valid JSON'), 400)
+  }
+
+  // Spec supports batched requests; handle both shapes.
+  const requests = Array.isArray(body) ? body : [body]
+  const responses: JsonRpcResponse[] = []
+
+  for (const req of requests) {
+    responses.push(await handleRpc(req, authUser, c))
+  }
+
+  return c.json(Array.isArray(body) ? responses : responses[0])
+})
+
+// Optional GET — some MCP clients probe for SSE stream capability.
+// We don't support server-initiated messages, so return 405.
+mcp.get('/mcp', (c) => {
+  return c.text('Method Not Allowed — POST JSON-RPC to this endpoint.', 405)
+})
+
+async function handleRpc(req: JsonRpcRequest, user: AuthUser, c: any): Promise<JsonRpcResponse> {
+  if (req.jsonrpc !== '2.0') return err(req.id, -32600, 'Invalid Request — jsonrpc must be "2.0"')
+
+  try {
+    switch (req.method) {
+      case 'initialize':
+        return ok(req.id, {
+          protocolVersion: PROTOCOL_VERSION,
+          capabilities: { tools: {} },
+          serverInfo: SERVER_INFO,
+          instructions: "Learn Vibe Build MCP server. Use tools to access lessons, projects, discussions, and your profile.",
+        })
+
+      case 'notifications/initialized':
+        // Client post-init ack; no response needed for notifications but we return an empty ok.
+        return ok(req.id, {})
+
+      case 'tools/list':
+        return ok(req.id, {
+          tools: TOOLS
+            .filter(t => !t.adminOnly || isAdmin(user))
+            .map(({ name, description, inputSchema }) => ({ name, description, inputSchema })),
+        })
+
+      case 'tools/call': {
+        const name = req.params?.name as string | undefined
+        if (!name) return err(req.id, -32602, 'Invalid params — "name" required')
+        const tool = TOOLS.find(t => t.name === name)
+        if (!tool) return err(req.id, -32602, `Unknown tool: ${name}`)
+        if (tool.adminOnly && !isAdmin(user)) return err(req.id, -32001, `Tool "${name}" requires an admin account`)
+        const args = req.params?.arguments || {}
+        const db = getDb(c.env.DB)
+        try {
+          const result = await tool.handler(args, user, db)
+          return ok(req.id, result)
+        } catch (toolErr: any) {
+          return ok(req.id, {
+            content: [{ type: 'text', text: `Error: ${toolErr.message}` }],
+            isError: true,
+          })
+        }
+      }
+
+      case 'ping':
+        return ok(req.id, {})
+
+      default:
+        return err(req.id, -32601, `Method not found: ${req.method}`)
+    }
+  } catch (e: any) {
+    console.error('[MCP] Internal error:', e)
+    return err(req.id, -32603, `Internal error: ${e.message}`)
+  }
+}
+
+export default mcp

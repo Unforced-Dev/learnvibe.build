@@ -281,9 +281,27 @@ settingsRoutes.get('/settings/api-keys', async (c) => {
         )}
 
         <div style="margin-top: 3rem; padding: 1.5rem; background: var(--surface); border-radius: 8px;">
-          <h3 style="font-family: var(--font-display); font-size: 1rem; margin-bottom: 0.75rem;">How to use API keys</h3>
+          <h3 style="font-family: var(--font-display); font-size: 1rem; margin-bottom: 0.75rem;">Connect to Claude as an MCP server</h3>
           <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7;">
-            Pass your API key as a Bearer token in the Authorization header:
+            Add Learn Vibe Build as an MCP server in Claude so your AI can pull your lessons, track your progress, share projects, and (if you're an admin) author lesson content directly.
+          </p>
+          <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 0.75rem;"><strong>Server URL:</strong></p>
+          <pre style="background: var(--dark); color: #e0e0e0; padding: 0.75rem; border-radius: 6px; margin-top: 0.25rem; font-size: 0.85rem; overflow-x: auto;">
+{`https://learnvibe.build/mcp`}
+          </pre>
+          <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 0.75rem;"><strong>Auth header:</strong></p>
+          <pre style="background: var(--dark); color: #e0e0e0; padding: 0.75rem; border-radius: 6px; margin-top: 0.25rem; font-size: 0.85rem; overflow-x: auto;">
+{`Authorization: Bearer lvb_your_key_here`}
+          </pre>
+          <p style="font-size: 0.85rem; color: var(--text-tertiary); line-height: 1.7; margin-top: 0.75rem;">
+            In Claude.ai: Settings → Connectors → Add custom connector. In Claude Desktop: edit your MCP config file with an HTTP server pointing at this URL.
+          </p>
+        </div>
+
+        <div style="margin-top: 1.5rem; padding: 1.5rem; background: var(--surface); border-radius: 8px;">
+          <h3 style="font-family: var(--font-display); font-size: 1rem; margin-bottom: 0.75rem;">Or use the REST API directly</h3>
+          <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7;">
+            Same key works for the JSON API — pass as a Bearer token:
           </p>
           <pre style="background: var(--dark); color: #e0e0e0; padding: 1rem; border-radius: 6px; margin-top: 0.75rem; font-size: 0.85rem; overflow-x: auto;">
 {`curl https://learnvibe.build/api/v1/me \\

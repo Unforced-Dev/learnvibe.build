@@ -16,93 +16,92 @@ pages.get('/curriculum', (c) => {
     {
       num: 1,
       title: 'Conversation',
-      tagline: 'Learn to think out loud with AI',
-      description: 'The foundation of everything that follows. How to orient toward AI with curiosity and clarity. Creative collaboration, felt sense, articulation — the skills that make every other week work.',
+      tagline: 'How we talk with AI',
+      description: 'The foundation of everything that follows. How to orient toward AI with curiosity and clarity. We practice being present, intentional, and articulate — the core moves we\'ll deepen every week.',
       youll_learn: [
         'How to talk to AI as a creative partner, not a search engine',
-        'The "three ways of thinking" framework: with self, with others, with machines',
+        'The "three ways of thinking" — with self, with others, with machines',
         'How to use your felt sense to guide what you build',
-        'Voice input and rich context for better conversations',
+        'Voice input, rich context, and the kinds of conversations that actually move things forward',
       ],
-      youll_build: 'Your first landing page — a prop for articulating your vision',
+      youll_build: 'Your first prop — a landing page as a way of articulating what you\'re trying to make',
       tools: 'Claude Desktop',
     },
     {
       num: 2,
-      title: 'Connectors',
-      tagline: 'Give AI hands — connect it to your tools and data',
-      description: 'AI is powerful in conversation. But when you connect it to your files, your data, and your services, it becomes transformative. MCPs (Model Context Protocol) are how you give AI access to your world.',
-      youll_learn: [
-        'What MCPs are and why they matter',
-        'How to enable built-in connectors (web search, Google Drive, Notion)',
-        'How to think about giving AI access to external systems',
-        'Projects in Claude — persistent context for ongoing work',
-      ],
-      youll_build: 'A Claude Project for your main idea, connected to your tools',
-      tools: 'Claude Desktop, MCPs / Connectors',
-    },
-    {
-      num: 3,
       title: 'Context',
-      tagline: 'Teach AI how you think',
-      description: 'The difference between a generic AI response and a brilliant one is context. This week you learn the art of passing knowledge — files, memory, instructions — so AI understands not just what you want, but how you think.',
+      tagline: 'Giving AI what it needs to know',
+      description: 'An AI that doesn\'t know you can only help you in generic ways. This week we learn the art of passing context — who you are, what you\'re working on, how you think — so it can help you effectively and know you more over time.',
       youll_learn: [
-        'CLAUDE.md files — teaching AI about your project',
+        'CLAUDE.md files — teaching AI about your project and your preferences',
         'Knowledge architecture — organizing what AI needs to know',
         'Prompt craft — writing instructions that get the output you want',
-        'Working with files: reading, writing, and passing context',
+        'Memory, persistence, and the art of being known by an agent',
       ],
-      youll_build: 'A CLAUDE.md for your project and a structured knowledge base',
+      youll_build: 'A personal knowledge base and a CLAUDE.md that makes your AI noticeably more useful',
       tools: 'Claude Desktop, file system, markdown',
     },
     {
-      num: 4,
-      title: 'Cowork',
-      tagline: 'Build together — AI as your creative partner',
-      description: 'Move from conversation to collaboration. Claude Cowork lets you work alongside AI on real projects — designing, iterating, and building together in real time.',
+      num: 3,
+      title: 'Connectors',
+      tagline: 'AI with hands',
+      description: 'AI is powerful in conversation. When you connect it to your tools — calendar, notes, drive, whatever you use — it becomes transformative. MCPs (Model Context Protocol) are how you give AI access to your world.',
       youll_learn: [
-        'Claude Cowork — collaborative building with AI',
-        'Iterative design: build, look, adjust, build',
-        'How to direct AI while maintaining your creative vision',
-        'Working with artifacts and previewing as you build',
+        'What MCPs are, why they matter, and how to think about them',
+        'Enabling built-in connectors (web search, Google Drive, Notion, and more)',
+        'Safely giving AI access to external systems',
+        'Projects in Claude — persistent context for ongoing work',
       ],
-      youll_build: 'A working project prototype — collaboratively built with AI',
-      tools: 'Claude Cowork',
+      youll_build: 'A Claude Project connected to the tools and data most alive for you',
+      tools: 'Claude Desktop, MCPs / Connectors',
+    },
+    {
+      num: 4,
+      title: 'Craft',
+      tagline: 'Making what you need',
+      description: 'Techne is the Greek word for craft — the knowledge of how to make things. This week, we use AI as a creative partner to make something you need. Could be a website, a habit tracker, a small tool. Code is optional — a deeper cut for those who want it.',
+      youll_learn: [
+        'Claude as creative partner — collaborative making, iteration, and taste',
+        'Starting small: the minimum viable version of what you actually need',
+        'Working with artifacts and previewing as you build',
+        'For those who want the depth: a peek at writing and shipping real code',
+      ],
+      youll_build: 'A working prototype of something useful in your life',
+      tools: 'Claude Desktop, Claude Code (optional)',
     },
     {
       num: 5,
-      title: 'Code',
-      tagline: 'Let AI work for you',
-      description: 'Claude Code is AI in your terminal — a full agentic coding assistant that can read your codebase, run commands, and build real software. This is where your project becomes real.',
+      title: 'Coordination',
+      tagline: 'Weaving agents into one assistant',
+      description: 'You\'ve got the pieces — conversation, context, connectors, craft. This week, we compose them. Multiple agents, tools, and workflows come together into a single assistant that organizes your life and hides the complexity behind the scenes.',
       youll_learn: [
-        'Claude Code — AI with full file system and terminal access',
-        'Git and GitHub — version control and collaboration',
-        'The build workflow: idea → PRD → code → deploy',
-        'Agentic workflows — AI working autonomously on multi-step tasks',
+        'Multi-agent design — letting agents hand off and collaborate',
+        'Automations and scheduled workflows',
+        'Your personal assistant — setup, architecture, iteration',
+        'How to keep a system coherent as it grows',
       ],
-      youll_build: 'Your project, deployed to the internet with a real URL',
-      tools: 'Claude Code, Git, GitHub, terminal',
+      youll_build: 'The foundation of your own personal AI assistant — one that\'s starting to know you',
+      tools: 'Claude Code, agent frameworks, your full toolkit',
     },
     {
       num: 6,
-      title: 'Coordinator',
-      tagline: 'Orchestrate it all — your personal AI system',
-      description: 'The destination. Everything you\'ve learned comes together into a personal AI system — multiple agents, coordinated workflows, a partner that works the way you think. Plus: demo day.',
+      title: 'Community',
+      tagline: 'Demo, reflect, and keep going',
+      description: 'We gather to share what we\'ve made and what we\'ve noticed. We reflect on how the practice has changed how we think. And we step into what comes next — the ongoing community of practice that doesn\'t end when the cohort does.',
       youll_learn: [
-        'Multi-agent design — coordinating multiple AI capabilities',
-        'Personal agent setup — your own AI system',
-        'How to keep building after the cohort ends',
-        'The landscape: where AI is heading and how to stay on the frontier',
+        'How to keep the practice going after the cohort ends',
+        'The landscape: where AI is heading and how to stay oriented',
+        'The path into Techne / Regen Hub ongoing membership',
       ],
-      youll_build: 'The foundation of your personal AI agent + demo your project',
-      tools: 'Claude Code, agent frameworks, your full toolkit',
+      youll_build: 'A demo of what you\'ve made + the relationships that go with you',
+      tools: 'Everything you\'ve learned so far',
     },
   ]
 
   return c.html(
     <Layout
       title="Curriculum — The Six C's"
-      description="Six weeks from Conversation to Coordinator. The Learn Vibe Build curriculum takes you from your first AI conversation to orchestrating your own personal AI agent."
+      description="Six weeks of practice — Conversation, Context, Connectors, Craft, Coordination, Community. A community of practice for building with AI."
       user={user}
     >
       <style dangerouslySetInnerHTML={{ __html: `@media (max-width: 600px) { .curriculum-detail-grid { grid-template-columns: 1fr !important; } }` }} />
@@ -110,9 +109,9 @@ pages.get('/curriculum', (c) => {
         <a href="/" style="font-size: 0.85rem; color: var(--text-tertiary); text-decoration: none;">&larr; Home</a>
 
         <p class="section-label" style="margin-top: 2rem;">The Six C's</p>
-        <h2>From Conversation to Coordinator</h2>
+        <h2>A practice, not a tools tour.</h2>
         <p class="lead">
-          Each week builds on the last. You start by learning to talk to AI. You end by orchestrating your own personal AI system. No coding experience needed.
+          Six movements of the same practice. We return to the same core moves each week, deepening as we go. No coding experience needed. Code is available as a deeper cut for those who want it.
         </p>
 
         <div style="margin-top: 3rem;">

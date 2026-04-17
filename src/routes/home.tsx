@@ -17,15 +17,16 @@ home.get('/', (c) => {
 
   return c.html(
     <Layout
-      title="From Conversation to Coordinator"
-      description="In 6 weeks, go from your first conversation with AI to orchestrating your own personal AI agent. Cohort-based program in Boulder, CO & remote."
+      title="Build your personal AI assistant"
+      description="In 6 weeks, build your own personal agentic assistant — one that knows you, has hands in your world, and helps you live and create more effectively. Cohort-based, in Boulder, CO & remote."
       user={user}
       fullWidth
     >
       {/* HERO */}
       <section class="hero">
-        <h1 class="hero-title">From Conversation<br />to <span class="accent">Coordinator</span></h1>
-        <p class="hero-subtitle">In 6 weeks, go from your first conversation with AI to orchestrating your own personal AI agent. No coding experience needed.</p>
+        <h1 class="hero-title">Build your personal <span class="accent">AI assistant</span></h1>
+        <p class="hero-subtitle">In 6 weeks, build your own agentic assistant &mdash; one that knows you, has hands in your world, and helps you live and create more effectively. No coding experience needed.</p>
+        <p style="margin-top: 1rem; color: var(--text-tertiary); font-style: italic;">A community of practice for AI. We learn and grow together.</p>
         <a href="/apply" class="hero-cta">
           Apply for Cohort 1
           <ArrowSvg />
@@ -40,39 +41,39 @@ home.get('/', (c) => {
       <div class="journey-band" id="journey">
         <section class="hp-section">
           <p class="section-label">The Journey</p>
-          <h2>Six weeks. Six skills. One destination.</h2>
-          <p class="lead">Each week builds on the last. By the end, you'll have the skills to set up your own personal AI system &mdash; an agent that works the way you think.</p>
+          <h2>Six weeks, six movements of the same practice.</h2>
+          <p class="lead">We return to the same core moves each week, deepening as we go. Not a tour of tools &mdash; a practice of learning to work with AI from first principles.</p>
 
           <div class="journey-grid">
             <div class="journey-step">
               <p class="journey-step-num">Week 1</p>
               <h3 class="journey-step-title">Conversation</h3>
-              <p>Learn to think out loud with AI. Orientation, creative collaboration, finding your felt sense for what you want to build.</p>
+              <p>How we talk with AI. Presence, intention, articulation &mdash; and what kinds of conversations lead to a real working relationship.</p>
             </div>
             <div class="journey-step">
               <p class="journey-step-num">Week 2</p>
-              <h3 class="journey-step-title">Connectors</h3>
-              <p>Give AI hands. Connect it to your files, data, and tools using MCPs &mdash; the protocol that lets AI reach into your world.</p>
+              <h3 class="journey-step-title">Context</h3>
+              <p>Giving AI what it needs to know about you and your work so it can help, and be helpful, more effectively.</p>
             </div>
             <div class="journey-step">
               <p class="journey-step-num">Week 3</p>
-              <h3 class="journey-step-title">Context</h3>
-              <p>Teach AI how you think. CLAUDE.md files, knowledge architecture, prompt craft &mdash; the art of passing the right context.</p>
+              <h3 class="journey-step-title">Connectors</h3>
+              <p>AI with hands. Connecting agents to your tools and data &mdash; calendar, notes, drive, and whatever else you need.</p>
             </div>
             <div class="journey-step">
               <p class="journey-step-num">Week 4</p>
-              <h3 class="journey-step-title">Cowork</h3>
-              <p>Build together. Claude as your creative partner &mdash; collaborative projects, iterative design, real output.</p>
+              <h3 class="journey-step-title">Craft</h3>
+              <p>Making what you need with AI as creative partner. Websites, trackers, small tools. Code is the deeper cut for those who want it.</p>
             </div>
             <div class="journey-step">
               <p class="journey-step-num">Week 5</p>
-              <h3 class="journey-step-title">Code</h3>
-              <p>Let AI work for you. Claude Code, the command line, agentic workflows &mdash; building real things autonomously.</p>
+              <h3 class="journey-step-title">Coordination</h3>
+              <p>Weaving your agents together into a single assistant that organizes your life, hiding the complexity behind the scenes.</p>
             </div>
             <div class="journey-step">
               <p class="journey-step-num">Week 6</p>
-              <h3 class="journey-step-title">Coordinator</h3>
-              <p>Orchestrate it all. Multi-agent design, your personal AI system, demo day &mdash; and the path forward.</p>
+              <h3 class="journey-step-title">Community</h3>
+              <p>Demo day, reflection, and the path forward. Stepping into ongoing practice with the people who've been building alongside you.</p>
             </div>
           </div>
         </section>
@@ -83,10 +84,10 @@ home.get('/', (c) => {
       {/* ABOUT */}
       <section class="hp-section hp-section-narrow">
         <p class="section-label">The Idea</p>
-        <h2>Everyone is a builder</h2>
-        <p class="lead">You don't need to become a developer. You need an idea and the words to bring it to life. AI changes what's possible &mdash; if you know how to work with it.</p>
-        <p>Learn Vibe Build teaches you to use AI as a thinking partner and building collaborator. Not prompt engineering tricks &mdash; real creative partnership. The skill being developed is <strong>clarity</strong>: learning to see what you want to make and articulate it into existence.</p>
-        <p>By week 6, you won't just have built a project &mdash; you'll understand how to orchestrate AI to work the way you think. That's the difference between using a tool and having a partner.</p>
+        <h2>A practice, not a tools tour</h2>
+        <p class="lead">AI is moving fast. The tools change every month. What doesn't change is the shape of working well with AI &mdash; and that's what we practice, together.</p>
+        <p>Think of it like Taiji: you can spend weeks on the same standing, the same movement, letting it deepen. Our course is the same. We return to the core moves &mdash; conversation, context, connection &mdash; each week, and each time you come back to them they go deeper. By the end, you have not just a set of tricks but a relationship with these tools that travels with you wherever they go next.</p>
+        <p>The outcome is a personal assistant that knows you. The path is a community that learns together.</p>
       </section>
 
       <div class="hp-divider"><hr /></div>
@@ -101,15 +102,15 @@ home.get('/', (c) => {
           <span class="cohort-badge badge-open">Now Enrolling</span>
           <h3>Cohort 1 &mdash; Practice</h3>
           <p class="cohort-detail">Mondays 5:30&ndash;7:30pm MT &middot; Starting April 20, 2026 &middot; 6 weeks &middot; Boulder, CO &amp; Remote</p>
-          <p>Weekly 2-hour live session (Mondays 5:30&ndash;7:30pm MT) with core curriculum and live demonstration. Weekly 2-hour co-working &amp; office hours for hands-on building. Plus a community platform to share projects, ask questions, and learn from each other.</p>
+          <p>Weekly 2-hour live session with core curriculum and live demonstration. A weekly open circle for sharing what you're making, trying, or noticing. Plus a community platform to share projects, ask questions, and learn from each other.</p>
 
           <div class="cohort-weeks">
             <div class="cohort-week"><strong>Conversation</strong><span>Week 1</span></div>
-            <div class="cohort-week"><strong>Connectors</strong><span>Week 2</span></div>
-            <div class="cohort-week"><strong>Context</strong><span>Week 3</span></div>
-            <div class="cohort-week"><strong>Cowork</strong><span>Week 4</span></div>
-            <div class="cohort-week"><strong>Code</strong><span>Week 5</span></div>
-            <div class="cohort-week"><strong>Coordinator</strong><span>Week 6</span></div>
+            <div class="cohort-week"><strong>Context</strong><span>Week 2</span></div>
+            <div class="cohort-week"><strong>Connectors</strong><span>Week 3</span></div>
+            <div class="cohort-week"><strong>Craft</strong><span>Week 4</span></div>
+            <div class="cohort-week"><strong>Coordination</strong><span>Week 5</span></div>
+            <div class="cohort-week"><strong>Community</strong><span>Week 6</span></div>
           </div>
 
           <p style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);"><strong style="font-family: var(--font-mono); font-size: 1.1rem;">$500</strong> <span style="color: var(--text-tertiary);">&mdash; Discounted and sponsored spots available. Cost should never be a barrier &mdash; <a href="mailto:ag@unforced.dev" style="color: var(--accent);">reach out</a>.</span></p>
@@ -163,9 +164,10 @@ home.get('/', (c) => {
       {/* COMMUNITY */}
       <section class="hp-section hp-section-narrow">
         <p class="section-label">The Community</p>
-        <h2>All levels. Real community.</h2>
+        <h2>Shared practice, not a performance.</h2>
         <p class="lead">Whether you've been building with AI for years or have never even talked to ChatGPT, this program meets you where you are.</p>
         <p>The magic isn't just the curriculum &mdash; it's the people. You'll be learning alongside creators, thinkers, and builders from all kinds of backgrounds, sharing what you're making, getting real feedback, and being inspired by what others are building.</p>
+        <p>Every week has space for an open circle &mdash; time to share creations, process, what you're noticing, what you're stuck on. Not mandatory, not a demo day. The sharing is part of the practice.</p>
         <p>And it doesn't end when the cohort does. Completing the program opens the door to ongoing membership in the Learn Vibe Build community &mdash; continued access to the people, conversations, and resources that keep the momentum going.</p>
 
         <div style="margin-top: 2.5rem; padding: 1.75rem; background: var(--white); border: 1px solid var(--border); border-radius: 10px;">
@@ -238,7 +240,7 @@ home.get('/', (c) => {
         <div class="faq-list">
           <div class="faq-item">
             <h3 class="faq-q">Do I need coding experience?</h3>
-            <p class="faq-a">No. The program is designed for people who have never written a line of code. By week 5, you'll be using Claude Code to build real things &mdash; the AI does the coding, you provide the direction and taste.</p>
+            <p class="faq-a">No. The program is designed for people who have never written a line of code. In Week 4 we make things with AI as creative partner &mdash; you provide the direction and taste, the AI does the mechanics. Code is the deeper cut for those who want to go further.</p>
           </div>
           <div class="faq-item">
             <h3 class="faq-q">What tech do I need?</h3>
@@ -254,7 +256,7 @@ home.get('/', (c) => {
           </div>
           <div class="faq-item">
             <h3 class="faq-q">What will I build?</h3>
-            <p class="faq-a">That's up to you. Past students have built personal websites, workflow tools, creative platforms, and business apps. By week 6, you'll also set up the foundation for your own personal AI agent &mdash; a system that works the way you think.</p>
+            <p class="faq-a">That's up to you. Past students have built personal websites, workflow tools, creative platforms, and business apps. By the end, you'll also set up the foundation for your own personal AI assistant &mdash; one that knows you and helps you live and create more effectively.</p>
           </div>
           <div class="faq-item">
             <h3 class="faq-q">What's the pricing?</h3>
@@ -266,8 +268,8 @@ home.get('/', (c) => {
       {/* CTA */}
       <section class="cta-section">
         <div class="cta-content">
-          <h2>Ready to build your AI agent?</h2>
-          <p>Cohort 1 starts April 20, 2026. Six weeks from conversation to coordinator. Spaces are limited.</p>
+          <h2>Ready to build an assistant that knows you?</h2>
+          <p>Cohort 1 starts April 20, 2026. Six weeks of practice, together. Spaces are limited.</p>
           <a href="/apply" class="cta-btn">
             Apply for Cohort 1
             <ArrowSvg />
