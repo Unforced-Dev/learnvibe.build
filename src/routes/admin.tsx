@@ -6,7 +6,7 @@ import { applications, cohorts, lessons, users, enrollments, payments, feedback,
 import { isAdmin, isClerkConfigured } from '../lib/auth'
 import { formatCents, getAmountForTier, getTierLabel, getApplicationAmount, getApplicationLabel } from '../lib/stripe'
 import { sendBroadcast, sendApplicationApproved, sendApplicationRejected, sendApplicationPriceChanged, sendEmail, isEmailConfigured, type BroadcastAudience } from '../lib/email'
-import { isStripeConfigured, getStripe, createCheckoutSession } from '../lib/stripe'
+import { isStripeConfigured, getStripe } from '../lib/stripe'
 import { renderMarkdown } from '../lib/markdown'
 import type { AppContext } from '../types'
 

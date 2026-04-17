@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core'
+import { sqliteTable, text, integer, uniqueIndex, index } from 'drizzle-orm/sqlite-core'
 
 // ===== USERS =====
 export const users = sqliteTable('users', {
@@ -79,7 +79,9 @@ export const enrollments = sqliteTable('enrollments', {
   cohortId: integer('cohort_id').notNull().references(() => cohorts.id),
   status: text('status').notNull().default('active'), // 'active' | 'completed' | 'dropped'
   enrolledAt: text('enrolled_at').notNull().$defaultFn(() => new Date().toISOString()),
-})
+}, (t) => ({
+  userCohortUnique: uniqueIndex('enrollments_user_cohort_unique').on(t.userId, t.cohortId),
+}))
 
 // ===== MEMBERSHIPS =====
 export const memberships = sqliteTable('memberships', {
@@ -89,7 +91,9 @@ export const memberships = sqliteTable('memberships', {
   status: text('status').notNull().default('active'), // 'active' | 'expired' | 'cancelled'
   startedAt: text('started_at').notNull().$defaultFn(() => new Date().toISOString()),
   expiresAt: text('expires_at'), // nullable — for paid memberships
-})
+}, (t) => ({
+  userTypeUnique: uniqueIndex('memberships_user_type_unique').on(t.userId, t.type),
+}))
 
 // ===== FEEDBACK =====
 export const feedback = sqliteTable('feedback', {
@@ -119,7 +123,9 @@ export const payments = sqliteTable('payments', {
   status: text('status').notNull().default('pending'), // 'pending' | 'completed' | 'failed' | 'refunded'
   paidAt: text('paid_at'),
   createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
-})
+}, (t) => ({
+  applicationIdIdx: index('payments_application_id').on(t.applicationId),
+}))
 
 // ===== PROJECTS =====
 export const projects = sqliteTable('projects', {

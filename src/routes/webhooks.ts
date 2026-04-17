@@ -176,19 +176,19 @@ webhookRoutes.post('/api/webhooks/stripe', async (c) => {
         .set({ status: 'enrolled' })
         .where(eq(applications.id, applicationId))
 
-      // If the applicant has a user account, create enrollment
+      // If the applicant has a user account, create enrollment.
+      // UNIQUE(user_id, cohort_id) makes the insert idempotent — we
+      // catch the constraint violation if /payment/success already ran.
       const app = await db.select().from(applications).where(eq(applications.id, applicationId)).get()
       if (app?.userId) {
-        const existingEnrollment = await db.select().from(enrollments)
-          .where(and(eq(enrollments.userId, app.userId), eq(enrollments.cohortId, cohortId)))
-          .get()
-
-        if (!existingEnrollment) {
+        try {
           await db.insert(enrollments).values({
             userId: app.userId,
             cohortId,
             status: 'active',
           })
+        } catch (e) {
+          // Enrollment already exists from the success-page path. Expected.
         }
 
         // Link payment to user

@@ -27,8 +27,21 @@ api.post('/api/applications', async (c) => {
     return c.redirect('/apply?error=missing_fields')
   }
 
-  if (!email.includes('@') || !email.includes('.')) {
+  // Basic RFC-5322-adjacent check — catches "@." and common typos.
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return c.redirect('/apply?error=invalid_email')
+  }
+
+  // Length bounds — generous but not unlimited, to prevent payload abuse.
+  if (
+    name.length > 200 ||
+    email.length > 320 ||
+    background.length > 5000 ||
+    projectInterest.length > 5000 ||
+    referralSource.length > 500 ||
+    (requestedReason && requestedReason.length > 2000)
+  ) {
+    return c.redirect('/apply?error=too_long')
   }
 
   // Pay-what-you-can: record the applicant's chosen contribution.
@@ -225,6 +238,32 @@ api.post('/api/profile', async (c) => {
     return c.redirect('/settings/profile?error=missing_fields')
   }
 
+  // URL fields must be http(s) — prevents `javascript:` / `data:` href XSS
+  // when these get rendered as clickable links on /members/:id.
+  const httpsOnly = /^https?:\/\//i
+  if (website && !httpsOnly.test(website)) {
+    return c.redirect('/settings/profile?error=invalid_website')
+  }
+  if (avatarUrl && !httpsOnly.test(avatarUrl)) {
+    return c.redirect('/settings/profile?error=invalid_avatar')
+  }
+  // GitHub is a username, not a URL — strip any accidental https prefix.
+  const githubUsername = github?.replace(/^https?:\/\/(www\.)?github\.com\//i, '').replace(/\/$/, '') || null
+  if (githubUsername && !/^[a-zA-Z0-9-]{1,39}$/.test(githubUsername)) {
+    return c.redirect('/settings/profile?error=invalid_github')
+  }
+
+  // Length bounds.
+  if (
+    name.length > 200 ||
+    (bio && bio.length > 2000) ||
+    (location && location.length > 200) ||
+    (website && website.length > 500) ||
+    (avatarUrl && avatarUrl.length > 500)
+  ) {
+    return c.redirect('/settings/profile?error=too_long')
+  }
+
   try {
     const db = getDb(c.env.DB)
     await db.update(users)
@@ -233,7 +272,7 @@ api.post('/api/profile', async (c) => {
         bio,
         location,
         website,
-        github,
+        github: githubUsername,
         avatarUrl,
         updatedAt: new Date().toISOString(),
       })

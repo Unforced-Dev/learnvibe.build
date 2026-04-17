@@ -48,6 +48,30 @@ settingsRoutes.get('/settings/profile', async (c) => {
           </div>
         )}
 
+        {error === 'invalid_website' && (
+          <div style="margin-top: 1rem; padding: 1rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #991b1b;">
+            Website must start with http:// or https://
+          </div>
+        )}
+
+        {error === 'invalid_avatar' && (
+          <div style="margin-top: 1rem; padding: 1rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #991b1b;">
+            Avatar URL must start with http:// or https://
+          </div>
+        )}
+
+        {error === 'invalid_github' && (
+          <div style="margin-top: 1rem; padding: 1rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #991b1b;">
+            GitHub must be a valid username (letters, numbers, hyphens only).
+          </div>
+        )}
+
+        {error === 'too_long' && (
+          <div style="margin-top: 1rem; padding: 1rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #991b1b;">
+            One or more fields exceeded the allowed length. Please shorten and try again.
+          </div>
+        )}
+
         <form method="POST" action="/api/profile" style="margin-top: 2rem;">
           <div class="form-group" style="margin-bottom: 1.5rem;">
             <label for="name" style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.9rem;">Name *</label>

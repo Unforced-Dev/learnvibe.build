@@ -3,7 +3,7 @@ import { eq, and } from 'drizzle-orm'
 import { Layout } from '../components/Layout'
 import { getDb } from '../db'
 import { applications, cohorts, payments, enrollments, users } from '../db/schema'
-import { getStripe, isStripeConfigured, getApplicationAmount, formatCents, createCheckoutSession } from '../lib/stripe'
+import { getStripe, isStripeConfigured, getApplicationAmount, formatCents } from '../lib/stripe'
 import { syncUser } from '../lib/auth'
 import type { AppContext } from '../types'
 
@@ -169,27 +169,69 @@ payment.get('/payment/checkout/:applicationId', async (c) => {
   const baseUrl = new URL(c.req.url).origin
 
   try {
-    const checkoutUrl = await createCheckoutSession({
-      stripe,
-      applicationId: app.id,
-      applicantEmail: app.email,
-      applicantName: app.name,
-      cohortTitle: cohort.title,
-      cohortId: cohort.id,
-      amountCents,
-      baseUrl,
+    // Reuse a recent pending session if one exists (handles double-click
+    // and back-button retries without spawning duplicate Stripe sessions).
+    const existingPending = await db.select().from(payments)
+      .where(
+        and(
+          eq(payments.applicationId, app.id),
+          eq(payments.status, 'pending')
+        )
+      )
+      .get()
+
+    if (existingPending?.stripeCheckoutSessionId) {
+      try {
+        const existingSession = await stripe.checkout.sessions.retrieve(
+          existingPending.stripeCheckoutSessionId
+        )
+        const notExpired = existingSession.expires_at * 1000 > Date.now()
+        if (notExpired && existingSession.url && existingSession.status === 'open') {
+          return c.redirect(existingSession.url)
+        }
+      } catch (e) {
+        console.error('[Payment] Could not retrieve existing session, creating new one:', e)
+      }
+    }
+
+    const stripeSession = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      customer_email: app.email,
+      allow_promotion_codes: true,
+      line_items: [{
+        price_data: {
+          currency: 'usd',
+          product_data: { name: cohort.title, description: `Learn Vibe Build enrollment — ${cohort.title}` },
+          unit_amount: amountCents,
+        },
+        quantity: 1,
+      }],
+      metadata: {
+        application_id: String(app.id),
+        cohort_id: String(cohort.id),
+        applicant_name: app.name,
+      },
+      success_url: `${baseUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/payment/cancelled?application_id=${app.id}`,
     })
 
-    // Create pending payment record
-    await db.insert(payments).values({
-      userId: user?.id ?? null,
-      applicationId: app.id,
-      cohortId: cohort.id,
-      amountCents,
-      status: 'pending',
-    })
+    // Upsert the pending payment row — one per application at a time.
+    if (existingPending) {
+      await db.update(payments)
+        .set({ stripeCheckoutSessionId: stripeSession.id, amountCents })
+        .where(eq(payments.id, existingPending.id))
+    } else {
+      await db.insert(payments).values({
+        userId: user?.id ?? null,
+        applicationId: app.id,
+        cohortId: cohort.id,
+        stripeCheckoutSessionId: stripeSession.id,
+        amountCents,
+        status: 'pending',
+      })
+    }
 
-    return c.redirect(checkoutUrl)
+    return c.redirect(stripeSession.url!)
   } catch (error) {
     console.error('Stripe checkout error:', error)
     return c.html(
@@ -232,18 +274,24 @@ payment.get('/payment/success', async (c) => {
     )
   }
 
-  // Verify the Stripe session if we have a session ID
+  // Verify the Stripe session if we have a session ID.
+  // Any failure here is visible to the user — we don't silently claim
+  // success. Stripe webhooks are the authoritative path for enrollment;
+  // this handler is a best-effort confirmation for the in-browser flow.
+  let verificationFailed = false
+  let verifiedPaid = false
+
   if (sessionId && isStripeConfigured(c.env.STRIPE_SECRET_KEY)) {
     try {
       const stripe = getStripe(c.env.STRIPE_SECRET_KEY)
       const session = await stripe.checkout.sessions.retrieve(sessionId)
 
       if (session.payment_status === 'paid') {
+        verifiedPaid = true
         const db = getDb(c.env.DB)
         const applicationId = parseInt(session.metadata?.application_id || '0', 10)
         const cohortId = parseInt(session.metadata?.cohort_id || '0', 10)
 
-        // Update payment record
         await db.update(payments)
           .set({
             stripeCheckoutSessionId: session.id,
@@ -253,37 +301,52 @@ payment.get('/payment/success', async (c) => {
           })
           .where(eq(payments.applicationId, applicationId))
 
-        // Update application status to enrolled
         if (applicationId) {
           await db.update(applications)
             .set({ status: 'enrolled' })
             .where(eq(applications.id, applicationId))
         }
 
-        // If user is logged in, create enrollment
         if (user && cohortId) {
-          const existingEnrollment = await db.select().from(enrollments)
-            .where(and(eq(enrollments.userId, user.id), eq(enrollments.cohortId, cohortId)))
-            .get()
-
-          if (!existingEnrollment) {
+          // UNIQUE(user_id, cohort_id) on enrollments means a duplicate
+          // insert (e.g. webhook raced us) raises. We catch and ignore.
+          try {
             await db.insert(enrollments).values({
               userId: user.id,
               cohortId,
               status: 'active',
             })
+          } catch (e) {
+            // Enrollment already exists — that's the success state, not a failure.
           }
 
-          // Update payment with user ID
           await db.update(payments)
             .set({ userId: user.id })
             .where(eq(payments.stripeCheckoutSessionId, session.id))
         }
       }
     } catch (error) {
-      console.error('Error verifying payment session:', error)
-      // Continue to show success page — webhook will handle the actual enrollment
+      console.error('[Payment] Error verifying session:', error)
+      verificationFailed = true
     }
+  }
+
+  // If we failed to verify, show a pending/processing state — not a
+  // green checkmark. The webhook will reconcile in the background.
+  if (verificationFailed || (sessionId && !verifiedPaid)) {
+    return c.html(
+      <Layout title="Processing Payment" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY}>
+        <div class="page-section" style="max-width: 600px; margin: 0 auto; text-align: center; padding: 4rem 0;">
+          <h2>Processing your payment…</h2>
+          <p class="lead" style="margin-top: 1rem;">
+            We received your payment but are still confirming with Stripe. You'll get an enrollment email within a few minutes. Refresh this page in a bit, or check your <a href="/dashboard" style="color: var(--accent);">dashboard</a>.
+          </p>
+          <p style="margin-top: 1.5rem; color: var(--text-tertiary); font-size: 0.9rem;">
+            Still seeing this after 10 minutes? Email ag@unforced.dev.
+          </p>
+        </div>
+      </Layout>
+    )
   }
 
   return c.html(

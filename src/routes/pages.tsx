@@ -170,6 +170,8 @@ pages.get('/apply', (c) => {
   const errorMessages: Record<string, string> = {
     missing_fields: 'Please fill out all required fields.',
     invalid_email: 'Please enter a valid email address.',
+    invalid_amount: 'Please enter a contribution between $0 and $500.',
+    too_long: 'One or more fields are too long. Please shorten and try again.',
     server_error: 'Something went wrong. Please try again.',
   }
 
