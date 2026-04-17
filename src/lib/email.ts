@@ -257,7 +257,19 @@ export async function sendEmail(params: SendEmailParams): Promise<{ success: boo
       return { success: false, error: result.error.message }
     }
 
-    console.log(`[Email] Sent: "${params.subject}" → ${recipients.join(', ')}`)
+    // Treat missing email id as failure — Resend should always return one on success.
+    if (!result.data?.id) {
+      const msg = 'No email id returned by provider'
+      console.error('[Email] Send error:', msg, result)
+      if (params.db && params.template) {
+        for (const r of recipients) {
+          await logEmailSend(params.db, r, params.subject, params.template, 'failed', msg)
+        }
+      }
+      return { success: false, error: msg }
+    }
+
+    console.log(`[Email] Sent: "${params.subject}" → ${recipients.join(', ')} (id=${result.data.id})`)
     if (params.db && params.template) {
       for (const r of recipients) {
         await logEmailSend(params.db, r, params.subject, params.template, 'sent')
@@ -367,19 +379,26 @@ export async function sendEnrollmentConfirmed(
   })
 }
 
+export interface BroadcastResult {
+  sent: string[]
+  failed: { email: string; error: string }[]
+  total: number
+}
+
 export async function sendBroadcast(
   env: EmailEnv,
   emails: string[],
   subject: string,
   markdownHtml: string,
-) {
-  // Send individually for better deliverability
-  const results = await Promise.allSettled(
+): Promise<BroadcastResult> {
+  // Send individually for better deliverability.
+  const settled = await Promise.allSettled(
     emails.map(email => {
       const tpl = cohortBroadcastEmail(subject, markdownHtml)
       return sendEmail({
         apiKey: env.RESEND_API_KEY,
         from: env.EMAIL_FROM,
+        replyTo: env.EMAIL_REPLY_TO,
         to: email,
         ...tpl,
         db: env.DB,
@@ -388,7 +407,19 @@ export async function sendBroadcast(
     })
   )
 
-  const sent = results.filter(r => r.status === 'fulfilled' && (r.value as any).success).length
-  const failed = results.length - sent
-  return { sent, failed, total: results.length }
+  const sent: string[] = []
+  const failed: { email: string; error: string }[] = []
+  settled.forEach((res, i) => {
+    const email = emails[i]
+    if (res.status === 'fulfilled' && res.value.success) {
+      sent.push(email)
+    } else {
+      const error = res.status === 'fulfilled'
+        ? (res.value.error || 'Unknown error')
+        : (res.reason instanceof Error ? res.reason.message : String(res.reason))
+      failed.push({ email, error })
+    }
+  })
+
+  return { sent, failed, total: emails.length }
 }

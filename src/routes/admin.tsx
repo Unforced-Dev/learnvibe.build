@@ -1269,6 +1269,8 @@ admin.get('/admin/email', async (c) => {
   const success = c.req.query('success')
   const sent = c.req.query('sent')
   const failed = c.req.query('failed')
+  const failedEmailsParam = c.req.query('failed_emails') || ''
+  const failedEmails = failedEmailsParam ? failedEmailsParam.split(',').filter(Boolean) : []
 
   const cohortList = await db.select().from(cohorts).orderBy(asc(cohorts.id)).all()
   const emailConfigured = isEmailConfigured(c.env.RESEND_API_KEY)
@@ -1287,9 +1289,27 @@ admin.get('/admin/email', async (c) => {
         )}
 
         {success === 'true' && (
-          <div style="margin-top: 1rem; padding: 1rem; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; font-size: 0.9rem; color: #155724;">
-            Email sent to {sent} recipient{sent !== '1' ? 's' : ''}{parseInt(failed || '0') > 0 ? ` (${failed} failed)` : ''}.
-          </div>
+          <>
+            {parseInt(sent || '0') > 0 && (
+              <div style="margin-top: 1rem; padding: 1rem; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; font-size: 0.9rem; color: #155724;">
+                ✓ Sent to {sent} recipient{sent !== '1' ? 's' : ''}.
+              </div>
+            )}
+            {parseInt(failed || '0') > 0 && (
+              <div style="margin-top: 1rem; padding: 1rem; background: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px; font-size: 0.9rem; color: #991b1b;">
+                <strong>{failed} failed.</strong>
+                {failedEmails.length > 0 ? (
+                  <ul style="margin: 0.5rem 0 0 1.25rem; padding: 0;">
+                    {failedEmails.map(e => (
+                      <li style="font-family: var(--font-mono); font-size: 0.85rem;">{e}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p style="margin: 0.5rem 0 0 0;">Check the <a href="/admin/emails" style="color: #991b1b; text-decoration: underline;">email log</a> for details.</p>
+                )}
+              </div>
+            )}
+          </>
         )}
 
         <form method="post" action="/api/admin/email/broadcast" class="apply-form" style="margin-top: 2rem;">
@@ -1402,7 +1422,17 @@ admin.post('/api/admin/email/broadcast', async (c) => {
   // Send broadcast
   const result = await sendBroadcast(c.env, emails, subject, htmlContent)
 
-  return c.redirect(`/admin/email?success=true&sent=${result.sent}&failed=${result.failed}`)
+  // Cap failed-emails URL param so we don't bust URL limits; if truncated,
+  // admin can still see the full list in the email log.
+  const failedEmailsList = result.failed.map(f => f.email)
+  const MAX_FAILED_IN_URL = 50
+  const failedEmailsParam = encodeURIComponent(
+    failedEmailsList.slice(0, MAX_FAILED_IN_URL).join(',')
+  )
+
+  return c.redirect(
+    `/admin/email?success=true&sent=${result.sent.length}&failed=${result.failed.length}&failed_emails=${failedEmailsParam}`
+  )
 })
 
 // ===== API ADMIN GUARD =====
