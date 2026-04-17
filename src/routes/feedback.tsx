@@ -13,7 +13,7 @@ feedbackRoutes.get('/feedback', (c) => {
 
   if (submitted === 'true') {
     return c.html(
-      <Layout title="Thank You" user={user}>
+      <Layout title="Thank You" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY}>
         <div class="page-section success-message">
           <div style="font-size: 3rem; margin-bottom: 1rem;">🙏</div>
           <h2>Thank you for your feedback</h2>

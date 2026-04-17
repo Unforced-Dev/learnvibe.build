@@ -322,7 +322,7 @@ pages.post('/apply/status', async (c) => {
 
   if (!app) {
     return c.html(
-      <Layout title="Application Status" user={user}>
+      <Layout title="Application Status" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY}>
         <div class="page-section" style="max-width: 500px; margin: 0 auto; text-align: center; padding: 4rem 0;">
           <h2>No Application Found</h2>
           <p style="margin-top: 1rem; color: var(--text-secondary);">
@@ -342,7 +342,7 @@ pages.post('/apply/status', async (c) => {
   const amountCents = getApplicationAmount(app)
 
   return c.html(
-    <Layout title="Application Status" user={user}>
+    <Layout title="Application Status" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY}>
       <div class="page-section" style="max-width: 600px; margin: 0 auto;">
         <p class="section-label">Application Status</p>
         <h2>Hi {app.name.split(' ')[0]}</h2>

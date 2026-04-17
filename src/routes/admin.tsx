@@ -5,9 +5,9 @@ import { getDb } from '../db'
 import { applications, cohorts, lessons, users, enrollments, payments, feedback, emailLog, lessonProgress, projects, discussions, comments, apiKeys, memberships } from '../db/schema'
 import { isAdmin, isClerkConfigured } from '../lib/auth'
 import { formatCents, getAmountForTier, getTierLabel, getApplicationAmount, getApplicationLabel } from '../lib/stripe'
-import { sendBroadcast, sendApplicationApproved, sendApplicationRejected, sendApplicationPriceChanged, sendEmail, isEmailConfigured } from '../lib/email'
+import { sendBroadcast, sendApplicationApproved, sendApplicationRejected, sendApplicationPriceChanged, sendEmail, isEmailConfigured, type BroadcastAudience } from '../lib/email'
 import { isStripeConfigured, getStripe, createCheckoutSession } from '../lib/stripe'
-import { marked } from 'marked'
+import { renderMarkdown } from '../lib/markdown'
 import type { AppContext } from '../types'
 
 const admin = new Hono<AppContext>()
@@ -1370,7 +1370,7 @@ admin.post('/api/admin/email/broadcast', async (c) => {
   }
 
   // Render markdown to HTML
-  const htmlContent = await marked(bodyMarkdown)
+  const htmlContent = renderMarkdown(bodyMarkdown)
 
   // Build recipient list based on audience
   let emails: string[] = []
@@ -1419,8 +1419,13 @@ admin.post('/api/admin/email/broadcast', async (c) => {
     return c.redirect('/admin/email?error=no_recipients')
   }
 
-  // Send broadcast
-  const result = await sendBroadcast(c.env, emails, subject, htmlContent)
+  // Map the admin-facing audience label to the email template's audience hint.
+  let broadcastAudience: BroadcastAudience = 'generic'
+  if (audience === 'all_enrolled' || audience.startsWith('cohort_')) broadcastAudience = 'enrolled'
+  else if (audience === 'all_approved') broadcastAudience = 'approved'
+  else if (audience === 'all_applicants') broadcastAudience = 'applicants'
+
+  const result = await sendBroadcast(c.env, emails, subject, htmlContent, broadcastAudience)
 
   // Cap failed-emails URL param so we don't bust URL limits; if truncated,
   // admin can still see the full list in the email log.
@@ -1809,7 +1814,7 @@ admin.post('/api/admin/email/send', async (c) => {
     return c.redirect('/admin/email/compose?error=missing_fields')
   }
 
-  const htmlContent = await marked(bodyMarkdown)
+  const htmlContent = renderMarkdown(bodyMarkdown)
 
   // Use the branded email wrapper via sendEmail
   const result = await sendEmail({

@@ -11,8 +11,8 @@ import type { AppContext } from '../types'
 const cohortRoutes = new Hono<AppContext>()
 
 // Gated content message component
-const GatedMessage = ({ cohort, user }: { cohort: { title: string; slug: string }; user: any }) => (
-  <Layout title={cohort.title} user={user}>
+const GatedMessage = ({ cohort, user, clerkPubKey }: { cohort: { title: string; slug: string }; user: any; clerkPubKey?: string }) => (
+  <Layout title={cohort.title} user={user} clerkPubKey={clerkPubKey}>
     <div class="page-section" style="max-width: 600px; margin: 0 auto; text-align: center; padding: 4rem 0;">
       <p class="section-label">Members Only</p>
       <h2>{cohort.title}</h2>
@@ -46,7 +46,7 @@ cohortRoutes.get('/cohort/:slug', async (c) => {
 
   if (!cohort) {
     return c.html(
-      <Layout title="Not Found" user={user}>
+      <Layout title="Not Found" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY}>
         <div class="page-section" style="text-align: center; padding: 6rem 0;">
           <h2>Cohort not found</h2>
           <p><a href="/">← Back to homepage</a></p>
@@ -59,7 +59,7 @@ cohortRoutes.get('/cohort/:slug', async (c) => {
   // Access control: check if user can view this cohort
   const hasAccess = await canAccessCohort(c.env.DB, user, cohort.id, cohort.isPublic)
   if (!hasAccess) {
-    return c.html(<GatedMessage cohort={cohort} user={user} />, 403)
+    return c.html(<GatedMessage cohort={cohort} user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY} />, 403)
   }
 
   const cohortLessons = await db
@@ -96,7 +96,7 @@ cohortRoutes.get('/cohort/:slug', async (c) => {
     : null
 
   return c.html(
-    <Layout title={cohort.title} description={cohort.description || undefined} user={user}>
+    <Layout title={cohort.title} description={cohort.description || undefined} user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY}>
       <div class="page-section">
         <a href="/" class="back-link">← Home</a>
 
@@ -240,7 +240,7 @@ cohortRoutes.get('/cohort/:slug/week/:num', async (c) => {
 
   if (!cohort) {
     return c.html(
-      <Layout title="Not Found" user={user}>
+      <Layout title="Not Found" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY}>
         <div class="page-section" style="text-align: center; padding: 6rem 0;">
           <h2>Cohort not found</h2>
           <p><a href="/">← Back to homepage</a></p>
@@ -253,7 +253,7 @@ cohortRoutes.get('/cohort/:slug/week/:num', async (c) => {
   // Access control
   const hasAccess = await canAccessCohort(c.env.DB, user, cohort.id, cohort.isPublic)
   if (!hasAccess) {
-    return c.html(<GatedMessage cohort={cohort} user={user} />, 403)
+    return c.html(<GatedMessage cohort={cohort} user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY} />, 403)
   }
 
   const lesson = await db
@@ -270,7 +270,7 @@ cohortRoutes.get('/cohort/:slug/week/:num', async (c) => {
 
   if (!lesson) {
     return c.html(
-      <Layout title="Not Found" user={user}>
+      <Layout title="Not Found" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY}>
         <div class="page-section" style="text-align: center; padding: 6rem 0;">
           <h2>Lesson not found</h2>
           <p><a href={`/cohort/${slug}`}>← Back to {cohort.title}</a></p>
@@ -311,7 +311,7 @@ cohortRoutes.get('/cohort/:slug/week/:num', async (c) => {
   const nextLesson = currentIndex < allLessons.length - 1 ? allLessons[currentIndex + 1] : null
 
   return c.html(
-    <Layout title={`Week ${weekNum}: ${lesson.title}`} description={lesson.description || undefined} user={user}>
+    <Layout title={`Week ${weekNum}: ${lesson.title}`} description={lesson.description || undefined} user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY}>
       <div class="page-section">
         <a href={`/cohort/${slug}`} class="back-link">← {cohort.title}</a>
 

@@ -1,18 +1,50 @@
 import { marked } from 'marked'
+import sanitizeHtml from 'sanitize-html'
 
-// Configure marked for clean, safe output
 marked.setOptions({
   gfm: true,
   breaks: false,
 })
 
-/**
- * Render markdown string to HTML.
- * Wraps output in a .lesson-content div for styling.
- */
+// Allowlist of tags we emit from markdown, plus a few extras (tables, task lists).
+const ALLOWED_TAGS = [
+  'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+  'p', 'br', 'hr',
+  'a', 'img',
+  'strong', 'em', 'b', 'i', 'u', 'del', 's', 'code', 'pre', 'kbd', 'mark',
+  'ul', 'ol', 'li',
+  'blockquote', 'q',
+  'table', 'thead', 'tbody', 'tr', 'th', 'td',
+  'input', // for GFM task list checkboxes — restricted via allowedAttributes below
+  'span', 'div',
+]
+
+const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
+  allowedTags: ALLOWED_TAGS,
+  allowedAttributes: {
+    a: ['href', 'title', 'rel', 'target'],
+    img: ['src', 'alt', 'title', 'width', 'height'],
+    input: ['type', 'checked', 'disabled'], // GFM task list
+    code: ['class'], // highlight.js-style language-foo
+    pre: ['class'],
+    span: ['class'],
+    div: ['class'],
+    th: ['align'],
+    td: ['align'],
+  },
+  allowedSchemes: ['http', 'https', 'mailto'],
+  allowedSchemesByTag: {
+    img: ['http', 'https', 'data'],
+  },
+  transformTags: {
+    a: sanitizeHtml.simpleTransform('a', { rel: 'noopener noreferrer' }, true),
+  },
+  disallowedTagsMode: 'discard',
+}
+
 export function renderMarkdown(markdown: string): string {
-  const html = marked.parse(markdown) as string
-  return html
+  const unsafe = marked.parse(markdown) as string
+  return sanitizeHtml(unsafe, SANITIZE_OPTIONS)
 }
 
 /**

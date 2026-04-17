@@ -16,10 +16,12 @@
     "hono": "^4",
     "marked": "^17.0.4",
     "resend": "^6.9.3",
+    "sanitize-html": "^2.17.3",
     "stripe": "^20.4.1"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4",
+    "@types/sanitize-html": "^2.16.1",
     "drizzle-kit": "^0.30",
     "tsx": "^4.21.0",
     "typescript": "^5.5",

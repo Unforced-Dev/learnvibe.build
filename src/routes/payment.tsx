@@ -18,7 +18,7 @@ payment.get('/payment/checkout/:applicationId', async (c) => {
 
   if (!isStripeConfigured(c.env.STRIPE_SECRET_KEY)) {
     return c.html(
-      <Layout title="Payment" user={user}>
+      <Layout title="Payment" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY}>
         <div class="page-section" style="max-width: 600px; margin: 0 auto; text-align: center; padding: 6rem 0;">
           <h2>Payment Not Available</h2>
           <p style="margin-top: 1rem; color: var(--text-secondary);">
@@ -35,7 +35,7 @@ payment.get('/payment/checkout/:applicationId', async (c) => {
 
   if (!app) {
     return c.html(
-      <Layout title="Not Found" user={user}>
+      <Layout title="Not Found" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY}>
         <div class="page-section" style="max-width: 600px; margin: 0 auto; text-align: center; padding: 6rem 0;">
           <h2>Application Not Found</h2>
           <p style="margin-top: 1rem; color: var(--text-secondary);">
@@ -51,7 +51,7 @@ payment.get('/payment/checkout/:applicationId', async (c) => {
   // Must be approved
   if (app.status !== 'approved') {
     return c.html(
-      <Layout title="Payment" user={user}>
+      <Layout title="Payment" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY}>
         <div class="page-section" style="max-width: 600px; margin: 0 auto; text-align: center; padding: 6rem 0;">
           <h2>Application Not Ready</h2>
           <p style="margin-top: 1rem; color: var(--text-secondary);">
@@ -82,7 +82,7 @@ payment.get('/payment/checkout/:applicationId', async (c) => {
 
   if (existingPayment) {
     return c.html(
-      <Layout title="Already Paid" user={user}>
+      <Layout title="Already Paid" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY}>
         <div class="page-section" style="max-width: 600px; margin: 0 auto; text-align: center; padding: 6rem 0;">
           <h2>Payment Already Completed</h2>
           <p style="margin-top: 1rem; color: var(--text-secondary);">
@@ -99,7 +99,7 @@ payment.get('/payment/checkout/:applicationId', async (c) => {
 
   if (!cohort) {
     return c.html(
-      <Layout title="Error" user={user}>
+      <Layout title="Error" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY}>
         <div class="page-section" style="max-width: 600px; margin: 0 auto; text-align: center; padding: 6rem 0;">
           <h2>Cohort Not Found</h2>
           <p style="margin-top: 1rem; color: var(--text-secondary);">The cohort for this application could not be found.</p>
@@ -193,7 +193,7 @@ payment.get('/payment/checkout/:applicationId', async (c) => {
   } catch (error) {
     console.error('Stripe checkout error:', error)
     return c.html(
-      <Layout title="Payment Error" user={user}>
+      <Layout title="Payment Error" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY}>
         <div class="page-section" style="max-width: 600px; margin: 0 auto; text-align: center; padding: 6rem 0;">
           <h2>Payment Error</h2>
           <p style="margin-top: 1rem; color: var(--text-secondary);">
@@ -217,7 +217,7 @@ payment.get('/payment/success', async (c) => {
 
   if (sponsored === 'true') {
     return c.html(
-      <Layout title="Welcome!" user={user}>
+      <Layout title="Welcome!" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY}>
         <div class="page-section" style="max-width: 600px; margin: 0 auto; text-align: center; padding: 4rem 0;">
           <div style="font-size: 3rem; margin-bottom: 1rem;">🎉</div>
           <h2>You're enrolled!</h2>
@@ -287,7 +287,7 @@ payment.get('/payment/success', async (c) => {
   }
 
   return c.html(
-    <Layout title="Payment Successful" user={user}>
+    <Layout title="Payment Successful" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY}>
       <div class="page-section" style="max-width: 600px; margin: 0 auto; text-align: center; padding: 4rem 0;">
         <div style="font-size: 3rem; margin-bottom: 1rem;">🎉</div>
         <h2>Payment successful!</h2>
@@ -313,7 +313,7 @@ payment.get('/payment/cancelled', async (c) => {
   const applicationId = c.req.query('application_id')
 
   return c.html(
-    <Layout title="Payment Cancelled" user={user}>
+    <Layout title="Payment Cancelled" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY}>
       <div class="page-section" style="max-width: 600px; margin: 0 auto; text-align: center; padding: 4rem 0;">
         <h2>Payment Cancelled</h2>
         <p class="lead" style="margin-top: 1rem;">

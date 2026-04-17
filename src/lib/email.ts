@@ -193,16 +193,33 @@ export function enrollmentConfirmedEmail(
   }
 }
 
+export type BroadcastAudience = 'enrolled' | 'approved' | 'applicants' | 'generic'
+
+function broadcastFooter(audience: BroadcastAudience): string {
+  switch (audience) {
+    case 'enrolled':
+      return `You're receiving this because you're enrolled in a Learn Vibe Build cohort. <a href="https://learnvibe.build/dashboard" style="color: #e8612a; text-decoration: none;">View your dashboard</a>.`
+    case 'approved':
+      return `You're receiving this because your Learn Vibe Build application was approved. <a href="https://learnvibe.build/apply/status" style="color: #e8612a; text-decoration: none;">Check your status</a>.`
+    case 'applicants':
+      return `You're receiving this because you applied to Learn Vibe Build. <a href="https://learnvibe.build/apply/status" style="color: #e8612a; text-decoration: none;">Check your application status</a>.`
+    case 'generic':
+    default:
+      return `You're receiving this because you're part of the Learn Vibe Build community.`
+  }
+}
+
 export function cohortBroadcastEmail(
   subject: string,
   markdownHtml: string,
+  audience: BroadcastAudience = 'enrolled',
 ): { subject: string; html: string } {
   return {
     subject: `${subject} — Learn Vibe Build`,
     html: emailWrapper(`
       ${markdownHtml}
       <hr class="email-divider">
-      <p class="email-muted">You're receiving this because you're enrolled in a Learn Vibe Build cohort. <a href="https://learnvibe.build/dashboard" style="color: #e8612a; text-decoration: none;">View your dashboard</a>.</p>
+      <p class="email-muted">${broadcastFooter(audience)}</p>
     `),
   }
 }
@@ -390,11 +407,12 @@ export async function sendBroadcast(
   emails: string[],
   subject: string,
   markdownHtml: string,
+  audience: BroadcastAudience = 'enrolled',
 ): Promise<BroadcastResult> {
   // Send individually for better deliverability.
   const settled = await Promise.allSettled(
     emails.map(email => {
-      const tpl = cohortBroadcastEmail(subject, markdownHtml)
+      const tpl = cohortBroadcastEmail(subject, markdownHtml, audience)
       return sendEmail({
         apiKey: env.RESEND_API_KEY,
         from: env.EMAIL_FROM,
