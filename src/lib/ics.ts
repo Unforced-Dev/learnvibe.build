@@ -6,6 +6,8 @@ const SESSION_START_HOUR = 17 // 5pm
 const SESSION_START_MIN = 30
 const SESSION_DURATION_MIN = 120 // 2h
 const SESSION_TZID = 'America/Denver'
+const SESSION_VENUE_NAME = 'Regen Hub'
+const SESSION_VENUE_ADDRESS = '1515 Walnut St, Suite 200, Boulder, CO 80302'
 
 const VTIMEZONE_AMERICA_DENVER = [
   'BEGIN:VTIMEZONE',
@@ -116,8 +118,12 @@ export function generateCohortICS(input: GenerateCohortICSInput): string {
     const summary = session?.title
       ? `LearnVibeBuild Week ${week}: ${session.title}`
       : `LearnVibeBuild Week ${week}`
+
+    const location = `${SESSION_VENUE_NAME} — ${SESSION_VENUE_ADDRESS}`
+
     const descParts: string[] = []
-    if (meetingUrl) descParts.push(`Join the live session: ${meetingUrl}`)
+    descParts.push(`In person at ${SESSION_VENUE_NAME}: ${SESSION_VENUE_ADDRESS}`)
+    if (meetingUrl) descParts.push(`Remote: ${meetingUrl}`)
     if (session?.description) descParts.push(session.description)
     descParts.push(`Dashboard: https://learnvibe.build/cohort/${cohortSlug}`)
     const description = descParts.join('\n\n')
@@ -130,8 +136,8 @@ export function generateCohortICS(input: GenerateCohortICSInput): string {
     lines.push(`DTEND;TZID=${SESSION_TZID}:${dtend}`)
     lines.push(foldLine(`SUMMARY:${escapeText(summary)}`))
     lines.push(foldLine(`DESCRIPTION:${escapeText(description)}`))
+    lines.push(foldLine(`LOCATION:${escapeText(location)}`))
     if (meetingUrl) {
-      lines.push(foldLine(`LOCATION:${escapeText(meetingUrl)}`))
       lines.push(foldLine(`URL:${escapeText(meetingUrl)}`))
     }
     lines.push('STATUS:CONFIRMED')
