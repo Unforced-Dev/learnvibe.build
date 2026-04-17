@@ -5,6 +5,7 @@ import { getDb } from '../db'
 import { cohorts, lessons, lessonProgress } from '../db/schema'
 import { renderMarkdown } from '../lib/markdown'
 import { canAccessCohort } from '../lib/access'
+import { generateCohortICS } from '../lib/ics'
 import type { AppContext } from '../types'
 
 const cohortRoutes = new Hono<AppContext>()
@@ -122,18 +123,28 @@ cohortRoutes.get('/cohort/:slug', async (c) => {
         )}
 
         {cohort.meetingUrl && (
-          <a
-            href={cohort.meetingUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding: 1rem 1.25rem; background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%); border: 1px solid #f59e0b; border-radius: 10px; text-decoration: none; color: #78350f; gap: 1rem;"
-          >
-            <div>
-              <div style="font-weight: 600; font-size: 1rem;">🔴 Join live session</div>
-              <div style="font-size: 0.85rem; color: #92400e; margin-top: 0.15rem;">Mondays 5:30–7:30pm MT</div>
+          <div style="margin-top: 1.5rem; padding: 1rem 1.25rem; background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%); border: 1px solid #f59e0b; border-radius: 10px; color: #78350f; display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between;">
+            <div style="flex: 1; min-width: 200px;">
+              <div style="font-weight: 600; font-size: 1rem;">🔴 Live session</div>
+              <div style="font-size: 0.85rem; color: #92400e; margin-top: 0.15rem;">Mondays 5:30–7:30pm MT · {cohort.weeks} weeks</div>
             </div>
-            <span style="font-weight: 500; white-space: nowrap;">Join →</span>
-          </a>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <a
+                href={`/cohort/${slug}/sessions.ics`}
+                style="padding: 0.5rem 0.85rem; background: rgba(255,255,255,0.6); border: 1px solid #f59e0b; border-radius: 6px; text-decoration: none; color: #78350f; font-size: 0.85rem; font-weight: 500; white-space: nowrap;"
+              >
+                📅 Add to calendar
+              </a>
+              <a
+                href={cohort.meetingUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style="padding: 0.5rem 1rem; background: #78350f; color: white; border-radius: 6px; text-decoration: none; font-size: 0.9rem; font-weight: 500; white-space: nowrap;"
+              >
+                Join →
+              </a>
+            </div>
+          </div>
         )}
 
         {cohortLessons.length > 0 ? (
@@ -169,6 +180,49 @@ cohortRoutes.get('/cohort/:slug', async (c) => {
       </div>
     </Layout>
   )
+})
+
+// ICS calendar feed — /cohort/:slug/sessions.ics
+cohortRoutes.get('/cohort/:slug/sessions.ics', async (c) => {
+  const slug = c.req.param('slug')
+  const db = getDb(c.env.DB)
+  const user = c.get('user')
+
+  const cohort = await db.select().from(cohorts).where(eq(cohorts.slug, slug)).get()
+  if (!cohort) return c.notFound()
+
+  const hasAccess = await canAccessCohort(c.env.DB, user, cohort.id, cohort.isPublic)
+  if (!hasAccess) return c.text('Forbidden', 403)
+
+  if (!cohort.startDate) return c.text('Cohort has no start date set', 409)
+
+  const cohortLessons = await db
+    .select()
+    .from(lessons)
+    .where(and(eq(lessons.cohortId, cohort.id), eq(lessons.status, 'published')))
+    .orderBy(asc(lessons.weekNumber))
+    .all()
+
+  const ics = generateCohortICS({
+    cohortSlug: cohort.slug,
+    cohortTitle: cohort.title,
+    firstSessionDate: cohort.startDate,
+    weeks: cohort.weeks,
+    meetingUrl: cohort.meetingUrl,
+    sessions: cohortLessons.map(l => ({
+      weekNumber: l.weekNumber,
+      title: l.title,
+      description: l.description,
+    })),
+  })
+
+  return new Response(ics, {
+    headers: {
+      'Content-Type': 'text/calendar; charset=utf-8',
+      'Content-Disposition': `attachment; filename="learnvibe-${cohort.slug}.ics"`,
+      'Cache-Control': 'no-store',
+    },
+  })
 })
 
 // Lesson page — /cohort/:slug/week/:num

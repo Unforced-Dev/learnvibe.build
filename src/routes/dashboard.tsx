@@ -75,18 +75,28 @@ dashboard.get('/dashboard', async (c) => {
             {userEnrollments
               .filter(({ enrollment, cohort }) => enrollment.status === 'active' && cohort.meetingUrl)
               .map(({ cohort }) => (
-                <a
-                  href={cohort.meetingUrl!}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding: 1rem 1.25rem; background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%); border: 1px solid #f59e0b; border-radius: 10px; text-decoration: none; color: #78350f; gap: 1rem;"
-                >
-                  <div>
-                    <div style="font-weight: 600; font-size: 1rem;">🔴 Join live session — {cohort.title}</div>
+                <div style="margin-top: 1.5rem; padding: 1rem 1.25rem; background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%); border: 1px solid #f59e0b; border-radius: 10px; color: #78350f; display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between;">
+                  <div style="flex: 1; min-width: 200px;">
+                    <div style="font-weight: 600; font-size: 1rem;">🔴 Live session — {cohort.title}</div>
                     <div style="font-size: 0.85rem; color: #92400e; margin-top: 0.15rem;">Mondays 5:30–7:30pm MT</div>
                   </div>
-                  <span style="font-weight: 500; white-space: nowrap;">Join →</span>
-                </a>
+                  <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <a
+                      href={`/cohort/${cohort.slug}/sessions.ics`}
+                      style="padding: 0.5rem 0.85rem; background: rgba(255,255,255,0.6); border: 1px solid #f59e0b; border-radius: 6px; text-decoration: none; color: #78350f; font-size: 0.85rem; font-weight: 500; white-space: nowrap;"
+                    >
+                      📅 Add to calendar
+                    </a>
+                    <a
+                      href={cohort.meetingUrl!}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style="padding: 0.5rem 1rem; background: #78350f; color: white; border-radius: 6px; text-decoration: none; font-size: 0.9rem; font-weight: 500; white-space: nowrap;"
+                    >
+                      Join →
+                    </a>
+                  </div>
+                </div>
               ))}
 
             <p class="lead" style="margin-top: 0.5rem;">Your cohorts</p>
