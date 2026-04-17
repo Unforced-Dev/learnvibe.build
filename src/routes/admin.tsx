@@ -3,7 +3,7 @@ import { eq, desc, asc, and, like, or } from 'drizzle-orm'
 import { Layout } from '../components/Layout'
 import { getDb } from '../db'
 import { applications, cohorts, lessons, users, enrollments, payments, feedback, emailLog, lessonProgress, projects, discussions, comments, apiKeys, memberships } from '../db/schema'
-import { isAdmin, isClerkConfigured } from '../lib/auth'
+import { isAdmin, isClerkConfigured, generateToken } from '../lib/auth'
 import { formatCents, getAmountForTier, getTierLabel, getApplicationAmount, getApplicationLabel } from '../lib/stripe'
 import { sendBroadcast, sendApplicationApproved, sendApplicationRejected, sendApplicationPriceChanged, sendEmail, isEmailConfigured, type BroadcastAudience } from '../lib/email'
 import { isStripeConfigured, getStripe } from '../lib/stripe'
@@ -18,10 +18,15 @@ const admin = new Hono<AppContext>()
 admin.use('/admin/*', async (c, next) => {
   const user = c.get('user')
 
-  // If Clerk is not configured, allow access (dev mode)
+  // Dev bypass — only on localhost AND without Clerk. Prevents production
+  // from accidentally running admin without auth if Clerk vars get cleared.
   if (!isClerkConfigured(c)) {
-    await next()
-    return
+    const hostname = new URL(c.req.url).hostname
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      await next()
+      return
+    }
+    return c.text('Admin not available — auth not configured.', 503)
   }
 
   // If not logged in, redirect to sign-in (don't show 403 for transient auth failures)
@@ -412,12 +417,12 @@ admin.get('/admin/applications/:id', async (c) => {
               <div style="display: flex; align-items: center; gap: 0.75rem;">
                 <span style="font-size: 0.85rem; color: var(--text-secondary);">Payment link:</span>
                 <code style="font-family: var(--font-mono); font-size: 0.8rem; background: white; padding: 0.4rem 0.75rem; border-radius: 4px; border: 1px solid #e5e7eb; word-break: break-all;">
-                  {new URL(c.req.url).origin}/payment/checkout/{app.id}
+                  {new URL(c.req.url).origin}/payment/checkout/{app.id}{app.paymentToken ? `?t=${app.paymentToken}` : ''}
                 </code>
               </div>
               <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
                 <button
-                  onclick={`navigator.clipboard.writeText('${new URL(c.req.url).origin}/payment/checkout/${app.id}').then(() => this.textContent = 'Copied!')`}
+                  onclick={`navigator.clipboard.writeText('${new URL(c.req.url).origin}/payment/checkout/${app.id}${app.paymentToken ? `?t=${app.paymentToken}` : ''}').then(() => this.textContent = 'Copied!')`}
                   style="padding: 0.4rem 1rem; background: #166534; color: white; border: none; border-radius: 6px; font-size: 0.85rem; cursor: pointer;"
                 >
                   Copy Payment Link
@@ -1501,6 +1506,12 @@ admin.post('/api/admin/applications/:id/status', async (c) => {
 
   if (status === 'approved') {
     updateData.approvedAt = new Date().toISOString()
+    // Generate a payment token if one doesn't already exist.
+    const existing = await db.select({ paymentToken: applications.paymentToken })
+      .from(applications).where(eq(applications.id, id)).get()
+    if (!existing?.paymentToken) {
+      updateData.paymentToken = generateToken()
+    }
   }
 
   await db
@@ -1515,7 +1526,7 @@ admin.post('/api/admin/applications/:id/status', async (c) => {
     const amountCents = getApplicationAmount(app)
     const isSponsored = amountCents === 0
     const baseUrl = new URL(c.req.url).origin
-    const paymentUrl = `${baseUrl}/payment/checkout/${app.id}`
+    const paymentUrl = `${baseUrl}/payment/checkout/${app.id}?t=${app.paymentToken}`
 
     // Send approval email with payment link (non-blocking)
     c.executionCtx.waitUntil(
@@ -1676,7 +1687,7 @@ admin.post('/api/admin/applications/:id/tier', async (c) => {
   // Skip the email entirely for already-enrolled applicants (they've paid).
   if (notify && newAmountCents !== prevAmountCents && updated.status === 'approved') {
     const baseUrl = new URL(c.req.url).origin
-    const paymentUrl = `${baseUrl}/payment/checkout/${updated.id}`
+    const paymentUrl = `${baseUrl}/payment/checkout/${updated.id}${updated.paymentToken ? `?t=${updated.paymentToken}` : ''}`
     c.executionCtx.waitUntil(
       sendApplicationPriceChanged(
         c.env,
@@ -1720,6 +1731,11 @@ admin.post('/api/admin/applications/bulk', async (c) => {
     }
     if (status === 'approved') {
       updateData.approvedAt = new Date().toISOString()
+      const existing = await db.select({ paymentToken: applications.paymentToken })
+        .from(applications).where(eq(applications.id, id)).get()
+      if (!existing?.paymentToken) {
+        updateData.paymentToken = generateToken()
+      }
     }
 
     await db.update(applications).set(updateData).where(eq(applications.id, id))
@@ -1729,7 +1745,7 @@ admin.post('/api/admin/applications/bulk', async (c) => {
     if (app && status === 'approved') {
       const amountCents = getAmountForTier(pricingTier)
       const baseUrl = new URL(c.req.url).origin
-      const paymentUrl = `${baseUrl}/payment/checkout/${app.id}`
+      const paymentUrl = `${baseUrl}/payment/checkout/${app.id}?t=${app.paymentToken}`
       c.executionCtx.waitUntil(
         sendApplicationApproved(c.env, app.email, app.name, paymentUrl, getTierLabel(pricingTier), formatCents(amountCents), amountCents === 0)
       )

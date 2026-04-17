@@ -145,7 +145,7 @@ discussionRoutes.get('/cohort/:slug/discussions/new', async (c) => {
           </div>
         )}
 
-        <form method="POST" action="/api/discussions" style="margin-top: 2rem;">
+        <form method="post" action="/api/discussions" style="margin-top: 2rem;">
           <input type="hidden" name="cohort_id" value={String(cohort.id)} />
           <input type="hidden" name="return_slug" value={slug} />
 
@@ -310,7 +310,7 @@ discussionRoutes.get('/cohort/:slug/discussions/:id', async (c) => {
           {/* Reply form */}
           <div style="margin-top: 2rem; padding: 1.5rem; background: var(--surface); border-radius: 10px;">
             <h4 style="font-family: var(--font-display); margin-bottom: 1rem;">Add a Reply</h4>
-            <form method="POST" action={`/api/discussions/${discussionId}/comments`}>
+            <form method="post" action={`/api/discussions/${discussionId}/comments`}>
               <input type="hidden" name="return_url" value={`/cohort/${slug}/discussions/${discussionId}`} />
               <textarea
                 name="body"
@@ -436,7 +436,7 @@ discussionRoutes.get('/community/discussions/new', async (c) => {
           </div>
         )}
 
-        <form method="POST" action="/api/discussions" style="margin-top: 2rem;">
+        <form method="post" action="/api/discussions" style="margin-top: 2rem;">
           <input type="hidden" name="return_community" value="1" />
 
           <div style="margin-bottom: 1.5rem;">
@@ -582,7 +582,7 @@ discussionRoutes.get('/community/discussions/:id', async (c) => {
 
           <div style="margin-top: 2rem; padding: 1.5rem; background: var(--surface); border-radius: 10px;">
             <h4 style="font-family: var(--font-display); margin-bottom: 1rem;">Add a Reply</h4>
-            <form method="POST" action={`/api/discussions/${discussionId}/comments`}>
+            <form method="post" action={`/api/discussions/${discussionId}/comments`}>
               <input type="hidden" name="return_url" value={`/community/discussions/${discussionId}`} />
               <textarea
                 name="body"

@@ -4,7 +4,7 @@ import { Layout } from '../components/Layout'
 import { getDb } from '../db'
 import { applications, cohorts, payments, enrollments, users } from '../db/schema'
 import { getStripe, isStripeConfigured, getApplicationAmount, formatCents } from '../lib/stripe'
-import { syncUser } from '../lib/auth'
+import { syncUser, timingSafeEqual } from '../lib/auth'
 import type { AppContext } from '../types'
 
 const payment = new Hono<AppContext>()
@@ -48,6 +48,31 @@ payment.get('/payment/checkout/:applicationId', async (c) => {
     )
   }
 
+  // Gate access — either the ?t= query param matches the application's
+  // token (link from approval email), or the current session user is
+  // the owner (clicked from their dashboard / apply status). Prevents
+  // strangers from initiating Stripe sessions by guessing sequential ids.
+  const providedToken = c.req.query('t') || ''
+  const hasValidToken =
+    app.paymentToken != null && providedToken !== '' &&
+    timingSafeEqual(providedToken, app.paymentToken)
+  const isOwner =
+    user != null &&
+    (app.userId === user.id || app.email.toLowerCase() === user.email.toLowerCase())
+  if (!hasValidToken && !isOwner) {
+    return c.html(
+      <Layout title="Access Denied" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY}>
+        <div class="page-section" style="max-width: 600px; margin: 0 auto; text-align: center; padding: 6rem 0;">
+          <h2>Access Denied</h2>
+          <p style="margin-top: 1rem; color: var(--text-secondary);">
+            This payment link is invalid or has expired. Use the link from your approval email, or check your <a href="/apply/status" style="color: var(--accent);">application status</a>.
+          </p>
+        </div>
+      </Layout>,
+      403
+    )
+  }
+
   // Must be approved
   if (app.status !== 'approved') {
     return c.html(
@@ -63,11 +88,6 @@ payment.get('/payment/checkout/:applicationId', async (c) => {
         </div>
       </Layout>
     )
-  }
-
-  // Check if already enrolled (already paid)
-  if (app.status === 'enrolled') {
-    return c.redirect('/dashboard')
   }
 
   // Check for existing completed payment
@@ -241,7 +261,7 @@ payment.get('/payment/checkout/:applicationId', async (c) => {
           <p style="margin-top: 1rem; color: var(--text-secondary);">
             Something went wrong creating the payment session. Please try again or contact us.
           </p>
-          <a href={`/payment/checkout/${applicationId}`} style="display: inline-block; margin-top: 1.5rem; background: var(--accent); color: white; padding: 0.75rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 500;">
+          <a href={`/payment/checkout/${applicationId}${app.paymentToken ? `?t=${app.paymentToken}` : ''}`} style="display: inline-block; margin-top: 1.5rem; background: var(--accent); color: white; padding: 0.75rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 500;">
             Try Again
           </a>
         </div>
@@ -373,7 +393,17 @@ payment.get('/payment/success', async (c) => {
 // ===== PAYMENT CANCELLED =====
 payment.get('/payment/cancelled', async (c) => {
   const user = c.get('user')
-  const applicationId = c.req.query('application_id')
+  const applicationIdRaw = c.req.query('application_id')
+  const applicationId = applicationIdRaw ? parseInt(applicationIdRaw, 10) : null
+
+  // Re-fetch the token so the Try Again link stays authorized.
+  let retryUrl: string | null = null
+  if (applicationId) {
+    const db = getDb(c.env.DB)
+    const app = await db.select({ paymentToken: applications.paymentToken })
+      .from(applications).where(eq(applications.id, applicationId)).get()
+    retryUrl = `/payment/checkout/${applicationId}${app?.paymentToken ? `?t=${app.paymentToken}` : ''}`
+  }
 
   return c.html(
     <Layout title="Payment Cancelled" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY}>
@@ -382,8 +412,8 @@ payment.get('/payment/cancelled', async (c) => {
         <p class="lead" style="margin-top: 1rem;">
           No worries — your application is still approved. You can complete payment whenever you're ready.
         </p>
-        {applicationId && (
-          <a href={`/payment/checkout/${applicationId}`} style="display: inline-block; margin-top: 2rem; background: var(--accent); color: white; padding: 0.85rem 2rem; border-radius: 8px; text-decoration: none; font-weight: 600;">
+        {retryUrl && (
+          <a href={retryUrl} style="display: inline-block; margin-top: 2rem; background: var(--accent); color: white; padding: 0.85rem 2rem; border-radius: 8px; text-decoration: none; font-weight: 600;">
             Try Again →
           </a>
         )}

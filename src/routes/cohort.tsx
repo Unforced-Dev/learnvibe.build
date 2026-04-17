@@ -328,7 +328,7 @@ cohortRoutes.get('/cohort/:slug/week/:num', async (c) => {
 
         {user && (
           <div style="margin-top: 2rem; padding: 1.5rem; background: var(--surface); border-radius: 10px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
-            <form method="POST" action={`/api/progress/${lesson.id}`}>
+            <form method="post" action={`/api/progress/${lesson.id}`}>
               <input type="hidden" name="cohort_id" value={String(cohort.id)} />
               <input type="hidden" name="return_url" value={`/cohort/${slug}/week/${weekNum}`} />
               <button

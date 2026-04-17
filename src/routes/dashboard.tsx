@@ -148,7 +148,7 @@ dashboard.get('/dashboard', async (c) => {
                       ? `Complete your payment of ${formatCents(amountCents)} to start learning.`
                       : 'Your spot is sponsored — complete enrollment to get started.'}
                   </p>
-                  <a href={`/payment/checkout/${userApp.id}`} style="display: inline-block; margin-top: 1rem; background: var(--accent); color: white; padding: 0.75rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 600;">
+                  <a href={`/payment/checkout/${userApp.id}${userApp.paymentToken ? `?t=${userApp.paymentToken}` : ''}`} style="display: inline-block; margin-top: 1rem; background: var(--accent); color: white; padding: 0.75rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 600;">
                     {amountCents > 0 ? `Pay ${formatCents(amountCents)} & Enroll →` : 'Complete Enrollment →'}
                   </a>
                 </div>

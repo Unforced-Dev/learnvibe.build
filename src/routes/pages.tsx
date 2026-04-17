@@ -375,7 +375,7 @@ pages.post('/apply/status', async (c) => {
                   ? ` Complete your payment of ${formatCents(amountCents)} (${getApplicationLabel(app)}) to secure your spot.`
                   : ` Your spot has been sponsored — create your account to get started.`}
               </p>
-              <a href={`/payment/checkout/${app.id}`} style="display: inline-block; background: var(--accent); color: white; padding: 0.85rem 2rem; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 1.05rem;">
+              <a href={`/payment/checkout/${app.id}${app.paymentToken ? `?t=${app.paymentToken}` : ''}`} style="display: inline-block; background: var(--accent); color: white; padding: 0.85rem 2rem; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 1.05rem;">
                 {amountCents > 0 ? `Pay ${formatCents(amountCents)} & Enroll →` : 'Complete Enrollment →'}
               </a>
             </div>

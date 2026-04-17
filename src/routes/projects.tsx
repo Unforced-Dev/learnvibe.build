@@ -100,7 +100,7 @@ projectRoutes.get('/projects/new', async (c) => {
           </div>
         )}
 
-        <form method="POST" action="/api/projects" style="margin-top: 2rem;">
+        <form method="post" action="/api/projects" style="margin-top: 2rem;">
           <div style="margin-bottom: 1.5rem;">
             <label for="title" style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.9rem;">Project Title *</label>
             <input
@@ -285,7 +285,7 @@ projectRoutes.get('/projects/:id/edit', async (c) => {
           </div>
         )}
 
-        <form method="POST" action={`/api/projects/${project.id}`} style="margin-top: 2rem;">
+        <form method="post" action={`/api/projects/${project.id}`} style="margin-top: 2rem;">
           <div style="margin-bottom: 1.5rem;">
             <label for="title" style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.9rem;">Project Title *</label>
             <input

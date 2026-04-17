@@ -36,6 +36,8 @@ export const applications = sqliteTable('applications', {
   notes: text('notes'), // admin notes
   approvedAt: text('approved_at'), // ISO timestamp
   userId: integer('user_id').references(() => users.id),
+  /** Random token required on /payment/checkout/:id so sequential ids can't be guessed. */
+  paymentToken: text('payment_token'),
   createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
 })
 

@@ -1,7 +1,7 @@
 import { Context } from 'hono'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, ne } from 'drizzle-orm'
 import { getDb } from '../db'
-import { apiKeys, users } from '../db/schema'
+import { apiKeys, users, enrollments, memberships } from '../db/schema'
 import type { AppContext } from '../types'
 import type { AuthUser } from './auth'
 
@@ -85,7 +85,25 @@ export async function authenticateApiKey(
       .where(eq(apiKeys.id, result.apiKey.id))
   )
 
-  return result.user
+  // Populate isEnrolled to match the AuthUser contract used elsewhere.
+  let isEnrolled = result.user.role === 'admin' || result.user.role === 'facilitator'
+  if (!isEnrolled) {
+    const enrollment = await db.select({ id: enrollments.id })
+      .from(enrollments)
+      .where(and(eq(enrollments.userId, result.user.id), ne(enrollments.status, 'dropped')))
+      .get()
+    if (enrollment) {
+      isEnrolled = true
+    } else {
+      const membership = await db.select({ id: memberships.id })
+        .from(memberships)
+        .where(and(eq(memberships.userId, result.user.id), eq(memberships.status, 'active')))
+        .get()
+      if (membership) isEnrolled = true
+    }
+  }
+
+  return { ...result.user, isEnrolled }
 }
 
 /**

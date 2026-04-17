@@ -132,3 +132,25 @@ export function isClerkConfigured(c: Context<AppContext>): boolean {
   const secKey = c.env.CLERK_SECRET_KEY
   return !!(pubKey && secKey && !pubKey.includes('placeholder') && !secKey.includes('placeholder'))
 }
+
+/**
+ * Constant-time string compare. Prevents timing attacks when comparing
+ * secrets/tokens (e.g. application payment tokens).
+ */
+export function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false
+  let result = 0
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i)
+  }
+  return result === 0
+}
+
+/**
+ * Generate a URL-safe random token (32 hex chars = 128 bits).
+ */
+export function generateToken(): string {
+  const bytes = new Uint8Array(16)
+  crypto.getRandomValues(bytes)
+  return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('')
+}

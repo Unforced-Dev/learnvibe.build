@@ -86,7 +86,7 @@ All routes mount off the root Hono app in this order:
 - ✅ Clerk auth (sign-in/sign-up/sign-out with callback + webhook)
 - ✅ Admin email broadcast to cohort members (`/admin/email`)
 - ✅ Member dashboard showing enrollments or application status
-- ✅ Cohort 1 content (4 weeks of lessons in D1)
+- ✅ Cohort 1 content (6 weeks of lessons in D1)
 - ✅ Dynamic cohort content pages with markdown rendering
 - ✅ Admin user (Aaron) promoted in D1
 - ✅ Feedback viewer in admin panel
@@ -113,9 +113,9 @@ All routes mount off the root Hono app in this order:
 - **Reply-to:** `ag@unforced.dev` (configurable via `EMAIL_REPLY_TO` in wrangler.toml)
 
 ## D1 Data
-- Cohort 1: 4 weeks of lessons (seeded via `scripts/seed-cohort1.ts`)
-- Cohort 1: Record exists (slug: `cohort-1`, status: `enrolling`, $500)
+- Cohort 1 (slug: `cohort-1`, status: `enrolling`, $500, 6 weeks). Live-session link is admin-editable on the /admin dashboard.
 - Pilot (Cohort 0): Was the original January 2026 cohort, 13 builders, sponsored by Gitcoin
+- Seed SQL files removed (2026-04-17) — data lives in D1 now; edit via `wrangler d1 execute`.
 
 ## Commands
 ```bash

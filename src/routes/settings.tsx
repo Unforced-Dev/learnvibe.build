@@ -72,7 +72,7 @@ settingsRoutes.get('/settings/profile', async (c) => {
           </div>
         )}
 
-        <form method="POST" action="/api/profile" style="margin-top: 2rem;">
+        <form method="post" action="/api/profile" style="margin-top: 2rem;">
           <div class="form-group" style="margin-bottom: 1.5rem;">
             <label for="name" style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.9rem;">Name *</label>
             <input
@@ -160,10 +160,13 @@ settingsRoutes.get('/settings/profile', async (c) => {
           </div>
         </form>
 
-        <div style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border);">
-          <p style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-tertiary);">
+        <div style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          <p style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-tertiary); margin: 0;">
             {user.email} · {user.role}
           </p>
+          <a href="/settings/api-keys" style="font-size: 0.85rem; color: var(--accent); text-decoration: none;">
+            API Keys →
+          </a>
         </div>
       </div>
     </Layout>
@@ -227,7 +230,7 @@ settingsRoutes.get('/settings/api-keys', async (c) => {
           </div>
         )}
 
-        <form method="POST" action="/api/api-keys" style="margin-top: 2rem; display: flex; gap: 0.75rem; align-items: flex-end;">
+        <form method="post" action="/api/api-keys" style="margin-top: 2rem; display: flex; gap: 0.75rem; align-items: flex-end;">
           <div style="flex: 1;">
             <label for="name" style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.9rem;">New Key Name</label>
             <input
@@ -260,7 +263,7 @@ settingsRoutes.get('/settings/api-keys', async (c) => {
                     {key.lastUsedAt && <> · Last used {new Date(key.lastUsedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</>}
                   </div>
                 </div>
-                <form method="POST" action={`/api/api-keys/${key.id}/revoke`}>
+                <form method="post" action={`/api/api-keys/${key.id}/revoke`}>
                   <button
                     type="submit"
                     style="background: none; border: 1px solid #fecaca; color: #991b1b; padding: 0.4rem 0.75rem; border-radius: 4px; font-size: 0.8rem; cursor: pointer;"
