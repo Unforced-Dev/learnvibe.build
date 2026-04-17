@@ -13,6 +13,7 @@ import {
   discussions, comments, users, applications,
 } from '../db/schema'
 import { authenticateApiKey } from '../lib/api-auth'
+import { authenticateOAuthToken } from '../lib/oauth'
 import { isAdmin } from '../lib/auth'
 import type { AppContext } from '../types'
 import type { AuthUser } from '../lib/auth'
@@ -479,10 +480,24 @@ const TOOLS: ToolDef[] = [
 // ===== JSON-RPC HANDLER =====
 
 mcp.post('/mcp', async (c) => {
-  // Auth: Bearer API key via existing api-auth.
-  const authUser = await authenticateApiKey(c)
+  // Auth: try OAuth token first (preferred for third-party clients like Claude),
+  // fall back to API key (legacy / CLI path). Both produce an AuthUser.
+  const authHeader = c.req.header('Authorization') || ''
+  const bearer = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : ''
+  let authUser: AuthUser | null = null
+
+  if (bearer.startsWith('lvb-mcp_')) {
+    authUser = await authenticateOAuthToken(getDb(c.env.DB), bearer)
+  } else if (bearer.startsWith('lvb_')) {
+    authUser = await authenticateApiKey(c)
+  }
+
   if (!authUser) {
-    return c.json(err(null, -32001, 'Unauthorized — provide a Bearer token (get one at /settings/api-keys)'), 401)
+    const origin = new URL(c.req.url).origin
+    // Point unauthenticated clients at the protected-resource metadata so
+    // they can discover the authorization server and start OAuth.
+    c.header('WWW-Authenticate', `Bearer realm="learnvibe", resource_metadata="${origin}/.well-known/oauth-protected-resource"`)
+    return c.json(err(null, -32001, 'Unauthorized — authorize via OAuth or provide an API key Bearer token'), 401)
   }
 
   const body = await c.req.json().catch(() => null) as JsonRpcRequest | JsonRpcRequest[] | null

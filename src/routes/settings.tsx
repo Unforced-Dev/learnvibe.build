@@ -289,12 +289,11 @@ settingsRoutes.get('/settings/api-keys', async (c) => {
           <pre style="background: var(--dark); color: #e0e0e0; padding: 0.75rem; border-radius: 6px; margin-top: 0.25rem; font-size: 0.85rem; overflow-x: auto;">
 {`https://learnvibe.build/mcp`}
           </pre>
-          <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 0.75rem;"><strong>Auth header:</strong></p>
-          <pre style="background: var(--dark); color: #e0e0e0; padding: 0.75rem; border-radius: 6px; margin-top: 0.25rem; font-size: 0.85rem; overflow-x: auto;">
-{`Authorization: Bearer lvb_your_key_here`}
-          </pre>
           <p style="font-size: 0.85rem; color: var(--text-tertiary); line-height: 1.7; margin-top: 0.75rem;">
-            In Claude.ai: Settings → Connectors → Add custom connector. In Claude Desktop: edit your MCP config file with an HTTP server pointing at this URL.
+            <strong>OAuth (recommended)</strong> — in Claude.ai: Settings → Connectors → Add custom connector, paste the URL. Claude discovers our OAuth endpoints automatically, you'll land on a consent page here, click Approve. No keys to manage.
+          </p>
+          <p style="font-size: 0.85rem; color: var(--text-tertiary); line-height: 1.7; margin-top: 0.5rem;">
+            <strong>API key (for CLI / scripted use)</strong> — create a key below and pass it as <code>Authorization: Bearer lvb_your_key</code> to <code>{`https://learnvibe.build/mcp`}</code>.
           </p>
         </div>
 

@@ -189,6 +189,46 @@ export const emailLog = sqliteTable('email_log', {
   sentAt: text('sent_at').notNull().$defaultFn(() => new Date().toISOString()),
 })
 
+// ===== OAUTH CLIENTS (third-party apps registered via DCR, e.g. Claude) =====
+export const oauthClients = sqliteTable('oauth_clients', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  clientId: text('client_id').notNull().unique(),
+  clientSecretHash: text('client_secret_hash'), // NULL for public (PKCE) clients
+  name: text('name').notNull(),
+  redirectUris: text('redirect_uris').notNull(), // JSON array
+  grantTypes: text('grant_types').notNull().default('["authorization_code"]'),
+  tokenEndpointAuthMethod: text('token_endpoint_auth_method').notNull().default('none'),
+  createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
+})
+
+// ===== OAUTH AUTHORIZATION CODES (single-use, short-lived) =====
+export const oauthCodes = sqliteTable('oauth_codes', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  codeHash: text('code_hash').notNull().unique(),
+  clientId: text('client_id').notNull(),
+  userId: integer('user_id').notNull().references(() => users.id),
+  redirectUri: text('redirect_uri').notNull(),
+  scope: text('scope').notNull().default('mcp'),
+  codeChallenge: text('code_challenge').notNull(),
+  codeChallengeMethod: text('code_challenge_method').notNull().default('S256'),
+  used: integer('used').notNull().default(0),
+  expiresAt: text('expires_at').notNull(),
+  createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
+})
+
+// ===== OAUTH ACCESS TOKENS =====
+export const oauthTokens = sqliteTable('oauth_tokens', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  tokenHash: text('token_hash').notNull().unique(),
+  clientId: text('client_id').notNull(),
+  userId: integer('user_id').notNull().references(() => users.id),
+  scope: text('scope').notNull().default('mcp'),
+  expiresAt: text('expires_at').notNull(),
+  revokedAt: text('revoked_at'),
+  lastUsedAt: text('last_used_at'),
+  createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
+})
+
 // ===== API KEYS =====
 export const apiKeys = sqliteTable('api_keys', {
   id: integer('id').primaryKey({ autoIncrement: true }),

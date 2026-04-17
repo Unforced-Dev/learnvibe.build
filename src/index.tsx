@@ -19,6 +19,7 @@ import projectRoutes from './routes/projects'
 import discussionRoutes from './routes/discussions'
 import apiV1 from './routes/api-v1'
 import mcp from './routes/mcp'
+import oauth from './routes/oauth'
 
 const app = new Hono<AppContext>()
 
@@ -56,8 +57,11 @@ app.route('/', api)
 // JSON API v1 (Bearer token auth — for MCP and external clients)
 app.route('/', apiV1)
 
-// MCP (Model Context Protocol) server at /mcp — Bearer auth via API keys
+// MCP (Model Context Protocol) server at /mcp — OAuth tokens or API keys
 app.route('/', mcp)
+
+// OAuth 2.1 Authorization Server for the MCP + discovery metadata
+app.route('/', oauth)
 
 // Auth routes (sign-in, sign-up, sign-out, callback)
 app.route('/', authRoutes)
