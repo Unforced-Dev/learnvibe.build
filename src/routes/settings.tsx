@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { eq, and } from 'drizzle-orm'
 import { Layout } from '../components/Layout'
 import { getDb } from '../db'
-import { users, apiKeys } from '../db/schema'
+import { users, apiKeys, oauthTokens, oauthClients } from '../db/schema'
 import { generateApiKey, hashApiKey, getKeyPrefix } from '../lib/api-auth'
 import type { AppContext } from '../types'
 
@@ -184,9 +184,23 @@ settingsRoutes.get('/settings/api-keys', async (c) => {
     .where(and(eq(apiKeys.userId, user.id), eq(apiKeys.status, 'active')))
     .all()
 
+  // OAuth tokens (active = not revoked + not expired). Joined against
+  // client registry so we can show the name of whoever connected.
+  const nowIso = new Date().toISOString()
+  const connections = await db
+    .select({ token: oauthTokens, client: oauthClients })
+    .from(oauthTokens)
+    .innerJoin(oauthClients, eq(oauthTokens.clientId, oauthClients.clientId))
+    .where(eq(oauthTokens.userId, user.id))
+    .all()
+  const activeConnections = connections.filter(
+    c => !c.token.revokedAt && c.token.expiresAt > nowIso
+  )
+
   const newKey = c.req.query('new_key')
   const created = c.req.query('created')
   const revoked = c.req.query('revoked')
+  const disconnected = c.req.query('disconnected')
   const error = c.req.query('error')
 
   return c.html(
@@ -224,13 +238,57 @@ settingsRoutes.get('/settings/api-keys', async (c) => {
           </div>
         )}
 
+        {disconnected && (
+          <div style="margin-top: 1rem; padding: 1rem; background: var(--surface); border-radius: 8px; color: var(--text-secondary);">
+            Connection revoked.
+          </div>
+        )}
+
         {error === 'missing_name' && (
           <div style="margin-top: 1rem; padding: 1rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #991b1b;">
             Please provide a name for the key.
           </div>
         )}
 
-        <form method="post" action="/api/api-keys" style="margin-top: 2rem; display: flex; gap: 0.75rem; align-items: flex-end;">
+        {/* ===== CONNECTED APPS (OAuth tokens) ===== */}
+        <div style="margin-top: 2rem;">
+          <h3 style="font-family: var(--font-display); margin-bottom: 0.5rem;">Connected apps</h3>
+          <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem;">
+            Apps you've authorized via OAuth to access Learn Vibe Build on your behalf.
+          </p>
+          {activeConnections.length === 0 ? (
+            <p style="color: var(--text-tertiary); font-size: 0.9rem;">No connected apps yet. When you add Learn Vibe Build to Claude (or another MCP client), it'll appear here after you approve access.</p>
+          ) : (
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              {activeConnections.map(({ token, client }) => (
+                <div style="padding: 0.85rem 1rem; background: var(--surface); border-radius: 8px; display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
+                  <div>
+                    <div style="font-weight: 500;">{client.name}</div>
+                    <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-tertiary); margin-top: 0.2rem;">
+                      Scope: {token.scope} · Added {new Date(token.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      {token.lastUsedAt && <> · Last used {new Date(token.lastUsedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</>}
+                    </div>
+                  </div>
+                  <form method="post" action={`/api/oauth/tokens/${token.id}/revoke`}
+                    onsubmit={`return confirm('Revoke access for ${client.name}? They\\'ll need to re-authorize to reconnect.')`}>
+                    <button type="submit"
+                      style="background: none; border: 1px solid #fecaca; color: #991b1b; padding: 0.4rem 0.75rem; border-radius: 4px; font-size: 0.8rem; cursor: pointer;">
+                      Revoke
+                    </button>
+                  </form>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <hr style="margin: 2.5rem 0 1.5rem 0; border: none; border-top: 1px solid var(--border);" />
+        <h3 style="font-family: var(--font-display); margin-bottom: 0.5rem;">API keys</h3>
+        <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem;">
+          Manual Bearer tokens for CLI or scripted access. For Claude, prefer the OAuth flow above.
+        </p>
+
+        <form method="post" action="/api/api-keys" style="margin-top: 1.5rem; display: flex; gap: 0.75rem; align-items: flex-end;">
           <div style="flex: 1;">
             <label for="name" style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.9rem;">New Key Name</label>
             <input

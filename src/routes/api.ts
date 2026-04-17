@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { eq, and } from 'drizzle-orm'
-import { applications, lessons, feedback, users, projects, lessonProgress, discussions, comments, apiKeys } from '../db/schema'
+import { applications, lessons, feedback, users, projects, lessonProgress, discussions, comments, apiKeys, oauthTokens } from '../db/schema'
 import { getDb } from '../db'
 import { isAdmin } from '../lib/auth'
 import { generateApiKey, hashApiKey, getKeyPrefix } from '../lib/api-auth'
@@ -555,6 +555,27 @@ api.post('/api/api-keys/:id/revoke', async (c) => {
     console.error('Failed to revoke API key:', error)
     return c.redirect('/settings/api-keys')
   }
+})
+
+// ===== OAUTH TOKENS: Revoke a connected app from the UI =====
+api.post('/api/oauth/tokens/:id/revoke', async (c) => {
+  const user = c.get('user')
+  if (!user) return c.redirect('/sign-in')
+
+  const id = parseInt(c.req.param('id'), 10)
+  if (Number.isNaN(id)) return c.redirect('/settings/api-keys')
+
+  const db = getDb(c.env.DB)
+  const token = await db.select().from(oauthTokens).where(eq(oauthTokens.id, id)).get()
+  if (!token || token.userId !== user.id) {
+    return c.redirect('/settings/api-keys')
+  }
+
+  await db.update(oauthTokens)
+    .set({ revokedAt: new Date().toISOString() })
+    .where(eq(oauthTokens.id, id))
+
+  return c.redirect('/settings/api-keys?disconnected=true')
 })
 
 export default api

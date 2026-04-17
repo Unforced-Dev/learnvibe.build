@@ -61,6 +61,13 @@ export async function authenticateOAuthToken(
   if (result.token.revokedAt) return null
   if (new Date(result.token.expiresAt) < new Date()) return null
 
+  // Best-effort lastUsedAt update. Non-blocking to avoid slowing the request.
+  db.update(oauthTokens)
+    .set({ lastUsedAt: new Date().toISOString() })
+    .where(eq(oauthTokens.id, result.token.id))
+    .run()
+    .catch(() => { /* ignore */ })
+
   // Compute isEnrolled the same way other auth paths do.
   let isEnrolled = result.user.role === 'admin' || result.user.role === 'facilitator'
   if (!isEnrolled) {
