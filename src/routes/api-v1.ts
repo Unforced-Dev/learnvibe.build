@@ -6,6 +6,7 @@ import {
   comments, lessonProgress, apiKeys
 } from '../db/schema'
 import { authenticateApiKey } from '../lib/api-auth'
+import { isAdmin } from '../lib/auth'
 import type { AppContext } from '../types'
 import type { AuthUser } from '../lib/auth'
 
@@ -37,8 +38,12 @@ apiV1.get('/api/v1/docs', (c) => {
       'POST /api/v1/discussions/:id/comments': 'Add comment (body, parentId?)',
       'GET /api/v1/members': 'List community members',
       'GET /api/v1/members/:id': 'Get member profile + projects',
+      'GET /api/v1/admin/cohorts/:slug/lessons': 'ADMIN — list all lessons including drafts',
+      'GET /api/v1/admin/cohorts/:slug/lessons/:weekNum': 'ADMIN — get lesson (any status)',
+      'PUT /api/v1/admin/cohorts/:slug/lessons/:weekNum': 'ADMIN — upsert lesson (title, description?, date?, contentMarkdown, status?)',
+      'DELETE /api/v1/admin/cohorts/:slug/lessons/:weekNum': 'ADMIN — delete lesson',
     },
-    mcpIntegration: 'Point your MCP server at these endpoints to let your AI pull lessons, push projects, and participate in discussions.',
+    mcpIntegration: 'Point your MCP server at these endpoints to let your AI pull lessons, push projects, and participate in discussions. Admin endpoints (lesson CRUD) require an API key issued to an admin user.',
   })
 })
 
@@ -235,6 +240,165 @@ apiV1.get('/api/v1/cohorts/:slug/lessons/:weekNum', async (c) => {
     completed: !!prog,
     completedAt: prog?.completedAt || null,
   })
+})
+
+// ===== ADMIN LESSON CRUD =====
+// Gated on user.role === 'admin' | 'facilitator'. Designed for MCP clients —
+// an admin's API key is implicitly admin-scoped. The one big markdown field
+// per lesson is the core primitive; everything else is metadata.
+
+apiV1.use('/api/v1/admin/*', async (c, next) => {
+  const user = getUser(c)
+  if (!isAdmin(user)) {
+    return c.json({ error: 'Admin required', message: 'This endpoint requires an admin account.' }, 403)
+  }
+  return next()
+})
+
+// List all lessons for a cohort, including drafts.
+apiV1.get('/api/v1/admin/cohorts/:slug/lessons', async (c) => {
+  const slug = c.req.param('slug')
+  const db = getDb(c.env.DB)
+  const cohort = await db.select().from(cohorts).where(eq(cohorts.slug, slug)).get()
+  if (!cohort) return c.json({ error: 'Cohort not found' }, 404)
+
+  const rows = await db.select()
+    .from(lessons)
+    .where(eq(lessons.cohortId, cohort.id))
+    .orderBy(asc(lessons.weekNumber))
+    .all()
+
+  return c.json({
+    cohortSlug: slug,
+    lessons: rows.map(l => ({
+      id: l.id,
+      weekNumber: l.weekNumber,
+      title: l.title,
+      description: l.description,
+      date: l.date,
+      status: l.status,
+      contentLength: l.contentMarkdown.length,
+      updatedAt: l.updatedAt,
+    })),
+  })
+})
+
+// Get a single lesson (any status) for editing.
+apiV1.get('/api/v1/admin/cohorts/:slug/lessons/:weekNum', async (c) => {
+  const slug = c.req.param('slug')
+  const weekNum = parseInt(c.req.param('weekNum'), 10)
+  const db = getDb(c.env.DB)
+
+  const cohort = await db.select().from(cohorts).where(eq(cohorts.slug, slug)).get()
+  if (!cohort) return c.json({ error: 'Cohort not found' }, 404)
+
+  const lesson = await db.select()
+    .from(lessons)
+    .where(and(eq(lessons.cohortId, cohort.id), eq(lessons.weekNumber, weekNum)))
+    .get()
+
+  if (!lesson) return c.json({ error: 'Lesson not found' }, 404)
+
+  return c.json({
+    id: lesson.id,
+    cohortSlug: slug,
+    weekNumber: lesson.weekNumber,
+    title: lesson.title,
+    description: lesson.description,
+    date: lesson.date,
+    status: lesson.status,
+    contentMarkdown: lesson.contentMarkdown,
+    sortOrder: lesson.sortOrder,
+    createdAt: lesson.createdAt,
+    updatedAt: lesson.updatedAt,
+  })
+})
+
+// Upsert a lesson by (cohort, weekNumber). Creates if missing, updates otherwise.
+// Body: { title?, description?, date?, contentMarkdown?, status?, sortOrder? }
+// Any omitted field is left unchanged on update; on create, title is required.
+apiV1.put('/api/v1/admin/cohorts/:slug/lessons/:weekNum', async (c) => {
+  const slug = c.req.param('slug')
+  const weekNum = parseInt(c.req.param('weekNum'), 10)
+  if (Number.isNaN(weekNum) || weekNum < 1) {
+    return c.json({ error: 'Invalid week number' }, 400)
+  }
+
+  const body = await c.req.json().catch(() => null) as {
+    title?: string
+    description?: string | null
+    date?: string | null
+    contentMarkdown?: string
+    status?: 'draft' | 'published'
+    sortOrder?: number
+  } | null
+  if (!body) return c.json({ error: 'Body must be valid JSON' }, 400)
+
+  if (body.status && body.status !== 'draft' && body.status !== 'published') {
+    return c.json({ error: "status must be 'draft' or 'published'" }, 400)
+  }
+
+  const db = getDb(c.env.DB)
+  const cohort = await db.select().from(cohorts).where(eq(cohorts.slug, slug)).get()
+  if (!cohort) return c.json({ error: 'Cohort not found' }, 404)
+
+  const existing = await db.select()
+    .from(lessons)
+    .where(and(eq(lessons.cohortId, cohort.id), eq(lessons.weekNumber, weekNum)))
+    .get()
+
+  const now = new Date().toISOString()
+
+  if (existing) {
+    const updates: Record<string, any> = { updatedAt: now }
+    if (body.title !== undefined) updates.title = body.title
+    if (body.description !== undefined) updates.description = body.description
+    if (body.date !== undefined) updates.date = body.date
+    if (body.contentMarkdown !== undefined) updates.contentMarkdown = body.contentMarkdown
+    if (body.status !== undefined) updates.status = body.status
+    if (body.sortOrder !== undefined) updates.sortOrder = body.sortOrder
+
+    await db.update(lessons).set(updates).where(eq(lessons.id, existing.id))
+    const updated = await db.select().from(lessons).where(eq(lessons.id, existing.id)).get()
+    return c.json({ action: 'updated', lesson: updated })
+  }
+
+  if (!body.title) {
+    return c.json({ error: 'title is required when creating a new lesson' }, 400)
+  }
+
+  const inserted = await db.insert(lessons).values({
+    cohortId: cohort.id,
+    weekNumber: weekNum,
+    title: body.title,
+    description: body.description ?? null,
+    date: body.date ?? null,
+    contentMarkdown: body.contentMarkdown ?? '',
+    status: body.status ?? 'draft',
+    sortOrder: body.sortOrder ?? weekNum,
+    createdAt: now,
+    updatedAt: now,
+  }).returning().get()
+
+  return c.json({ action: 'created', lesson: inserted })
+})
+
+apiV1.delete('/api/v1/admin/cohorts/:slug/lessons/:weekNum', async (c) => {
+  const slug = c.req.param('slug')
+  const weekNum = parseInt(c.req.param('weekNum'), 10)
+  const db = getDb(c.env.DB)
+
+  const cohort = await db.select().from(cohorts).where(eq(cohorts.slug, slug)).get()
+  if (!cohort) return c.json({ error: 'Cohort not found' }, 404)
+
+  const existing = await db.select()
+    .from(lessons)
+    .where(and(eq(lessons.cohortId, cohort.id), eq(lessons.weekNumber, weekNum)))
+    .get()
+  if (!existing) return c.json({ error: 'Lesson not found' }, 404)
+
+  await db.delete(lessons).where(eq(lessons.id, existing.id))
+  return c.json({ deleted: existing.id, weekNumber: weekNum })
 })
 
 // ===== PROGRESS =====
