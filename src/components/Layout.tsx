@@ -62,7 +62,7 @@ export const Layout: FC<LayoutProps> = ({ title, description, noindex, user, cle
                     <li><a href="/admin">Admin</a></li>
                   )}
                   <li>
-                    <a href="/settings/profile" class="nav-user">
+                    <a href={`/members/${user.id}`} class="nav-user">
                       {user.name || user.email.split('@')[0]}
                     </a>
                   </li>

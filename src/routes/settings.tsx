@@ -143,8 +143,52 @@ settingsRoutes.get('/settings/profile', async (c) => {
               style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem; background: var(--surface); color: var(--text);"
             />
             <p style="margin-top: 0.25rem; font-size: 0.8rem; color: var(--text-tertiary);">
-              Paste a URL to your profile photo. Tip: Use your GitHub avatar ({profile.github ? `https://github.com/${profile.github}.png` : 'https://github.com/username.png'})
+              Paste a URL to your profile photo. Tip: Use your GitHub avatar:
+              {' '}
+              <code
+                id="gh-avatar-url"
+                style="user-select: all; -webkit-user-select: all; cursor: text; padding: 0.15rem 0.4rem; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; font-family: var(--font-mono); font-size: 0.78rem; color: var(--text);"
+              >{profile.github ? `https://github.com/${profile.github}.png` : 'https://github.com/username.png'}</code>
+              {profile.github && (
+                <>
+                  {' '}
+                  <button
+                    type="button"
+                    id="gh-avatar-use"
+                    style="margin-left: 0.25rem; padding: 0.15rem 0.5rem; font-size: 0.75rem; background: transparent; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; color: var(--accent);"
+                  >Use this</button>
+                  <span id="gh-avatar-status" style="margin-left: 0.4rem; font-size: 0.75rem; color: var(--text-tertiary);"></span>
+                </>
+              )}
             </p>
+            <script dangerouslySetInnerHTML={{ __html: `
+              (function(){
+                var code = document.getElementById('gh-avatar-url');
+                var btn = document.getElementById('gh-avatar-use');
+                var input = document.getElementById('avatar_url');
+                var status = document.getElementById('gh-avatar-status');
+                if (code) {
+                  code.addEventListener('click', function(){
+                    var sel = window.getSelection();
+                    if (!sel) return;
+                    var range = document.createRange();
+                    range.selectNodeContents(code);
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                  });
+                }
+                if (btn && input && code) {
+                  btn.addEventListener('click', function(){
+                    input.value = code.textContent.trim();
+                    input.focus();
+                    if (status) {
+                      status.textContent = 'Filled — click Save to apply';
+                      setTimeout(function(){ status.textContent = ''; }, 3000);
+                    }
+                  });
+                }
+              })();
+            `}} />
           </div>
 
           <div style="display: flex; gap: 1rem; align-items: center; margin-top: 2rem;">
