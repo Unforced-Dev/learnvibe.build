@@ -206,8 +206,22 @@ payment.get('/payment/checkout/:applicationId', async (c) => {
           existingPending.stripeCheckoutSessionId
         )
         const notExpired = existingSession.expires_at * 1000 > Date.now()
-        if (notExpired && existingSession.url && existingSession.status === 'open') {
-          return c.redirect(existingSession.url)
+        const stillOpen = existingSession.status === 'open' && existingSession.url
+        // Only reuse if the session's amount still matches the current
+        // application amount. If admin changed pricing mid-flight, the
+        // old session is stale — expire it and create a fresh one.
+        const amountMatches = existingSession.amount_total === amountCents
+        if (notExpired && stillOpen && amountMatches) {
+          return c.redirect(existingSession.url!)
+        }
+        if (stillOpen && !amountMatches) {
+          // Best-effort: tell Stripe to close the stale session so the
+          // applicant can't accidentally pay the old amount via a stored link.
+          try {
+            await stripe.checkout.sessions.expire(existingPending.stripeCheckoutSessionId)
+          } catch (expireErr) {
+            console.error('[Payment] Could not expire stale session:', expireErr)
+          }
         }
       } catch (e) {
         console.error('[Payment] Could not retrieve existing session, creating new one:', e)

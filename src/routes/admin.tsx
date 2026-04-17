@@ -1683,6 +1683,24 @@ admin.post('/api/admin/applications/:id/tier', async (c) => {
   }
   const newAmountCents = getApplicationAmount(updated)
 
+  // If the amount actually changed, expire any open Stripe sessions
+  // tied to old pending payments so the applicant's stored link
+  // doesn't redirect them to a session at the old price.
+  if (newAmountCents !== prevAmountCents && isStripeConfigured(c.env.STRIPE_SECRET_KEY)) {
+    const pendingPayments = await db.select().from(payments)
+      .where(and(eq(payments.applicationId, id), eq(payments.status, 'pending')))
+      .all()
+    const stripe = getStripe(c.env.STRIPE_SECRET_KEY)
+    for (const p of pendingPayments) {
+      if (!p.stripeCheckoutSessionId) continue
+      try {
+        await stripe.checkout.sessions.expire(p.stripeCheckoutSessionId)
+      } catch (err) {
+        console.error(`[Admin] Could not expire Stripe session ${p.stripeCheckoutSessionId}:`, err)
+      }
+    }
+  }
+
   // Notify the applicant if the price actually changed and notify is requested.
   // Skip the email entirely for already-enrolled applicants (they've paid).
   if (notify && newAmountCents !== prevAmountCents && updated.status === 'approved') {
