@@ -6,6 +6,7 @@ import { applications, cohorts, lessons, users, enrollments, payments, feedback,
 import { isAdmin, isClerkConfigured, generateToken } from '../lib/auth'
 import { formatCents, getAmountForTier, getTierLabel, getApplicationAmount, getApplicationLabel } from '../lib/stripe'
 import { sendBroadcast, sendApplicationApproved, sendApplicationRejected, sendApplicationPriceChanged, sendEmail, isEmailConfigured, type BroadcastAudience } from '../lib/email'
+import { enrollUserAndNotify, findUserByEmail } from '../lib/enrollment'
 import { isStripeConfigured, getStripe } from '../lib/stripe'
 import { renderMarkdown } from '../lib/markdown'
 import type { AppContext } from '../types'
@@ -1321,6 +1322,7 @@ admin.get('/admin/email', async (c) => {
           <div class="form-group">
             <label for="audience">Send to</label>
             <select id="audience" name="audience" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem;">
+              <option value="ready_for_kickoff">Ready for kickoff (enrolled + approved-at-$0, excludes folks who owe money)</option>
               <option value="all_approved">All approved applicants (not yet enrolled)</option>
               <option value="all_enrolled">All enrolled members</option>
               {cohortList.map(co => (
@@ -1418,6 +1420,29 @@ admin.post('/api/admin/email/broadcast', async (c) => {
   } else if (audience === 'all_applicants') {
     const apps = await db.select().from(applications).all()
     emails = apps.map(a => a.email)
+  } else if (audience === 'ready_for_kickoff') {
+    // Enrolled (via app status OR enrollments table) + approved at $0.
+    // Excludes anyone with status='approved' and approved_amount_cents > 0
+    // (i.e. they still owe money) — Aaron handles those 1:1.
+    const enrolledApps = await db.select().from(applications)
+      .where(eq(applications.status, 'enrolled'))
+      .all()
+    const enrolledUsers = await db.select({ email: users.email })
+      .from(enrollments)
+      .innerJoin(users, eq(enrollments.userId, users.id))
+      .all()
+    const approvedZero = await db.select().from(applications)
+      .where(and(
+        eq(applications.status, 'approved'),
+        eq(applications.approvedAmountCents, 0),
+      ))
+      .all()
+    const allEmails = new Set([
+      ...enrolledApps.map(a => a.email),
+      ...enrolledUsers.map(u => u.email),
+      ...approvedZero.map(a => a.email),
+    ])
+    emails = Array.from(allEmails)
   }
 
   if (emails.length === 0) {
@@ -1426,7 +1451,7 @@ admin.post('/api/admin/email/broadcast', async (c) => {
 
   // Map the admin-facing audience label to the email template's audience hint.
   let broadcastAudience: BroadcastAudience = 'generic'
-  if (audience === 'all_enrolled' || audience.startsWith('cohort_')) broadcastAudience = 'enrolled'
+  if (audience === 'all_enrolled' || audience.startsWith('cohort_') || audience === 'ready_for_kickoff') broadcastAudience = 'enrolled'
   else if (audience === 'all_approved') broadcastAudience = 'approved'
   else if (audience === 'all_applicants') broadcastAudience = 'applicants'
 
@@ -1528,18 +1553,42 @@ admin.post('/api/admin/applications/:id/status', async (c) => {
     const baseUrl = new URL(c.req.url).origin
     const paymentUrl = `${baseUrl}/payment/checkout/${app.id}?t=${app.paymentToken}`
 
-    // Send approval email with payment link (non-blocking)
-    c.executionCtx.waitUntil(
-      sendApplicationApproved(
-        c.env,
-        app.email,
-        app.name,
-        paymentUrl,
-        getApplicationLabel(app),
-        formatCents(amountCents),
-        isSponsored
+    // Sponsored applicants: if a user account already exists for this
+    // email, enroll them immediately and send the welcome email. The
+    // approval email is skipped — the welcome email is the right
+    // signal that they're in. If no user account yet, fall through to
+    // the normal approval email; the Clerk user.created hook will
+    // auto-enroll them when they sign up.
+    let autoEnrolled = false
+    if (isSponsored) {
+      const existingUser = await findUserByEmail(db, app.email)
+      const cohort = await db.select().from(cohorts).where(eq(cohorts.slug, 'cohort-1')).get()
+      if (existingUser && cohort) {
+        c.executionCtx.waitUntil(
+          enrollUserAndNotify(db, c.env, {
+            userId: existingUser.id,
+            applicationId: app.id,
+            cohortId: cohort.id,
+          }),
+        )
+        autoEnrolled = true
+      }
+    }
+
+    if (!autoEnrolled) {
+      // Send approval email with payment (or sign-up) link (non-blocking)
+      c.executionCtx.waitUntil(
+        sendApplicationApproved(
+          c.env,
+          app.email,
+          app.name,
+          paymentUrl,
+          getApplicationLabel(app),
+          formatCents(amountCents),
+          isSponsored
+        )
       )
-    )
+    }
   } else if (app && status === 'rejected') {
     // Send rejection email (non-blocking)
     c.executionCtx.waitUntil(

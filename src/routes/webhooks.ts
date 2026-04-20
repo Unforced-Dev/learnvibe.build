@@ -7,6 +7,7 @@ import { eq, and } from 'drizzle-orm'
 import { getStripe, isStripeConfigured } from '../lib/stripe'
 import { sendEnrollmentConfirmed } from '../lib/email'
 import { cohorts } from '../db/schema'
+import { autoEnrollOnSignup } from '../lib/enrollment'
 
 const webhookRoutes = new Hono<AppContext>()
 
@@ -70,7 +71,18 @@ webhookRoutes.post('/api/webhooks/clerk', async (c) => {
           return c.json({ error: 'No email in webhook payload' }, 400)
         }
         const name = [first_name, last_name].filter(Boolean).join(' ') || null
-        await syncUser(c, clerkId, email, name)
+        const syncedUser = await syncUser(c, clerkId, email, name)
+        // On user.created, look for matching approved applications and
+        // auto-enroll any sponsored ones; link userId on the rest so the
+        // Stripe webhook can find them when payment lands.
+        if (eventType === 'user.created') {
+          c.executionCtx.waitUntil(
+            autoEnrollOnSignup(getDb(c.env.DB), c.env, {
+              id: syncedUser.id,
+              email: syncedUser.email,
+            }),
+          )
+        }
         break
       }
 

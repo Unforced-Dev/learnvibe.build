@@ -13,25 +13,51 @@ const cohortRoutes = new Hono<AppContext>()
 // Gated content message component
 const GatedMessage = ({ cohort, user, clerkPubKey }: { cohort: { title: string; slug: string }; user: any; clerkPubKey?: string }) => (
   <Layout title={cohort.title} user={user} clerkPubKey={clerkPubKey}>
-    <div class="page-section" style="max-width: 600px; margin: 0 auto; text-align: center; padding: 4rem 0;">
-      <p class="section-label">Members Only</p>
-      <h2>{cohort.title}</h2>
-      <p style="margin-top: 1rem; color: var(--text-secondary); line-height: 1.7;">
-        This cohort's content is available to enrolled members.
-        {!user
-          ? " Sign in to access, or apply to join."
-          : " You're not currently enrolled in this cohort."}
-      </p>
-      <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-        {!user && (
-          <a href="/sign-in" style="display: inline-block; background: var(--accent); color: white; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 500;">
-            Sign In
-          </a>
-        )}
-        <a href="/apply" style="display: inline-block; border: 1px solid var(--border); padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; color: var(--text); font-weight: 500;">
-          Apply for Cohort 1
-        </a>
-      </div>
+    <div class="page-section" style="max-width: 640px; margin: 0 auto; padding: 4rem 0;">
+      <p class="section-label" style="text-align: center;">Members Only</p>
+      <h2 style="text-align: center;">{cohort.title}</h2>
+
+      {!user ? (
+        <>
+          <p style="margin-top: 1.5rem; color: var(--text-secondary); line-height: 1.7; text-align: center;">
+            Already approved or enrolled? Sign in or create an account to access the cohort materials.
+          </p>
+          <div style="margin-top: 1.5rem; padding: 1rem 1.25rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; font-size: 0.92rem; color: var(--text-secondary); line-height: 1.6;">
+            <strong style="color: var(--text);">Important:</strong> Use the same email address you applied with — that's how your account gets matched to your enrollment automatically.
+          </div>
+          <div style="margin-top: 2rem; display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+            <a href="/sign-in" style="display: inline-block; background: var(--accent); color: white; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 500;">
+              Sign In
+            </a>
+            <a href="/sign-up" style="display: inline-block; border: 1px solid var(--accent); color: var(--accent); padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 500;">
+              Create Account
+            </a>
+            <a href="/apply" style="display: inline-block; border: 1px solid var(--border); padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; color: var(--text); font-weight: 500;">
+              Apply
+            </a>
+          </div>
+        </>
+      ) : (
+        <>
+          <p style="margin-top: 1.5rem; color: var(--text-secondary); line-height: 1.7; text-align: center;">
+            You're signed in as <strong>{user.email}</strong>, but we don't have an active enrollment for this email yet.
+          </p>
+          <div style="margin-top: 1.5rem; padding: 1rem 1.25rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; font-size: 0.92rem; color: var(--text-secondary); line-height: 1.6;">
+            If you applied with a different email, sign out and sign back in using the email address from your application — your enrollment will link automatically.
+          </div>
+          <div style="margin-top: 2rem; display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+            <a href="/sign-out" style="display: inline-block; border: 1px solid var(--border); padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; color: var(--text); font-weight: 500;">
+              Sign Out
+            </a>
+            <a href="/apply" style="display: inline-block; border: 1px solid var(--border); padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; color: var(--text); font-weight: 500;">
+              Apply
+            </a>
+            <a href="mailto:ag@unforced.dev" style="display: inline-block; background: var(--accent); color: white; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 500;">
+              Email Aaron
+            </a>
+          </div>
+        </>
+      )}
     </div>
   </Layout>
 )

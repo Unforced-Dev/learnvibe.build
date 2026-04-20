@@ -113,7 +113,21 @@ export async function syncUser(
     })
     .returning()
 
-  return { ...result[0], isEnrolled: false }
+  const newUser = result[0]
+
+  // If this user has any approved sponsored applications waiting,
+  // enroll them now and send the welcome email. Also links userId on
+  // any other approved (paid) applications so Stripe can find them.
+  // Loaded lazily to avoid a circular import (enrollment ↔ email).
+  try {
+    const { autoEnrollOnSignup } = await import('./enrollment')
+    await autoEnrollOnSignup(db, c.env, { id: newUser.id, email: newUser.email })
+  } catch (e) {
+    // Non-fatal — log and continue. The Clerk webhook also fires this.
+    console.error('autoEnrollOnSignup failed (non-fatal):', e)
+  }
+
+  return { ...newUser, isEnrolled: false }
 }
 
 /**

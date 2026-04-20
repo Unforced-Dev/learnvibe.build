@@ -307,7 +307,7 @@ export async function sendEmail(params: SendEmailParams): Promise<{ success: boo
 // ===== CONVENIENCE WRAPPERS =====
 // These tie the templates + send together for easy use in routes
 
-type EmailEnv = { RESEND_API_KEY: string; EMAIL_FROM: string; EMAIL_REPLY_TO?: string; DB?: D1Database }
+export type EmailEnv = { RESEND_API_KEY: string; EMAIL_FROM: string; EMAIL_REPLY_TO?: string; DB?: D1Database }
 
 export async function sendApplicationReceived(env: EmailEnv, email: string, name: string) {
   const tpl = applicationReceivedEmail(name)
