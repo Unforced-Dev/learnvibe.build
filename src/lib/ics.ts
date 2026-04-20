@@ -7,7 +7,7 @@ const SESSION_START_MIN = 30
 const SESSION_DURATION_MIN = 120 // 2h
 const SESSION_TZID = 'America/Denver'
 const SESSION_VENUE_NAME = 'Regen Hub'
-const SESSION_VENUE_ADDRESS = '1515 Walnut St, Suite 200, Boulder, CO 80302'
+const SESSION_VENUE_ADDRESS = '1515 Walnut St, 2nd Floor, Boulder, CO 80302'
 
 const VTIMEZONE_AMERICA_DENVER = [
   'BEGIN:VTIMEZONE',
