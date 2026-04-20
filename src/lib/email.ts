@@ -409,35 +409,48 @@ export async function sendBroadcast(
   markdownHtml: string,
   audience: BroadcastAudience = 'enrolled',
 ): Promise<BroadcastResult> {
-  // Send individually for better deliverability.
-  const settled = await Promise.allSettled(
-    emails.map(email => {
-      const tpl = cohortBroadcastEmail(subject, markdownHtml, audience)
-      return sendEmail({
-        apiKey: env.RESEND_API_KEY,
-        from: env.EMAIL_FROM,
-        replyTo: env.EMAIL_REPLY_TO,
-        to: email,
-        ...tpl,
-        db: env.DB,
-        template: 'broadcast',
-      })
-    })
-  )
+  // Resend's free tier caps at 5 requests/second. Send in chunks of 4
+  // (one under the limit for safety) with a 1.1s delay between chunks
+  // so a 50-recipient broadcast takes ~13s instead of failing.
+  const CHUNK_SIZE = 4
+  const CHUNK_DELAY_MS = 1100
 
   const sent: string[] = []
   const failed: { email: string; error: string }[] = []
-  settled.forEach((res, i) => {
-    const email = emails[i]
-    if (res.status === 'fulfilled' && res.value.success) {
-      sent.push(email)
-    } else {
-      const error = res.status === 'fulfilled'
-        ? (res.value.error || 'Unknown error')
-        : (res.reason instanceof Error ? res.reason.message : String(res.reason))
-      failed.push({ email, error })
+
+  for (let i = 0; i < emails.length; i += CHUNK_SIZE) {
+    const chunk = emails.slice(i, i + CHUNK_SIZE)
+    const settled = await Promise.allSettled(
+      chunk.map(email => {
+        const tpl = cohortBroadcastEmail(subject, markdownHtml, audience)
+        return sendEmail({
+          apiKey: env.RESEND_API_KEY,
+          from: env.EMAIL_FROM,
+          replyTo: env.EMAIL_REPLY_TO,
+          to: email,
+          ...tpl,
+          db: env.DB,
+          template: 'broadcast',
+        })
+      })
+    )
+    settled.forEach((res, j) => {
+      const email = chunk[j]
+      if (res.status === 'fulfilled' && res.value.success) {
+        sent.push(email)
+      } else {
+        const error = res.status === 'fulfilled'
+          ? (res.value.error || 'Unknown error')
+          : (res.reason instanceof Error ? res.reason.message : String(res.reason))
+        failed.push({ email, error })
+      }
+    })
+    // Wait between chunks so we don't bunch up against the rate limit.
+    // Skip the wait after the final chunk.
+    if (i + CHUNK_SIZE < emails.length) {
+      await new Promise(resolve => setTimeout(resolve, CHUNK_DELAY_MS))
     }
-  })
+  }
 
   return { sent, failed, total: emails.length }
 }
