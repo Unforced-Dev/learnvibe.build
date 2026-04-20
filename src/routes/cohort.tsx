@@ -2,11 +2,189 @@ import { Hono } from 'hono'
 import { eq, and, asc } from 'drizzle-orm'
 import { Layout } from '../components/Layout'
 import { getDb } from '../db'
-import { cohorts, lessons, lessonProgress } from '../db/schema'
+import { cohorts, lessons, lessonProgress, artifacts, users } from '../db/schema'
+import { or, desc } from 'drizzle-orm'
 import { renderMarkdown } from '../lib/markdown'
 import { canAccessCohort } from '../lib/access'
 import { generateCohortICS } from '../lib/ics'
+import { isAdmin } from '../lib/auth'
 import type { AppContext } from '../types'
+
+type ArtifactRow = {
+  id: number
+  title: string | null
+  bodyMarkdown: string | null
+  attachedUrl: string | null
+  generatedBy: string
+  visibility: string
+  createdAt: string
+  updatedAt: string
+  userId: number
+  authorName: string | null
+  authorAvatar: string | null
+}
+
+const GEN_BADGE: Record<string, { label: string; icon: string; cls: string }> = {
+  human: { label: 'Mostly human', icon: '🖊', cls: 'human' },
+  collaborative: { label: 'Human + AI', icon: '🧩', cls: 'collaborative' },
+  ai: { label: 'Mostly AI', icon: '🤖', cls: 'ai' },
+}
+
+const ArtifactCard = ({
+  a, currentUser, isAdminUser, returnPath,
+}: {
+  a: ArtifactRow
+  currentUser: { id: number } | null
+  isAdminUser: boolean
+  returnPath: string
+}) => {
+  const badge = GEN_BADGE[a.generatedBy] || GEN_BADGE.collaborative
+  const isOwner = currentUser?.id === a.userId
+  const bodyHtml = a.bodyMarkdown ? renderMarkdown(a.bodyMarkdown) : ''
+  return (
+    <div class="artifact-card" id={`artifact-${a.id}`}>
+      <div class="artifact-card-header">
+        <h4 class="artifact-card-title">{a.title || 'Untitled artifact'}</h4>
+        <div class="artifact-card-meta">
+          <span class={`artifact-badge ${badge.cls}`}>
+            <span aria-hidden="true">{badge.icon}</span> {badge.label}
+          </span>
+          {a.visibility === 'instructor' && (
+            <span class="artifact-visibility" title="Shared with instructors only">
+              🔒 Instructor only
+            </span>
+          )}
+        </div>
+      </div>
+      <div style="font-size: 0.85rem; color: var(--text-tertiary); margin-bottom: 0.5rem;">
+        Shared by <a href={`/members/${a.userId}`} style="color: var(--text-secondary); text-decoration: none; font-weight: 500;">{a.authorName || 'Anonymous'}</a>
+        {' · '}
+        {new Date(a.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+      </div>
+      {bodyHtml && (
+        <div class="artifact-card-body" dangerouslySetInnerHTML={{ __html: bodyHtml }} />
+      )}
+      {a.attachedUrl && (
+        <a href={a.attachedUrl} target="_blank" rel="noopener" class="artifact-card-link">
+          Open link ↗
+        </a>
+      )}
+      {(isOwner || isAdminUser) && (
+        <div class="artifact-card-actions">
+          {isOwner && (
+            <a href={`${returnPath}?edit_artifact=${a.id}#artifact-${a.id}`}>Edit</a>
+          )}
+          <form method="post" action={`/api/artifacts/${a.id}/delete`} style="display: inline;"
+            onsubmit="return confirm('Delete this artifact? This cannot be undone.')">
+            <input type="hidden" name="return_url" value={returnPath} />
+            <button type="submit">Delete</button>
+          </form>
+        </div>
+      )}
+    </div>
+  )
+}
+
+const ArtifactForm = ({
+  lessonId, returnPath, editing,
+}: {
+  lessonId: number
+  returnPath: string
+  editing?: ArtifactRow
+}) => {
+  const isEdit = !!editing
+  const action = isEdit ? `/api/artifacts/${editing.id}` : '/api/artifacts'
+  const gen = editing?.generatedBy || 'collaborative'
+  const vis = editing?.visibility || 'class'
+  return (
+    <div class="artifact-form-section" id="artifact-form">
+      <h3>{isEdit ? 'Edit artifact' : 'Share an artifact'}</h3>
+      <p class="lead">
+        {isEdit
+          ? 'Update your artifact below.'
+          : 'Share what you made — a reflection, a document, a link to something you built. Either a written description or a link is enough; both is great.'}
+      </p>
+      <form method="post" action={action} class="artifact-form">
+        {!isEdit && <input type="hidden" name="lesson_id" value={String(lessonId)} />}
+        <div class="form-group">
+          <label for="af-title">Title (optional)</label>
+          <input type="text" id="af-title" name="title" maxlength={200}
+            placeholder="e.g. My map of what I'm working on"
+            value={editing?.title || ''} />
+        </div>
+        <div class="form-group">
+          <label for="af-body">What you made (markdown)</label>
+          <textarea id="af-body" name="body_markdown" maxlength={20000}
+            placeholder="Paste the artifact itself, or a reflection — markdown is supported.">{editing?.bodyMarkdown || ''}</textarea>
+        </div>
+        <div class="form-group">
+          <label for="af-url">Link (optional — for external docs, sites, etc.)</label>
+          <input type="url" id="af-url" name="attached_url" maxlength={500}
+            placeholder="https://..."
+            value={editing?.attachedUrl || ''} />
+          <p style="margin-top: 0.4rem; font-size: 0.8rem; color: var(--text-tertiary);">
+            At least one of "what you made" or "link" must be filled in.
+          </p>
+        </div>
+        <div class="form-group">
+          <label>How was this made?</label>
+          <div class="radio-group">
+            <label>
+              <input type="radio" name="generated_by" value="human" checked={gen === 'human'} />
+              <span>
+                <span class="radio-label-title">🖊 I wrote this mostly myself</span>
+                <span class="radio-label-desc" style="display: block;">AI may have been in the process, but the final words are mine.</span>
+              </span>
+            </label>
+            <label>
+              <input type="radio" name="generated_by" value="collaborative" checked={gen === 'collaborative'} />
+              <span>
+                <span class="radio-label-title">🧩 Relatively equal parts human + AI</span>
+                <span class="radio-label-desc" style="display: block;">AI and I shaped this together; you couldn't easily pull out whose is whose.</span>
+              </span>
+            </label>
+            <label>
+              <input type="radio" name="generated_by" value="ai" checked={gen === 'ai'} />
+              <span>
+                <span class="radio-label-title">🤖 Mostly AI putting it together</span>
+                <span class="radio-label-desc" style="display: block;">I prompted, AI produced the bulk. My curation, AI's words.</span>
+              </span>
+            </label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Who can see this?</label>
+          <div class="radio-group">
+            <label>
+              <input type="radio" name="visibility" value="class" checked={vis === 'class'} />
+              <span>
+                <span class="radio-label-title">Share with the whole class</span>
+                <span class="radio-label-desc" style="display: block;">Visible to all cohort members and instructors.</span>
+              </span>
+            </label>
+            <label>
+              <input type="radio" name="visibility" value="instructor" checked={vis === 'instructor'} />
+              <span>
+                <span class="radio-label-title">🔒 Share with instructors only</span>
+                <span class="radio-label-desc" style="display: block;">Only you and the instructors can see this.</span>
+              </span>
+            </label>
+          </div>
+        </div>
+        <div style="display: flex; gap: 0.75rem; align-items: center; margin-top: 1.5rem;">
+          <button type="submit" style="background: var(--accent); color: white; border: none; padding: 0.75rem 2rem; border-radius: 6px; font-size: 0.95rem; font-weight: 500; cursor: pointer;">
+            {isEdit ? 'Save changes' : 'Share artifact'}
+          </button>
+          {isEdit && (
+            <a href={returnPath + '#artifacts'} style="font-size: 0.9rem; color: var(--text-secondary);">
+              Cancel
+            </a>
+          )}
+        </div>
+      </form>
+    </div>
+  )
+}
 
 const cohortRoutes = new Hono<AppContext>()
 
@@ -336,6 +514,53 @@ cohortRoutes.get('/cohort/:slug/week/:num', async (c) => {
   const prevLesson = currentIndex > 0 ? allLessons[currentIndex - 1] : null
   const nextLesson = currentIndex < allLessons.length - 1 ? allLessons[currentIndex + 1] : null
 
+  // ===== ARTIFACTS for this lesson =====
+  // Visibility rules:
+  //   - class-visible: seen by everyone enrolled in the cohort (we already
+  //     gate the whole page via canAccessCohort, so "everyone here" = fine)
+  //   - instructor-visible: owner sees their own, admins/facilitators see all
+  const isAdminUser = isAdmin(user)
+  const lessonArtifacts = await db
+    .select({
+      id: artifacts.id,
+      title: artifacts.title,
+      bodyMarkdown: artifacts.bodyMarkdown,
+      attachedUrl: artifacts.attachedUrl,
+      generatedBy: artifacts.generatedBy,
+      visibility: artifacts.visibility,
+      createdAt: artifacts.createdAt,
+      updatedAt: artifacts.updatedAt,
+      userId: artifacts.userId,
+      authorName: users.name,
+      authorAvatar: users.avatarUrl,
+    })
+    .from(artifacts)
+    .innerJoin(users, eq(users.id, artifacts.userId))
+    .where(and(
+      eq(artifacts.lessonId, lesson.id),
+      eq(artifacts.status, 'active'),
+      isAdminUser
+        ? eq(artifacts.lessonId, lesson.id)
+        : (user
+          ? or(eq(artifacts.visibility, 'class'), eq(artifacts.userId, user.id))!
+          : eq(artifacts.visibility, 'class')),
+    ))
+    .orderBy(desc(artifacts.createdAt))
+    .all()
+
+  // Find an editing artifact if ?edit_artifact=ID is set + user is the owner
+  const editId = parseInt(c.req.query('edit_artifact') || '', 10)
+  const editing = Number.isFinite(editId)
+    ? lessonArtifacts.find(a => a.id === editId && a.userId === user?.id)
+    : undefined
+
+  // Flash messages from form redirects
+  const artifactSaved = c.req.query('artifact_saved') === '1'
+  const artifactDeleted = c.req.query('artifact_deleted') === '1'
+  const artifactError = c.req.query('artifact_error')
+
+  const returnPath = `/cohort/${slug}/week/${weekNum}`
+
   return c.html(
     <Layout title={`Week ${weekNum}: ${lesson.title}`} description={lesson.description || undefined} user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY}>
       <div class="page-section">
@@ -373,6 +598,52 @@ cohortRoutes.get('/cohort/:slug/week/:num', async (c) => {
             </a>
           </div>
         )}
+
+        {/* ===== ARTIFACTS ===== */}
+        <div id="artifacts" style="margin-top: 3rem;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 0.5rem;">
+            <h3 style="font-family: var(--font-display);">Artifacts</h3>
+            <p style="font-size: 0.85rem; color: var(--text-tertiary); margin: 0;">
+              {lessonArtifacts.length === 0
+                ? 'No artifacts shared yet — be the first.'
+                : `${lessonArtifacts.length} ${lessonArtifacts.length === 1 ? 'artifact' : 'artifacts'} shared so far`}
+            </p>
+          </div>
+
+          {artifactSaved && (
+            <div style="margin-top: 1rem; padding: 0.75rem 1rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; color: #166534; font-size: 0.9rem;">
+              Artifact saved.
+            </div>
+          )}
+          {artifactDeleted && (
+            <div style="margin-top: 1rem; padding: 0.75rem 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text-secondary); font-size: 0.9rem;">
+              Artifact deleted.
+            </div>
+          )}
+          {artifactError === 'empty' && (
+            <div style="margin-top: 1rem; padding: 0.75rem 1rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #991b1b; font-size: 0.9rem;">
+              Please include either a description or a link (or both).
+            </div>
+          )}
+          {artifactError === 'invalid_url' && (
+            <div style="margin-top: 1rem; padding: 0.75rem 1rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #991b1b; font-size: 0.9rem;">
+              Link must start with http:// or https://.
+            </div>
+          )}
+
+          <div style="margin-top: 1.5rem;">
+            {lessonArtifacts.map(a => (
+              <ArtifactCard
+                a={a}
+                currentUser={user ? { id: user.id } : null}
+                isAdminUser={isAdminUser}
+                returnPath={returnPath}
+              />
+            ))}
+          </div>
+
+          {user && <ArtifactForm lessonId={lesson.id} returnPath={returnPath} editing={editing} />}
+        </div>
 
         <div class="week-nav">
           <div>

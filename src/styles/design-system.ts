@@ -390,6 +390,188 @@ footer a:hover { color: var(--accent); }
     border-radius: 0;
 }
 
+/* ARTIFACT BADGES — human/collaborative/ai origin indicator */
+.artifact-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.15rem 0.55rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-secondary);
+    white-space: nowrap;
+    line-height: 1.4;
+}
+.artifact-badge.human {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+    color: #166534;
+}
+.artifact-badge.collaborative {
+    background: var(--accent-soft);
+    border-color: #fdd1bb;
+    color: #9a3d12;
+}
+.artifact-badge.ai {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #1e40af;
+}
+.artifact-visibility {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-tertiary);
+    padding-left: 0.4rem;
+}
+.artifact-visibility::before {
+    content: '·';
+    color: var(--text-tertiary);
+    padding-right: 0.4rem;
+}
+
+/* ARTIFACT CARD — gallery item below each lesson */
+.artifact-card {
+    padding: 1.25rem 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 1rem;
+}
+.artifact-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+}
+.artifact-card-title {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0;
+}
+.artifact-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    color: var(--text-tertiary);
+    flex-wrap: wrap;
+}
+.artifact-card-body {
+    margin-top: 0.5rem;
+    color: var(--text-secondary);
+    line-height: 1.65;
+}
+.artifact-card-body p { margin: 0.5rem 0; }
+.artifact-card-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-top: 0.5rem;
+    color: var(--accent);
+    font-size: 0.92rem;
+    text-decoration: none;
+    font-weight: 500;
+}
+.artifact-card-link:hover { text-decoration: underline; }
+.artifact-card-actions {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 0.75rem;
+    font-size: 0.8rem;
+}
+.artifact-card-actions a, .artifact-card-actions button {
+    background: none;
+    border: none;
+    color: var(--text-tertiary);
+    text-decoration: none;
+    font-size: 0.8rem;
+    padding: 0;
+    cursor: pointer;
+    font-family: inherit;
+}
+.artifact-card-actions a:hover, .artifact-card-actions button:hover {
+    color: var(--accent);
+}
+
+/* ARTIFACT SUBMISSION FORM */
+.artifact-form-section {
+    margin-top: 3rem;
+    padding: 2rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+}
+.artifact-form-section h3 {
+    font-family: var(--font-display);
+    margin-bottom: 0.5rem;
+}
+.artifact-form-section .lead {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+}
+.artifact-form .form-group { margin-bottom: 1.25rem; }
+.artifact-form label { display: block; font-weight: 500; margin-bottom: 0.4rem; font-size: 0.9rem; }
+.artifact-form input[type="text"],
+.artifact-form input[type="url"],
+.artifact-form textarea {
+    width: 100%;
+    padding: 0.65rem 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.95rem;
+    background: var(--white);
+    color: var(--text);
+    font-family: inherit;
+}
+.artifact-form textarea {
+    min-height: 120px;
+    resize: vertical;
+    font-family: var(--font-body);
+    line-height: 1.6;
+}
+.artifact-form .radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.artifact-form .radio-group label {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.6rem 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--white);
+    cursor: pointer;
+    font-weight: 400;
+    margin: 0;
+    transition: border-color 0.15s, background 0.15s;
+}
+.artifact-form .radio-group label:has(input:checked) {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+}
+.artifact-form .radio-group input[type="radio"] {
+    margin-top: 0.25rem;
+    accent-color: var(--accent);
+}
+.artifact-form .radio-label-title { font-weight: 500; color: var(--text); }
+.artifact-form .radio-label-desc { font-size: 0.82rem; color: var(--text-tertiary); }
+
 .code-block-wrap {
     position: relative;
     margin: 1.5rem 0;

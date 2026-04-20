@@ -10,7 +10,7 @@ import { eq, and, asc, desc, or, isNull } from 'drizzle-orm'
 import { getDb } from '../db'
 import {
   cohorts, lessons, enrollments, lessonProgress, projects,
-  discussions, comments, users, applications,
+  discussions, comments, users, applications, artifacts, memberships,
 } from '../db/schema'
 import { authenticateApiKey } from '../lib/api-auth'
 import { authenticateOAuthToken } from '../lib/oauth'
@@ -400,6 +400,206 @@ const TOOLS: ToolDef[] = [
         parentId: args.parentId || null,
       }).returning().get()
       return textResult({ id: inserted.id })
+    },
+  },
+
+  // ===== ARTIFACTS =====
+  {
+    name: 'submit_artifact',
+    description: 'Share an artifact attached to a lesson. An artifact is whatever you made for the week — a document, a reflection, a link. Either bodyMarkdown or attachedUrl must be provided. Defaults to generatedBy="ai" and visibility="class" for MCP submissions.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        cohortSlug: { type: 'string' },
+        weekNumber: { type: 'integer', minimum: 1 },
+        title: { type: 'string', description: 'Optional title.' },
+        bodyMarkdown: { type: 'string', description: 'Inline prose / reflection / the artifact itself.' },
+        attachedUrl: { type: 'string', description: 'Link to an external doc/site/image (http or https).' },
+        generatedBy: { type: 'string', enum: ['human', 'collaborative', 'ai'], default: 'ai' },
+        visibility: { type: 'string', enum: ['class', 'instructor'], default: 'class' },
+      },
+      required: ['cohortSlug', 'weekNumber'],
+    },
+    handler: async (args, user, db) => {
+      const cohort = await db.select().from(cohorts).where(eq(cohorts.slug, args.cohortSlug)).get()
+      if (!cohort) throw new Error(`Cohort '${args.cohortSlug}' not found`)
+      const lesson = await db.select().from(lessons)
+        .where(and(eq(lessons.cohortId, cohort.id), eq(lessons.weekNumber, args.weekNumber)))
+        .get()
+      if (!lesson) throw new Error(`Lesson Week ${args.weekNumber} not found in ${args.cohortSlug}`)
+
+      // Access check: must be enrolled in this cohort, or admin/facilitator, or have active membership.
+      if (!isAdmin(user)) {
+        const enr = await db.select({ id: enrollments.id }).from(enrollments)
+          .where(and(eq(enrollments.userId, user.id), eq(enrollments.cohortId, cohort.id))).get()
+        if (!enr) {
+          const mem = await db.select({ id: memberships.id }).from(memberships)
+            .where(and(eq(memberships.userId, user.id), eq(memberships.status, 'active'))).get()
+          if (!mem) throw new Error('You must be enrolled in this cohort to share artifacts.')
+        }
+      }
+
+      const title = args.title ? String(args.title).slice(0, 200) : null
+      const bodyMarkdown = args.bodyMarkdown ? String(args.bodyMarkdown).slice(0, 20000) : null
+      const attachedUrl = args.attachedUrl ? String(args.attachedUrl).slice(0, 500) : null
+      if (!bodyMarkdown && !attachedUrl) {
+        throw new Error('Either bodyMarkdown or attachedUrl must be provided.')
+      }
+      if (attachedUrl && !/^https?:\/\//i.test(attachedUrl)) {
+        throw new Error('attachedUrl must start with http:// or https://')
+      }
+      const generatedBy = ['human', 'collaborative', 'ai'].includes(args.generatedBy) ? args.generatedBy : 'ai'
+      const visibility = args.visibility === 'instructor' ? 'instructor' : 'class'
+
+      const inserted = await db.insert(artifacts).values({
+        lessonId: lesson.id,
+        userId: user.id,
+        title, bodyMarkdown, attachedUrl, generatedBy, visibility,
+      }).returning().get()
+
+      return textResult({
+        id: inserted.id,
+        url: `https://learnvibe.build/cohort/${cohort.slug}/week/${lesson.weekNumber}#artifact-${inserted.id}`,
+        generatedBy, visibility,
+      })
+    },
+  },
+  {
+    name: 'list_artifacts',
+    description: 'List artifacts attached to a lesson (respects visibility — you see class-visible + your own; admins see all).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        cohortSlug: { type: 'string' },
+        weekNumber: { type: 'integer', minimum: 1 },
+      },
+      required: ['cohortSlug', 'weekNumber'],
+    },
+    handler: async (args, user, db) => {
+      const cohort = await db.select().from(cohorts).where(eq(cohorts.slug, args.cohortSlug)).get()
+      if (!cohort) throw new Error(`Cohort '${args.cohortSlug}' not found`)
+      const lesson = await db.select().from(lessons)
+        .where(and(eq(lessons.cohortId, cohort.id), eq(lessons.weekNumber, args.weekNumber)))
+        .get()
+      if (!lesson) throw new Error(`Lesson Week ${args.weekNumber} not found`)
+
+      const admin = isAdmin(user)
+      const rows = await db.select({
+        id: artifacts.id,
+        title: artifacts.title,
+        bodyMarkdown: artifacts.bodyMarkdown,
+        attachedUrl: artifacts.attachedUrl,
+        generatedBy: artifacts.generatedBy,
+        visibility: artifacts.visibility,
+        createdAt: artifacts.createdAt,
+        userId: artifacts.userId,
+        authorName: users.name,
+      })
+        .from(artifacts)
+        .innerJoin(users, eq(users.id, artifacts.userId))
+        .where(and(
+          eq(artifacts.lessonId, lesson.id),
+          eq(artifacts.status, 'active'),
+          admin
+            ? eq(artifacts.lessonId, lesson.id)
+            : or(eq(artifacts.visibility, 'class'), eq(artifacts.userId, user.id))!,
+        ))
+        .orderBy(desc(artifacts.createdAt))
+        .all()
+
+      return textResult(rows.map(r => ({
+        id: r.id,
+        title: r.title || 'Untitled',
+        author: r.authorName || 'Anonymous',
+        authorId: r.userId,
+        generatedBy: r.generatedBy,
+        visibility: r.visibility,
+        createdAt: r.createdAt,
+        bodyMarkdown: r.bodyMarkdown,
+        attachedUrl: r.attachedUrl,
+      })))
+    },
+  },
+  {
+    name: 'update_artifact',
+    description: 'Update one of your own artifacts. Only fields you pass are changed.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        id: { type: 'integer' },
+        title: { type: 'string' },
+        bodyMarkdown: { type: 'string' },
+        attachedUrl: { type: 'string' },
+        generatedBy: { type: 'string', enum: ['human', 'collaborative', 'ai'] },
+        visibility: { type: 'string', enum: ['class', 'instructor'] },
+      },
+      required: ['id'],
+    },
+    handler: async (args, user, db) => {
+      const existing = await db.select().from(artifacts).where(eq(artifacts.id, args.id)).get()
+      if (!existing) throw new Error(`Artifact ${args.id} not found`)
+      if (existing.userId !== user.id) throw new Error('You can only edit your own artifacts.')
+      const updates: Record<string, any> = { updatedAt: new Date().toISOString() }
+      if (args.title !== undefined) updates.title = String(args.title).slice(0, 200) || null
+      if (args.bodyMarkdown !== undefined) updates.bodyMarkdown = String(args.bodyMarkdown).slice(0, 20000) || null
+      if (args.attachedUrl !== undefined) {
+        const u = String(args.attachedUrl).slice(0, 500) || null
+        if (u && !/^https?:\/\//i.test(u)) throw new Error('attachedUrl must start with http:// or https://')
+        updates.attachedUrl = u
+      }
+      if (args.generatedBy) updates.generatedBy = args.generatedBy
+      if (args.visibility) updates.visibility = args.visibility
+      // Enforce "at least one of body or url" on the *resulting* row.
+      const nextBody = 'bodyMarkdown' in updates ? updates.bodyMarkdown : existing.bodyMarkdown
+      const nextUrl = 'attachedUrl' in updates ? updates.attachedUrl : existing.attachedUrl
+      if (!nextBody && !nextUrl) throw new Error('Artifact must have either bodyMarkdown or attachedUrl.')
+      await db.update(artifacts).set(updates).where(eq(artifacts.id, args.id))
+      return textResult({ id: args.id, updated: Object.keys(updates).filter(k => k !== 'updatedAt') })
+    },
+  },
+  {
+    name: 'delete_artifact',
+    description: 'Soft-delete your own artifact (admins can delete any).',
+    inputSchema: {
+      type: 'object',
+      properties: { id: { type: 'integer' } },
+      required: ['id'],
+    },
+    handler: async (args, user, db) => {
+      const existing = await db.select().from(artifacts).where(eq(artifacts.id, args.id)).get()
+      if (!existing) throw new Error(`Artifact ${args.id} not found`)
+      if (existing.userId !== user.id && !isAdmin(user)) {
+        throw new Error('You can only delete your own artifacts.')
+      }
+      await db.update(artifacts)
+        .set({ status: 'deleted', updatedAt: new Date().toISOString() })
+        .where(eq(artifacts.id, args.id))
+      return textResult({ id: args.id, deleted: true })
+    },
+  },
+  {
+    name: 'list_my_artifacts',
+    description: 'List all of your own artifacts across every lesson, newest first.',
+    inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+    handler: async (_args, user, db) => {
+      const rows = await db.select({
+        id: artifacts.id,
+        title: artifacts.title,
+        generatedBy: artifacts.generatedBy,
+        visibility: artifacts.visibility,
+        createdAt: artifacts.createdAt,
+        lessonId: artifacts.lessonId,
+        weekNumber: lessons.weekNumber,
+        cohortSlug: cohorts.slug,
+        cohortTitle: cohorts.title,
+      })
+        .from(artifacts)
+        .innerJoin(lessons, eq(lessons.id, artifacts.lessonId))
+        .innerJoin(cohorts, eq(cohorts.id, lessons.cohortId))
+        .where(and(eq(artifacts.userId, user.id), eq(artifacts.status, 'active')))
+        .orderBy(desc(artifacts.createdAt))
+        .all()
+      return textResult(rows)
     },
   },
 

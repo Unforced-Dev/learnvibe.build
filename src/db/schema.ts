@@ -229,6 +229,30 @@ export const oauthTokens = sqliteTable('oauth_tokens', {
   createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
 })
 
+// ===== ARTIFACTS =====
+// Student-shared outputs attached to a lesson. Free-form: each artifact
+// can be prose (body_markdown), a link (attached_url), or both, with a
+// flag indicating the human/AI origin of the final work.
+export const artifacts = sqliteTable('artifacts', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  lessonId: integer('lesson_id').notNull().references(() => lessons.id),
+  userId: integer('user_id').notNull().references(() => users.id),
+  title: text('title'), // optional — defaults to "Untitled" in UI if blank
+  bodyMarkdown: text('body_markdown'), // prose, reflection, inline content
+  attachedUrl: text('attached_url'), // link to external doc/site/image
+  generatedBy: text('generated_by').notNull().default('collaborative'),
+  // ^ 'human' | 'collaborative' | 'ai' — origin of the final artifact
+  visibility: text('visibility').notNull().default('class'),
+  // ^ 'class' = visible to all cohort members + instructors
+  //   'instructor' = visible only to submitter + instructors/admins
+  status: text('status').notNull().default('active'), // 'active' | 'deleted'
+  createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
+  updatedAt: text('updated_at').notNull().$defaultFn(() => new Date().toISOString()),
+}, (t) => ({
+  lessonIdx: index('artifacts_lesson_id_idx').on(t.lessonId),
+  userIdx: index('artifacts_user_id_idx').on(t.userId),
+}))
+
 // ===== API KEYS =====
 export const apiKeys = sqliteTable('api_keys', {
   id: integer('id').primaryKey({ autoIncrement: true }),

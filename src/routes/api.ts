@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { eq, and } from 'drizzle-orm'
-import { applications, lessons, feedback, users, projects, lessonProgress, discussions, comments, apiKeys, oauthTokens } from '../db/schema'
+import { applications, lessons, feedback, users, projects, lessonProgress, discussions, comments, apiKeys, oauthTokens, artifacts, cohorts, enrollments, memberships } from '../db/schema'
 import { getDb } from '../db'
 import { isAdmin } from '../lib/auth'
 import { generateApiKey, hashApiKey, getKeyPrefix } from '../lib/api-auth'
@@ -576,6 +576,177 @@ api.post('/api/oauth/tokens/:id/revoke', async (c) => {
     .where(eq(oauthTokens.id, id))
 
   return c.redirect('/settings/api-keys?disconnected=true')
+})
+
+// ===== ARTIFACTS =====
+// Shared helper — is this user enrolled in the cohort the lesson belongs to,
+// OR an admin/facilitator? Gates both create and (indirectly) view.
+async function canPostArtifactToLesson(
+  db: ReturnType<typeof getDb>,
+  user: { id: number; role: string },
+  lessonId: number,
+): Promise<{ ok: true; cohortId: number } | { ok: false; redirectTo: string }> {
+  const lesson = await db.select({ id: lessons.id, cohortId: lessons.cohortId, slug: cohorts.slug })
+    .from(lessons)
+    .innerJoin(cohorts, eq(cohorts.id, lessons.cohortId))
+    .where(eq(lessons.id, lessonId))
+    .get()
+  if (!lesson) return { ok: false, redirectTo: '/dashboard' }
+  if (user.role === 'admin' || user.role === 'facilitator') return { ok: true, cohortId: lesson.cohortId }
+  const enr = await db.select({ id: enrollments.id })
+    .from(enrollments)
+    .where(and(eq(enrollments.userId, user.id), eq(enrollments.cohortId, lesson.cohortId)))
+    .get()
+  if (enr) return { ok: true, cohortId: lesson.cohortId }
+  const mem = await db.select({ id: memberships.id })
+    .from(memberships)
+    .where(and(eq(memberships.userId, user.id), eq(memberships.status, 'active')))
+    .get()
+  if (mem) return { ok: true, cohortId: lesson.cohortId }
+  return { ok: false, redirectTo: `/cohort/${lesson.slug}/week/1` }
+}
+
+function sanitizeArtifactInputs(body: Record<string, any>): {
+  title: string | null
+  bodyMarkdown: string | null
+  attachedUrl: string | null
+  generatedBy: 'human' | 'collaborative' | 'ai'
+  visibility: 'class' | 'instructor'
+  error?: string
+} {
+  const title = String(body.title || '').trim().slice(0, 200) || null
+  const bodyMarkdown = String(body.body_markdown || '').trim().slice(0, 20000) || null
+  const attachedUrl = String(body.attached_url || '').trim().slice(0, 500) || null
+  const rawGen = String(body.generated_by || 'collaborative')
+  const rawVis = String(body.visibility || 'class')
+
+  if (!bodyMarkdown && !attachedUrl) {
+    return {
+      title, bodyMarkdown, attachedUrl,
+      generatedBy: 'collaborative', visibility: 'class',
+      error: 'empty',
+    }
+  }
+  if (attachedUrl && !/^https?:\/\//i.test(attachedUrl)) {
+    return {
+      title, bodyMarkdown, attachedUrl,
+      generatedBy: 'collaborative', visibility: 'class',
+      error: 'invalid_url',
+    }
+  }
+  const generatedBy = (rawGen === 'human' || rawGen === 'ai') ? rawGen : 'collaborative'
+  const visibility = rawVis === 'instructor' ? 'instructor' : 'class'
+  return { title, bodyMarkdown, attachedUrl, generatedBy, visibility }
+}
+
+// Create artifact — POST /api/artifacts
+api.post('/api/artifacts', async (c) => {
+  const user = c.get('user')
+  if (!user) return c.redirect('/sign-in')
+
+  const body = await c.req.parseBody()
+  const lessonId = parseInt(String(body.lesson_id || ''), 10)
+  if (!Number.isFinite(lessonId) || lessonId <= 0) return c.redirect('/dashboard')
+
+  const db = getDb(c.env.DB)
+  const access = await canPostArtifactToLesson(db, user, lessonId)
+  if (!access.ok) return c.redirect(access.redirectTo)
+
+  const sanitized = sanitizeArtifactInputs(body)
+  // Lookup the cohort slug + week number for redirect
+  const lesson = await db.select({ weekNumber: lessons.weekNumber, slug: cohorts.slug })
+    .from(lessons)
+    .innerJoin(cohorts, eq(cohorts.id, lessons.cohortId))
+    .where(eq(lessons.id, lessonId))
+    .get()
+  if (!lesson) return c.redirect('/dashboard')
+  const returnUrl = `/cohort/${lesson.slug}/week/${lesson.weekNumber}`
+
+  if (sanitized.error) {
+    return c.redirect(`${returnUrl}?artifact_error=${sanitized.error}#artifact-form`)
+  }
+
+  await db.insert(artifacts).values({
+    lessonId,
+    userId: user.id,
+    title: sanitized.title,
+    bodyMarkdown: sanitized.bodyMarkdown,
+    attachedUrl: sanitized.attachedUrl,
+    generatedBy: sanitized.generatedBy,
+    visibility: sanitized.visibility,
+  })
+  return c.redirect(`${returnUrl}?artifact_saved=1#artifacts`)
+})
+
+// Update artifact — POST /api/artifacts/:id (owner only)
+api.post('/api/artifacts/:id', async (c) => {
+  const user = c.get('user')
+  if (!user) return c.redirect('/sign-in')
+
+  const id = parseInt(c.req.param('id'), 10)
+  if (!Number.isFinite(id)) return c.redirect('/dashboard')
+
+  const db = getDb(c.env.DB)
+  const existing = await db.select().from(artifacts).where(eq(artifacts.id, id)).get()
+  if (!existing) return c.redirect('/dashboard')
+  if (existing.userId !== user.id) {
+    // Non-owner can't edit (admins can delete but not edit — matches
+    // discussion/project edit model).
+    return c.redirect('/dashboard')
+  }
+
+  const body = await c.req.parseBody()
+  const sanitized = sanitizeArtifactInputs(body)
+  const lesson = await db.select({ weekNumber: lessons.weekNumber, slug: cohorts.slug })
+    .from(lessons)
+    .innerJoin(cohorts, eq(cohorts.id, lessons.cohortId))
+    .where(eq(lessons.id, existing.lessonId))
+    .get()
+  const returnUrl = lesson ? `/cohort/${lesson.slug}/week/${lesson.weekNumber}` : '/dashboard'
+
+  if (sanitized.error) {
+    return c.redirect(`${returnUrl}?artifact_error=${sanitized.error}#artifact-${id}`)
+  }
+
+  await db.update(artifacts).set({
+    title: sanitized.title,
+    bodyMarkdown: sanitized.bodyMarkdown,
+    attachedUrl: sanitized.attachedUrl,
+    generatedBy: sanitized.generatedBy,
+    visibility: sanitized.visibility,
+    updatedAt: new Date().toISOString(),
+  }).where(eq(artifacts.id, id))
+
+  return c.redirect(`${returnUrl}?artifact_saved=1#artifact-${id}`)
+})
+
+// Delete artifact — POST /api/artifacts/:id/delete (owner or admin)
+api.post('/api/artifacts/:id/delete', async (c) => {
+  const user = c.get('user')
+  if (!user) return c.redirect('/sign-in')
+
+  const id = parseInt(c.req.param('id'), 10)
+  if (!Number.isFinite(id)) return c.redirect('/dashboard')
+
+  const db = getDb(c.env.DB)
+  const existing = await db.select().from(artifacts).where(eq(artifacts.id, id)).get()
+  if (!existing) return c.redirect('/dashboard')
+  const canDelete = existing.userId === user.id || isAdmin(user)
+  if (!canDelete) return c.redirect('/dashboard')
+
+  const lesson = await db.select({ weekNumber: lessons.weekNumber, slug: cohorts.slug })
+    .from(lessons)
+    .innerJoin(cohorts, eq(cohorts.id, lessons.cohortId))
+    .where(eq(lessons.id, existing.lessonId))
+    .get()
+  const returnUrl = lesson ? `/cohort/${lesson.slug}/week/${lesson.weekNumber}` : '/dashboard'
+
+  // Soft delete — keeps history, prevents accidental re-share collisions.
+  await db.update(artifacts)
+    .set({ status: 'deleted', updatedAt: new Date().toISOString() })
+    .where(eq(artifacts.id, id))
+
+  return c.redirect(`${returnUrl}?artifact_deleted=1#artifacts`)
 })
 
 export default api
