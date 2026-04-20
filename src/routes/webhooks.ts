@@ -213,8 +213,12 @@ webhookRoutes.post('/api/webhooks/stripe', async (c) => {
       const cohort = await db.select().from(cohorts).where(eq(cohorts.id, cohortId)).get()
       const appForEmail = app || await db.select().from(applications).where(eq(applications.id, applicationId)).get()
       if (appForEmail && cohort) {
+        // If app.userId is set, the user has a linked Clerk account and
+        // the dashboard CTA makes sense. Otherwise they need to sign up
+        // first, which the default CTA covers.
+        const hasAccount = !!appForEmail.userId
         c.executionCtx.waitUntil(
-          sendEnrollmentConfirmed(c.env, appForEmail.email, appForEmail.name, cohort.title)
+          sendEnrollmentConfirmed(c.env, appForEmail.email, appForEmail.name, cohort.title, hasAccount)
         )
       }
 

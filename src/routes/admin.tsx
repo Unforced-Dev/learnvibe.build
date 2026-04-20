@@ -5,7 +5,7 @@ import { getDb } from '../db'
 import { applications, cohorts, lessons, users, enrollments, payments, feedback, emailLog, lessonProgress, projects, discussions, comments, apiKeys, memberships } from '../db/schema'
 import { isAdmin, isClerkConfigured, generateToken } from '../lib/auth'
 import { formatCents, getAmountForTier, getTierLabel, getApplicationAmount, getApplicationLabel } from '../lib/stripe'
-import { sendBroadcast, sendApplicationApproved, sendApplicationRejected, sendApplicationPriceChanged, sendEmail, isEmailConfigured, type BroadcastAudience } from '../lib/email'
+import { sendBroadcast, sendApplicationApproved, sendApplicationRejected, sendApplicationPriceChanged, sendEmail, isEmailConfigured, type BroadcastAudience, applicationReceivedEmail, applicationApprovedEmail, applicationRejectedEmail, applicationPriceChangedEmail, enrollmentConfirmedEmail, cohortBroadcastEmail } from '../lib/email'
 import { enrollUserAndNotify, findUserByEmail } from '../lib/enrollment'
 import { isStripeConfigured, getStripe } from '../lib/stripe'
 import { renderMarkdown } from '../lib/markdown'
@@ -1174,9 +1174,14 @@ admin.get('/admin/emails', async (c) => {
             <p class="section-label">Emails</p>
             <h2>Email Log</h2>
           </div>
-          <a href="/admin/email" style="display: inline-block; background: var(--accent); color: white; padding: 0.6rem 1.25rem; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.9rem;">
-            Send Email
-          </a>
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <a href="/admin/email/preview" style="display: inline-block; background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 0.55rem 1.1rem; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.9rem;">
+              Preview Templates
+            </a>
+            <a href="/admin/email" style="display: inline-block; background: var(--accent); color: white; padding: 0.6rem 1.25rem; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.9rem;">
+              Send Email
+            </a>
+          </div>
         </div>
 
         {logs.length === 0 ? (
@@ -1230,6 +1235,160 @@ admin.get('/admin/emails', async (c) => {
       </div>
     </Layout>
   )
+})
+
+// ===== EMAIL TEMPLATE PREVIEWS =====
+// Lets admin see what each auto-email looks like with sample data.
+// Answers "I don't know what emails applicants are actually getting."
+
+type PreviewCase = {
+  key: string
+  label: string
+  description: string
+  render: () => { subject: string; html: string }
+}
+
+const EMAIL_PREVIEW_CASES: PreviewCase[] = [
+  {
+    key: 'application_received',
+    label: 'Application received',
+    description: 'Sent immediately when someone submits the apply form.',
+    render: () => applicationReceivedEmail('Jane Doe'),
+  },
+  {
+    key: 'application_approved',
+    label: 'Approved — paid tier',
+    description: 'Sent when admin approves an applicant at a non-zero price.',
+    render: () => applicationApprovedEmail(
+      'Jane Doe',
+      'https://learnvibe.build/payment/checkout/123?t=sample',
+      'Full Price',
+      '$500',
+      false,
+    ),
+  },
+  {
+    key: 'application_approved_sponsored',
+    label: 'Approved — sponsored ($0)',
+    description: 'Sent when admin approves an applicant at $0 AND the applicant has no account yet. (If account exists, they get the enrollment_confirmed email instead.)',
+    render: () => applicationApprovedEmail(
+      'Jane Doe',
+      'https://learnvibe.build/payment/checkout/123?t=sample',
+      'Sponsored',
+      '$0',
+      true,
+    ),
+  },
+  {
+    key: 'application_rejected',
+    label: 'Rejected',
+    description: 'Sent when admin rejects an application.',
+    render: () => applicationRejectedEmail('Jane Doe'),
+  },
+  {
+    key: 'application_price_changed_paid',
+    label: 'Price changed — paid tier',
+    description: 'Sent when admin updates an approved applicant\'s price to a new non-zero amount.',
+    render: () => applicationPriceChangedEmail(
+      'Jane Doe', '$500', '$250', 'Discounted',
+      'https://learnvibe.build/payment/checkout/123?t=sample', false,
+    ),
+  },
+  {
+    key: 'application_price_changed_sponsored',
+    label: 'Price changed — now sponsored ($0)',
+    description: 'Sent when admin moves an approved applicant to sponsored.',
+    render: () => applicationPriceChangedEmail(
+      'Jane Doe', '$500', '$0', 'Sponsored',
+      'https://learnvibe.build/payment/checkout/123?t=sample', true,
+    ),
+  },
+  {
+    key: 'enrollment_confirmed_no_account',
+    label: 'Enrollment confirmed — no account yet',
+    description: 'Sent after successful Stripe payment when the user has not yet signed up. CTA: create account.',
+    render: () => enrollmentConfirmedEmail('Jane Doe', 'Cohort 1: Practice', false),
+  },
+  {
+    key: 'enrollment_confirmed_has_account',
+    label: 'Enrollment confirmed — account exists',
+    description: 'Sent after sponsored auto-enroll or Stripe payment when the user already has an account. CTA: go to dashboard.',
+    render: () => enrollmentConfirmedEmail('Jane Doe', 'Cohort 1: Practice', true),
+  },
+  {
+    key: 'broadcast_sample',
+    label: 'Broadcast (sample)',
+    description: 'Wrapper used for all admin-composed broadcast emails. Body comes from what you type in the composer.',
+    render: () => cohortBroadcastEmail(
+      'Sample subject',
+      '<p>This is the body of a broadcast — admin-composed markdown renders here. The wrapper, footer, and branding are constant.</p>',
+      'enrolled',
+    ),
+  },
+]
+
+admin.get('/admin/email/preview', async (c) => {
+  const user = c.get('user')!
+  return c.html(
+    <Layout title="Email Previews" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY} noindex>
+      <div class="page-section" style="max-width: 900px; margin: 0 auto;">
+        <a href="/admin/emails" class="back-link">← Email Log</a>
+        <p class="section-label">Emails</p>
+        <h2>What each auto-email looks like</h2>
+        <p class="lead" style="margin-top: 0.5rem; margin-bottom: 2rem;">
+          Sample renders of every auto-email the system sends. Shown with sample
+          data ("Jane Doe", "Cohort 1", etc.) so you can see the exact wrapper,
+          copy, and CTA applicants receive at each state.
+        </p>
+
+        <div style="display: grid; gap: 1rem;">
+          {EMAIL_PREVIEW_CASES.map((p) => {
+            const tpl = p.render()
+            return (
+              <div style="padding: 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap;">
+                  <div>
+                    <h3 style="font-family: var(--font-display); font-size: 1.1rem; margin: 0 0 0.25rem 0;">
+                      {p.label}
+                    </h3>
+                    <p style="font-size: 0.85rem; color: var(--text-tertiary); margin: 0;">{p.description}</p>
+                  </div>
+                  <a
+                    href={`/admin/email/preview/${p.key}`}
+                    target="_blank"
+                    style="padding: 0.4rem 0.85rem; background: var(--accent); color: white; border-radius: 6px; text-decoration: none; font-size: 0.85rem; font-weight: 500; white-space: nowrap;"
+                  >
+                    Open render ↗
+                  </a>
+                </div>
+                <div style="margin-top: 1rem; padding: 0.75rem 1rem; background: var(--white); border: 1px solid var(--border); border-radius: 6px; font-size: 0.9rem;">
+                  <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-tertiary); margin-bottom: 0.3rem;">SUBJECT</div>
+                  <div style="color: var(--text);">{tpl.subject}</div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        <div style="margin-top: 3rem; padding: 1.25rem 1.5rem; background: var(--accent-soft); border: 1px solid #fdd1bb; border-radius: 10px;">
+          <p style="margin: 0; font-size: 0.9rem; color: #9a3d12;">
+            <strong>Heads up:</strong> these templates are currently defined in code (<code style="background: var(--surface); padding: 0.1rem 0.35rem; border-radius: 4px;">src/lib/email.ts</code>).
+            Editing them requires a code change + deploy. Admin-editable templates are on the backlog.
+          </p>
+        </div>
+      </div>
+    </Layout>
+  )
+})
+
+admin.get('/admin/email/preview/:key', async (c) => {
+  const key = c.req.param('key')
+  const preview = EMAIL_PREVIEW_CASES.find(p => p.key === key)
+  if (!preview) {
+    return c.text('Preview not found', 404)
+  }
+  const tpl = preview.render()
+  return c.html(tpl.html)
 })
 
 // ===== COMPOSE INDIVIDUAL EMAIL =====

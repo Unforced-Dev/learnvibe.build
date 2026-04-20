@@ -51,7 +51,9 @@ export async function enrollUserAndNotify(
     const cohort = await db.select().from(cohorts).where(eq(cohorts.id, cohortId)).get()
     const app = await db.select().from(applications).where(eq(applications.id, applicationId)).get()
     if (cohort && app) {
-      await sendEnrollmentConfirmed(env, app.email, app.name, cohort.title)
+      // We always reach this helper with a real userId — meaning the user
+      // has an account. The "Create Your Account" CTA would be misleading.
+      await sendEnrollmentConfirmed(env, app.email, app.name, cohort.title, true)
     }
   }
 

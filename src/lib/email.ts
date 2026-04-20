@@ -179,15 +179,31 @@ export function applicationRejectedEmail(name: string): { subject: string; html:
 export function enrollmentConfirmedEmail(
   name: string,
   cohortTitle: string,
+  alreadyHasAccount: boolean = false,
 ): { subject: string; html: string } {
   const firstName = name.split(' ')[0]
+  if (alreadyHasAccount) {
+    return {
+      subject: `You're enrolled in ${cohortTitle} — Learn Vibe Build`,
+      html: emailWrapper(`
+        <h2>You're enrolled, ${firstName}!</h2>
+        <p>You're officially part of ${cohortTitle}. Welcome to the community.</p>
+        <div class="email-highlight">
+          <p><strong>What's next:</strong> We'll send you session details as we get closer to the start date. You can access the cohort site anytime via your dashboard.</p>
+        </div>
+        <a href="https://learnvibe.build/dashboard" class="email-cta">Go to Your Dashboard →</a>
+        <hr class="email-divider">
+        <p class="email-muted">Questions? Just reply to this email.</p>
+      `),
+    }
+  }
   return {
     subject: `Welcome to ${cohortTitle} — Learn Vibe Build`,
     html: emailWrapper(`
       <h2>You're enrolled, ${firstName}!</h2>
-      <p>Your payment is confirmed and you're officially part of ${cohortTitle}. Welcome to the community.</p>
+      <p>You're officially part of ${cohortTitle}. Welcome to the community.</p>
       <div class="email-highlight">
-        <p><strong>What's next:</strong> We'll send you details about the first session as we get closer to the start date. In the meantime, create your account to access the platform.</p>
+        <p><strong>One last step:</strong> Create your account using <strong>this same email address</strong> so you can access the cohort site. Your enrollment will link automatically.</p>
       </div>
       <a href="https://learnvibe.build/sign-up" class="email-cta">Create Your Account →</a>
       <hr class="email-divider">
@@ -386,8 +402,9 @@ export async function sendEnrollmentConfirmed(
   email: string,
   name: string,
   cohortTitle: string,
+  alreadyHasAccount: boolean = false,
 ) {
-  const tpl = enrollmentConfirmedEmail(name, cohortTitle)
+  const tpl = enrollmentConfirmedEmail(name, cohortTitle, alreadyHasAccount)
   return sendEmail({
     apiKey: env.RESEND_API_KEY,
     from: env.EMAIL_FROM,
