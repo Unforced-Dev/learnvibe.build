@@ -15,6 +15,8 @@ import {
 import { authenticateApiKey } from '../lib/api-auth'
 import { authenticateOAuthToken } from '../lib/oauth'
 import { isAdmin } from '../lib/auth'
+import { sendBroadcast, type BroadcastAudience } from '../lib/email'
+import { renderMarkdown } from '../lib/markdown'
 import type { AppContext } from '../types'
 import type { AuthUser } from '../lib/auth'
 
@@ -60,7 +62,7 @@ function textResult(obj: any): any {
 
 // ===== TOOL DEFINITIONS =====
 
-type ToolHandler = (args: any, user: AuthUser, db: ReturnType<typeof getDb>) => Promise<any>
+type ToolHandler = (args: any, user: AuthUser, db: ReturnType<typeof getDb>, c: any) => Promise<any>
 
 interface ToolDef {
   name: string
@@ -454,6 +456,42 @@ const TOOLS: ToolDef[] = [
     },
   },
   {
+    name: 'admin_send_email',
+    description: 'ADMIN: send a markdown email to an explicit list of email addresses. Use this to resend after a partial broadcast failure or for one-off targeted sends. Rate-limited internally to stay under Resend\'s 5/sec cap.',
+    adminOnly: true,
+    inputSchema: {
+      type: 'object',
+      properties: {
+        emails: {
+          type: 'array',
+          items: { type: 'string' },
+          minItems: 1,
+          maxItems: 100,
+          description: 'List of recipient email addresses.',
+        },
+        subject: { type: 'string', minLength: 1 },
+        bodyMarkdown: { type: 'string', minLength: 1, description: 'Email body, in markdown.' },
+        audience: {
+          type: 'string',
+          enum: ['enrolled', 'approved', 'applicants', 'generic'],
+          default: 'enrolled',
+          description: 'Hint for the email template (header copy varies by audience).',
+        },
+      },
+      required: ['emails', 'subject', 'bodyMarkdown'],
+    },
+    handler: async (args, _user, _db, c) => {
+      const html = renderMarkdown(args.bodyMarkdown)
+      const audience = (args.audience || 'enrolled') as BroadcastAudience
+      const result = await sendBroadcast(c.env, args.emails, args.subject, html, audience)
+      return textResult({
+        sent: result.sent,
+        failed: result.failed,
+        total: result.total,
+      })
+    },
+  },
+  {
     name: 'admin_list_applications',
     description: 'ADMIN: list applications, optionally filtered by status.',
     adminOnly: true,
@@ -555,7 +593,7 @@ async function handleRpc(req: JsonRpcRequest, user: AuthUser, c: any): Promise<J
         const args = req.params?.arguments || {}
         const db = getDb(c.env.DB)
         try {
-          const result = await tool.handler(args, user, db)
+          const result = await tool.handler(args, user, db, c)
           return ok(req.id, result)
         } catch (toolErr: any) {
           return ok(req.id, {
