@@ -387,6 +387,11 @@ cohortRoutes.get('/cohort/:slug', async (c) => {
 })
 
 // ICS calendar feed — /cohort/:slug/sessions.ics
+// Alias for /sessions.ics — older emails linked /calendar.ics. Keep both working.
+cohortRoutes.get('/cohort/:slug/calendar.ics', async (c) => {
+  return c.redirect(`/cohort/${c.req.param('slug')}/sessions.ics`, 301)
+})
+
 cohortRoutes.get('/cohort/:slug/sessions.ics', async (c) => {
   const slug = c.req.param('slug')
   const db = getDb(c.env.DB)
