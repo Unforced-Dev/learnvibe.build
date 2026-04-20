@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { eq, desc, asc, and, like, or } from 'drizzle-orm'
+import { eq, desc, asc, and, like, or, ne, inArray } from 'drizzle-orm'
 import { Layout } from '../components/Layout'
 import { getDb } from '../db'
 import { applications, cohorts, lessons, users, enrollments, payments, feedback, emailLog, lessonProgress, projects, discussions, comments, apiKeys, memberships } from '../db/schema'
@@ -204,6 +204,28 @@ admin.get('/admin/applications', async (c) => {
 
   let allApps = await db.select().from(applications).orderBy(desc(applications.createdAt)).all()
 
+  // Diagnostic signals per application: does the applicant have a Clerk
+  // account, and do they have an enrollments row? Helps admin spot stuck
+  // cases at a glance ("they paid but have no account yet", etc.).
+  const appEmails = allApps.map(a => a.email.toLowerCase())
+  const userRows = appEmails.length > 0
+    ? await db.select({ email: users.email, id: users.id })
+        .from(users)
+        .where(inArray(users.email, appEmails))
+        .all()
+    : []
+  const userByEmail = new Map(userRows.map(u => [u.email.toLowerCase(), u.id]))
+  const enrollmentRows = userRows.length > 0
+    ? await db.select({ userId: enrollments.userId })
+        .from(enrollments)
+        .where(and(
+          inArray(enrollments.userId, userRows.map(u => u.id)),
+          ne(enrollments.status, 'dropped'),
+        ))
+        .all()
+    : []
+  const enrolledUserIds = new Set(enrollmentRows.map(e => e.userId))
+
   if (statusFilter !== 'all') {
     allApps = allApps.filter(a => a.status === statusFilter)
   }
@@ -266,14 +288,33 @@ admin.get('/admin/applications', async (c) => {
           <p style="color: var(--text-tertiary); margin-top: 2rem;">No applications found.</p>
         ) : (
           <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-            {allApps.map(app => (
+            {allApps.map(app => {
+              const userId = userByEmail.get(app.email.toLowerCase())
+              const hasAccount = !!userId
+              const hasEnrollment = userId ? enrolledUserIds.has(userId) : false
+              // Signal *only* when there's an actionable mismatch — quiet
+              // badges for the happy path, loud ones when something's stuck.
+              const isStuck = (app.status === 'enrolled' || (app.status === 'approved' && app.approvedAmountCents === 0))
+                && !hasAccount
+              const isInconsistent = app.status === 'enrolled' && hasAccount && !hasEnrollment
+              return (
               <a href={`/admin/applications/${app.id}`} class="admin-app-card">
                 <div style="display: flex; justify-content: space-between; align-items: start;">
                   <div>
                     <strong>{app.name}</strong>
                     <span style="font-size: 0.85rem; color: var(--text-tertiary); margin-left: 0.5rem;">{app.email}</span>
                   </div>
-                  <div style="display: flex; gap: 0.5rem; align-items: center;">
+                  <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                    {isStuck && (
+                      <span title="This applicant needs to sign up before they can access the cohort." style="font-size: 0.7rem; background: #fef9c3; color: #854d0e; border: 1px solid #fde047; border-radius: 999px; padding: 0.15rem 0.55rem; font-weight: 500;">
+                        ⏳ No account
+                      </span>
+                    )}
+                    {isInconsistent && (
+                      <span title="Status is 'enrolled' but no enrollment row exists — data inconsistency." style="font-size: 0.7rem; background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; border-radius: 999px; padding: 0.15rem 0.55rem; font-weight: 500;">
+                        ⚠ Orphan enrollment
+                      </span>
+                    )}
                     {app.requestedAmountCents != null && (
                       app.requestedAmountCents === 50000 && !app.requestedAmountReason ? (
                         <span style="font-size: 0.75rem; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; border-radius: 999px; padding: 0.15rem 0.55rem; font-weight: 500;">
@@ -306,7 +347,8 @@ admin.get('/admin/applications', async (c) => {
                   {app.cohortSlug && <> · {app.cohortSlug}</>}
                 </span>
               </a>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
