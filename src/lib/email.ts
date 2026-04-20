@@ -70,10 +70,13 @@ export function applicationReceivedEmail(name: string): { subject: string; html:
     html: emailWrapper(`
       <h2>Thanks for applying, ${firstName}</h2>
       <p>We've received your application for Cohort 1. We'll review it and get back to you soon — typically within a few days.</p>
-      <p>In the meantime, you can check your application status anytime:</p>
-      <a href="https://learnvibe.build/apply/status" class="email-cta">Check Your Status</a>
+      <div class="email-highlight">
+        <p style="margin: 0 0 0.5rem 0;"><strong>One quick step while you wait:</strong></p>
+        <p style="margin: 0;">Create your account using <strong>this same email address</strong> — that way when we approve you, your enrollment links automatically and you can jump right in.</p>
+      </div>
+      <a href="https://learnvibe.build/sign-up" class="email-cta">Create Your Account</a>
       <hr class="email-divider">
-      <p class="email-muted">If you have any questions, reply to this email or reach out at ag@unforced.dev.</p>
+      <p class="email-muted">You can also check your application status anytime at <a href="https://learnvibe.build/apply/status" style="color: #e8612a; text-decoration: none;">learnvibe.build/apply/status</a>. Questions? Reply to this email or reach out at ag@unforced.dev.</p>
     `),
   }
 }

@@ -265,13 +265,27 @@ pages.get('/apply', (c) => {
 })
 
 pages.get('/apply/success', (c) => {
+  const user = c.get('user')
   return c.html(
-    <Layout title="Application Received" user={c.get('user')}>
-      <div class="page-section success-message">
+    <Layout title="Application Received" user={user}>
+      <div class="page-section success-message" style="max-width: 600px; margin: 0 auto;">
         <h2>Application received</h2>
         <p class="lead">
-          Thank you for applying to Cohort 1. We'll review your application and get back to you soon.
+          Thank you for applying to Cohort 1. We'll review your application and get back to you soon — typically within a few days.
         </p>
+
+        {!user && (
+          <div style="margin-top: 2rem; padding: 1.5rem; background: var(--surface); border: 1px solid var(--accent); border-radius: 10px;">
+            <h3 style="font-family: var(--font-display); margin: 0 0 0.5rem 0; color: var(--text);">One more thing — create your account</h3>
+            <p style="margin: 0 0 1rem 0; color: var(--text-secondary); line-height: 1.6;">
+              Applying didn't create an account for you. Create one now (using <strong>the same email you applied with</strong>) so your enrollment links automatically when we approve you.
+            </p>
+            <a href="/sign-up" style="display: inline-block; background: var(--accent); color: white; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 500;">
+              Create Account →
+            </a>
+          </div>
+        )}
+
         <p style="margin-top: 1.5rem; color: var(--text-secondary);">
           You can check your application status anytime at <a href="/apply/status" style="color: var(--accent);">/apply/status</a>
         </p>
