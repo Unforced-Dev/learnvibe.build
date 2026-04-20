@@ -93,13 +93,19 @@ export async function autoEnrollOnSignup(
       linkedCount++
     }
 
-    // For $0 approvals, auto-enroll. Tier is just a default-amount
-    // preset for the admin form; what actually gates enrollment is
-    // the amount they were approved at.
-    const isSponsored =
+    // Auto-enroll cases:
+    //   (a) approved at $0 — sponsored, not yet enrolled
+    //   (b) status='enrolled' but no actual enrollment row exists
+    //       (e.g. someone else clicked their sponsored payment link
+    //       while logged in, marking their app enrolled but creating
+    //       the enrollment row under the wrong user)
+    // Tier is just a default-amount preset for the admin form; what
+    // actually gates enrollment is the amount they were approved at.
+    const isSponsoredApproved =
       app.status === 'approved' && app.approvedAmountCents === 0
+    const isMarkedEnrolledButOrphaned = app.status === 'enrolled'
 
-    if (isSponsored) {
+    if (isSponsoredApproved || isMarkedEnrolledButOrphaned) {
       // Find the cohort for this application's tier
       const cohort = await db.select().from(cohorts)
         .where(eq(cohorts.slug, 'cohort-1'))

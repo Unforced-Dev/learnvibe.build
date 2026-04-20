@@ -3,6 +3,7 @@ import { eq, and } from 'drizzle-orm'
 import { Layout } from '../components/Layout'
 import { getDb } from '../db'
 import { applications, cohorts, payments, enrollments, users } from '../db/schema'
+import { enrollUserAndNotify } from '../lib/enrollment'
 import { getStripe, isStripeConfigured, getApplicationAmount, formatCents } from '../lib/stripe'
 import { syncUser, timingSafeEqual } from '../lib/auth'
 import type { AppContext } from '../types'
@@ -133,52 +134,69 @@ payment.get('/payment/checkout/:applicationId', async (c) => {
 
   // Sponsored applicants ($0) — skip Stripe, auto-enroll
   if (amountCents === 0) {
-    // If user is logged in, create enrollment directly
-    if (user) {
-      // Create enrollment
-      const existingEnrollment = await db.select().from(enrollments)
-        .where(and(eq(enrollments.userId, user.id), eq(enrollments.cohortId, cohort.id)))
-        .get()
-
-      if (!existingEnrollment) {
-        await db.insert(enrollments).values({
-          userId: user.id,
-          cohortId: cohort.id,
-          status: 'active',
-        })
-      }
-
-      // Create $0 payment record
-      await db.insert(payments).values({
+    // Refuse to enroll someone other than the application's owner.
+    // Previously this enrolled whichever user was logged in, which
+    // meant admins clicking a sponsored link would enroll themselves.
+    if (user && user.email.toLowerCase() === app.email.toLowerCase()) {
+      // Idempotent enroll + welcome email via the shared helper.
+      await enrollUserAndNotify(db, c.env, {
         userId: user.id,
         applicationId: app.id,
         cohortId: cohort.id,
-        amountCents: 0,
-        status: 'completed',
-        paidAt: new Date().toISOString(),
       })
-
-      // Update application status
-      await db.update(applications).set({ status: 'enrolled' }).where(eq(applications.id, app.id))
-
+      // Record the $0 payment for completeness (idempotent guard via
+      // applicationId — most paths only ever insert once).
+      const existingPayment = await db.select().from(payments)
+        .where(eq(payments.applicationId, app.id)).get()
+      if (!existingPayment) {
+        await db.insert(payments).values({
+          userId: user.id,
+          applicationId: app.id,
+          cohortId: cohort.id,
+          amountCents: 0,
+          status: 'completed',
+          paidAt: new Date().toISOString(),
+        })
+      }
       return c.redirect('/payment/success?sponsored=true')
     }
 
-    // Not logged in — show them a page to create account first
+    // Either signed-out, or signed in as someone else (e.g. admin).
+    // Tell them to sign in/up with the application's email — the
+    // autoEnrollOnSignup hook in syncUser will then enroll them.
     return c.html(
-      <Layout title="Complete Your Enrollment" user={null}>
+      <Layout title="Complete Your Enrollment" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY}>
         <div class="page-section" style="max-width: 600px; margin: 0 auto; text-align: center; padding: 4rem 0;">
           <p class="section-label">Sponsored</p>
           <h2>You're In!</h2>
           <p class="lead" style="margin-top: 1rem;">
             Your spot in {cohort.title} has been sponsored — no payment needed.
           </p>
-          <p style="margin-top: 1.5rem; color: var(--text-secondary);">
-            Create your account to get started:
-          </p>
-          <a href="/sign-up" style="display: inline-block; margin-top: 1.5rem; background: var(--accent); color: white; padding: 0.85rem 2rem; border-radius: 8px; text-decoration: none; font-weight: 600;">
-            Create Account →
-          </a>
+          {user && user.email.toLowerCase() !== app.email.toLowerCase() ? (
+            <>
+              <p style="margin-top: 1.5rem; color: var(--text-secondary);">
+                You're signed in as <strong>{user.email}</strong>, but this enrollment is for <strong>{app.email}</strong>.
+                Sign out and sign back in (or create an account) using <strong>{app.email}</strong> to complete enrollment.
+              </p>
+              <div style="margin-top: 1.5rem; display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+                <a href="/sign-out" style="display: inline-block; border: 1px solid var(--border); padding: 0.85rem 1.5rem; border-radius: 8px; text-decoration: none; color: var(--text); font-weight: 500;">
+                  Sign Out
+                </a>
+                <a href="/sign-up" style="display: inline-block; background: var(--accent); color: white; padding: 0.85rem 2rem; border-radius: 8px; text-decoration: none; font-weight: 600;">
+                  Create Account →
+                </a>
+              </div>
+            </>
+          ) : (
+            <>
+              <p style="margin-top: 1.5rem; color: var(--text-secondary);">
+                Create an account using <strong>{app.email}</strong> — your enrollment will link automatically.
+              </p>
+              <a href="/sign-up" style="display: inline-block; margin-top: 1.5rem; background: var(--accent); color: white; padding: 0.85rem 2rem; border-radius: 8px; text-decoration: none; font-weight: 600;">
+                Create Account →
+              </a>
+            </>
+          )}
         </div>
       </Layout>
     )
