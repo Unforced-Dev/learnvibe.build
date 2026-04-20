@@ -115,7 +115,7 @@ export function applicationApprovedEmail(
       <p>Complete your payment to secure your spot:</p>
       <a href="${paymentUrl}" class="email-cta">Pay ${amountFormatted} & Enroll →</a>
       <hr class="email-divider">
-      <p class="email-muted">The course starts in April 2026. Once you've paid, you'll get access to the cohort platform and all the details. Questions? Just reply to this email.</p>
+      <p class="email-muted">If you haven't yet, also <a href="https://learnvibe.build/sign-up" style="color: #e8612a; text-decoration: none;">create your account</a> using <strong>this same email address</strong> — that way you can access the cohort site as soon as you're enrolled. The course starts in April 2026; we'll send more details as we get closer. Questions? Just reply.</p>
     `),
   }
 }
