@@ -44,7 +44,17 @@ const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
 
 export function renderMarkdown(markdown: string): string {
   const unsafe = marked.parse(markdown) as string
-  return sanitizeHtml(unsafe, SANITIZE_OPTIONS)
+  const safe = sanitizeHtml(unsafe, SANITIZE_OPTIONS)
+  return wrapCodeBlocksWithCopy(safe)
+}
+
+// Wrap each top-level <pre> in a container with a Copy button so users can
+// one-click copy prompts/snippets in lessons. Runs after sanitize-html so the
+// button isn't user-injectable from markdown — only our render layer adds it.
+function wrapCodeBlocksWithCopy(html: string): string {
+  return html.replace(/<pre(\s[^>]*)?>([\s\S]*?)<\/pre>/g, (match) => {
+    return `<div class="code-block-wrap"><button type="button" class="code-copy-btn" data-copy-code aria-label="Copy code">Copy</button>${match}</div>`
+  })
 }
 
 /**

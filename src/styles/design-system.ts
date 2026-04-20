@@ -390,6 +390,35 @@ footer a:hover { color: var(--accent); }
     border-radius: 0;
 }
 
+.code-block-wrap {
+    position: relative;
+    margin: 1.5rem 0;
+}
+.code-block-wrap > pre { margin: 0; }
+.code-copy-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.3rem 0.7rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: #e0e0e0;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s, background 0.15s, color 0.15s;
+    z-index: 1;
+}
+.code-block-wrap:hover .code-copy-btn,
+.code-copy-btn:focus { opacity: 1; }
+.code-copy-btn:hover { background: rgba(255, 255, 255, 0.15); color: #fff; }
+.code-copy-btn.copied { background: var(--accent); color: #fff; border-color: var(--accent); opacity: 1; }
+@media (hover: none) {
+    .code-copy-btn { opacity: 1; }
+}
+
 .lesson-content a {
     color: var(--accent);
     text-decoration: underline;

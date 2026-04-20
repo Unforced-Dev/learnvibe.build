@@ -33,6 +33,39 @@ export const Layout: FC<LayoutProps> = ({ title, description, noindex, user, cle
           rel="stylesheet"
         />
         <style dangerouslySetInnerHTML={{ __html: DESIGN_SYSTEM_CSS }} />
+        <script dangerouslySetInnerHTML={{ __html: `
+          document.addEventListener('click', function(e) {
+            var btn = e.target && e.target.closest ? e.target.closest('[data-copy-code]') : null;
+            if (!btn) return;
+            var wrap = btn.parentElement;
+            if (!wrap) return;
+            var pre = wrap.querySelector('pre');
+            if (!pre) return;
+            var text = (pre.textContent || '').replace(/^\\s+|\\s+$/g, '');
+            function done() {
+              btn.textContent = 'Copied!';
+              btn.classList.add('copied');
+              setTimeout(function(){ btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+            }
+            function fail() {
+              btn.textContent = 'Copy failed';
+              setTimeout(function(){ btn.textContent = 'Copy'; }, 2000);
+            }
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(text).then(done).catch(fail);
+            } else {
+              try {
+                var ta = document.createElement('textarea');
+                ta.value = text; ta.setAttribute('readonly', '');
+                ta.style.position = 'absolute'; ta.style.left = '-9999px';
+                document.body.appendChild(ta); ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                done();
+              } catch (err) { fail(); }
+            }
+          });
+        ` }} />
         {clerkPubKey && (
           <>
             <script async crossorigin="anonymous" data-clerk-publishable-key={clerkPubKey} src={CLERK_CDN}></script>
