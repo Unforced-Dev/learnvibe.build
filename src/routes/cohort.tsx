@@ -395,13 +395,15 @@ cohortRoutes.get('/cohort/:slug/calendar.ics', async (c) => {
 cohortRoutes.get('/cohort/:slug/sessions.ics', async (c) => {
   const slug = c.req.param('slug')
   const db = getDb(c.env.DB)
-  const user = c.get('user')
 
   const cohort = await db.select().from(cohorts).where(eq(cohorts.slug, slug)).get()
   if (!cohort) return c.notFound()
 
-  const hasAccess = await canAccessCohort(c.env.DB, user, cohort.id, cohort.isPublic)
-  if (!hasAccess) return c.text('Forbidden', 403)
+  // No auth gate — external calendar apps (Google Calendar, Apple Calendar,
+  // etc.) can't carry Clerk cookies when subscribing. The content (session
+  // times + Regen Hub address + meeting URL) is all already in every prep
+  // email sent to enrolled folks, so making the feed public-by-URL doesn't
+  // expose anything new. Future: token-per-user URLs for private feeds.
 
   if (!cohort.startDate) return c.text('Cohort has no start date set', 409)
 
