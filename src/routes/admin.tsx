@@ -431,17 +431,18 @@ admin.get('/admin/applications/:id', async (c) => {
               </div>
             </div>
             {/* Change pricing tier or set custom amount */}
-            <form method="post" action={`/api/admin/applications/${app.id}/tier`} style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #bbf7d0; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">
-              <label style="font-size: 0.85rem; color: #15803d;">Change tier:</label>
-              <select name="pricing_tier" style="padding: 0.4rem 0.75rem; border: 1px solid #bbf7d0; border-radius: 4px; font-size: 0.85rem; background: white;">
-                <option value="standard" selected={app.pricingTier === 'standard'}>Full Price ($500)</option>
-                <option value="discounted" selected={app.pricingTier === 'discounted'}>Discounted ($250)</option>
-                <option value="sponsor" selected={app.pricingTier === 'sponsor'}>Sponsored ($0)</option>
+            <form method="post" action={`/api/admin/applications/${app.id}/tier`} style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #bbf7d0; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;" data-tier-sync-form>
+              <label style="font-size: 0.85rem; color: #15803d;">Tier:</label>
+              <select name="pricing_tier" data-tier-select style="padding: 0.4rem 0.75rem; border: 1px solid #bbf7d0; border-radius: 4px; font-size: 0.85rem; background: white;">
+                <option value="standard" selected={app.pricingTier === 'standard'} data-tier-amount="500">Full Price ($500)</option>
+                <option value="discounted" selected={app.pricingTier === 'discounted'} data-tier-amount="250">Discounted ($250)</option>
+                <option value="sponsor" selected={app.pricingTier === 'sponsor'} data-tier-amount="0">Sponsored ($0)</option>
               </select>
-              <label style="font-size: 0.85rem; color: #15803d;">or custom $</label>
+              <label style="font-size: 0.85rem; color: #15803d;">Amount $</label>
               <input
                 type="number"
                 name="custom_amount_dollars"
+                data-amount-input
                 min="0"
                 step="1"
                 placeholder="e.g. 150"
@@ -457,7 +458,7 @@ admin.get('/admin/applications/:id', async (c) => {
               </button>
             </form>
             <p style="font-size: 0.75rem; color: #15803d; margin-top: 0.5rem; opacity: 0.8;">
-              Custom amount overrides the tier. Leave custom blank to use the tier's default.
+              Selecting a tier auto-fills the amount. Type a different amount to override (tier becomes a label, amount is what counts).
             </p>
           </div>
         )}
@@ -475,27 +476,28 @@ admin.get('/admin/applications/:id', async (c) => {
           <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border);">
             <h3 style="font-family: var(--font-display); margin-bottom: 1rem;">Actions</h3>
 
-            <form method="post" action={`/api/admin/applications/${app.id}/status`} style="display: flex; flex-direction: column; gap: 1rem;">
+            <form method="post" action={`/api/admin/applications/${app.id}/status`} style="display: flex; flex-direction: column; gap: 1rem;" data-tier-sync-form>
               <div class="form-group">
                 <label for="pricing_tier">Pricing Tier</label>
-                <select id="pricing_tier" name="pricing_tier" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem;">
-                  <option value="standard">Full Price ($500)</option>
-                  <option value="discounted">Discounted ($250)</option>
-                  <option value="sponsor">Sponsored ($0)</option>
+                <select id="pricing_tier" name="pricing_tier" data-tier-select style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem;">
+                  <option value="standard" data-tier-amount="500">Full Price ($500)</option>
+                  <option value="discounted" data-tier-amount="250">Discounted ($250)</option>
+                  <option value="sponsor" data-tier-amount="0">Sponsored ($0)</option>
                 </select>
-                <p style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-tertiary);">Or set a custom amount below (overrides tier).</p>
+                <p style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-tertiary);">Selecting a tier auto-fills the amount below. Edit the amount to override.</p>
               </div>
 
               <div class="form-group">
-                <label for="custom_amount_dollars">Custom Amount ($, optional)</label>
+                <label for="custom_amount_dollars">Amount ($)</label>
                 <input
                   type="number"
                   id="custom_amount_dollars"
                   name="custom_amount_dollars"
+                  data-amount-input
                   min="0"
                   step="1"
                   placeholder="e.g. 150"
-                  value={app.requestedAmountCents != null ? String(app.requestedAmountCents / 100) : ''}
+                  value={app.requestedAmountCents != null ? String(app.requestedAmountCents / 100) : '500'}
                   style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem;"
                 />
                 {app.requestedAmountCents != null && (
@@ -534,6 +536,23 @@ admin.get('/admin/applications/:id', async (c) => {
           </form>
         </div>
       </div>
+      <script dangerouslySetInnerHTML={{ __html: `
+        // Tier <-> amount sync: when admin picks a tier, fill the amount
+        // with the tier's default. Prevents the tier-amount mismatch that
+        // caused stale "Pay $100" emails to sponsored applicants.
+        document.querySelectorAll('[data-tier-sync-form]').forEach(function(form) {
+          var sel = form.querySelector('[data-tier-select]');
+          var input = form.querySelector('[data-amount-input]');
+          if (!sel || !input) return;
+          sel.addEventListener('change', function() {
+            var opt = sel.options[sel.selectedIndex];
+            var amount = opt && opt.getAttribute('data-tier-amount');
+            if (amount !== null && amount !== undefined) {
+              input.value = amount;
+            }
+          });
+        });
+      ` }} />
     </Layout>
   )
 })
@@ -1318,10 +1337,10 @@ admin.get('/admin/email', async (c) => {
           </>
         )}
 
-        <form method="post" action="/api/admin/email/broadcast" class="apply-form" style="margin-top: 2rem;">
+        <form method="post" action="/api/admin/email/broadcast" class="apply-form" style="margin-top: 2rem;" data-broadcast-form>
           <div class="form-group">
             <label for="audience">Send to</label>
-            <select id="audience" name="audience" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem;">
+            <select id="audience" name="audience" data-audience-select style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem;">
               <option value="ready_for_kickoff">Ready for kickoff (enrolled + approved-at-$0, excludes folks who owe money)</option>
               <option value="all_approved">All approved applicants (not yet enrolled)</option>
               <option value="all_enrolled">All enrolled members</option>
@@ -1329,7 +1348,22 @@ admin.get('/admin/email', async (c) => {
                 <option value={`cohort_${co.id}`}>Enrolled in {co.title}</option>
               ))}
               <option value="all_applicants">All applicants (including pending)</option>
+              <option value="custom">Custom list (paste emails below)</option>
             </select>
+          </div>
+
+          <div class="form-group" data-custom-emails-group style="display: none;">
+            <label for="custom_emails">Custom recipient emails</label>
+            <textarea
+              id="custom_emails"
+              name="custom_emails"
+              rows={4}
+              placeholder={"alice@example.com, bob@example.com\nor one per line"}
+              style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.95rem; font-family: var(--font-mono); line-height: 1.5;"
+            ></textarea>
+            <p style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-tertiary);">
+              Comma- or newline-separated. Up to 100 recipients.
+            </p>
           </div>
 
           <div class="form-group">
@@ -1358,6 +1392,25 @@ admin.get('/admin/email', async (c) => {
             </span>
           </div>
         </form>
+        <script dangerouslySetInnerHTML={{ __html: `
+          // Reveal the custom-emails textarea only when audience='custom'.
+          (function(){
+            var sel = document.querySelector('[data-audience-select]');
+            var grp = document.querySelector('[data-custom-emails-group]');
+            var ta = document.getElementById('custom_emails');
+            if (!sel || !grp) return;
+            function sync() {
+              var isCustom = sel.value === 'custom';
+              grp.style.display = isCustom ? 'block' : 'none';
+              if (ta) {
+                if (isCustom) ta.setAttribute('required', '');
+                else ta.removeAttribute('required');
+              }
+            }
+            sel.addEventListener('change', sync);
+            sync();
+          })();
+        ` }} />
       </div>
     </Layout>
   )
@@ -1420,6 +1473,19 @@ admin.post('/api/admin/email/broadcast', async (c) => {
   } else if (audience === 'all_applicants') {
     const apps = await db.select().from(applications).all()
     emails = apps.map(a => a.email)
+  } else if (audience === 'custom') {
+    // Parse the custom_emails textarea — comma OR newline separated.
+    // Lower-cased + trimmed + de-duped + lightly validated (must contain '@').
+    const raw = String(body.custom_emails || '')
+    const parsed = raw.split(/[,\n]+/).map(s => s.trim().toLowerCase()).filter(Boolean)
+    const valid = Array.from(new Set(parsed.filter(e => e.includes('@') && e.length <= 254)))
+    if (valid.length === 0) {
+      return c.redirect('/admin/email?error=no_recipients')
+    }
+    if (valid.length > 100) {
+      return c.redirect('/admin/email?error=too_many_recipients')
+    }
+    emails = valid
   } else if (audience === 'ready_for_kickoff') {
     // Enrolled (via app status OR enrollments table) + approved at $0.
     // Excludes anyone with status='approved' and approved_amount_cents > 0
@@ -1454,6 +1520,8 @@ admin.post('/api/admin/email/broadcast', async (c) => {
   if (audience === 'all_enrolled' || audience.startsWith('cohort_') || audience === 'ready_for_kickoff') broadcastAudience = 'enrolled'
   else if (audience === 'all_approved') broadcastAudience = 'approved'
   else if (audience === 'all_applicants') broadcastAudience = 'applicants'
+  // 'custom' falls through to 'generic' — admin should pick the most
+  // appropriate template by composing their own subject/body.
 
   const result = await sendBroadcast(c.env, emails, subject, htmlContent, broadcastAudience)
 
