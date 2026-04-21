@@ -444,6 +444,10 @@ footer a:hover { color: var(--accent); }
     border-radius: 10px;
     margin-bottom: 1rem;
 }
+.artifact-card-summary::-webkit-details-marker { display: none; }
+.artifact-card-summary { outline: none; }
+.artifact-card:not([open]) .artifact-toggle-icon { transform: rotate(-90deg); }
+.artifact-card:not([open]) { padding-bottom: 1rem; }
 .artifact-card-header {
     display: flex;
     justify-content: space-between;

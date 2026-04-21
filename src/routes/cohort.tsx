@@ -42,25 +42,30 @@ const ArtifactCard = ({
   const isOwner = currentUser?.id === a.userId
   const bodyHtml = a.bodyMarkdown ? renderMarkdown(a.bodyMarkdown) : ''
   return (
-    <div class="artifact-card" id={`artifact-${a.id}`}>
-      <div class="artifact-card-header">
-        <h4 class="artifact-card-title">{a.title || 'Untitled artifact'}</h4>
-        <div class="artifact-card-meta">
-          <span class={`artifact-badge ${badge.cls}`}>
-            <span aria-hidden="true">{badge.icon}</span> {badge.label}
-          </span>
-          {a.visibility === 'instructor' && (
-            <span class="artifact-visibility" title="Shared with instructors only">
-              🔒 Instructor only
+    <details open class="artifact-card" id={`artifact-${a.id}`} data-artifact-id={a.id}>
+      <summary class="artifact-card-summary" style="list-style: none; cursor: pointer;">
+        <div class="artifact-card-header">
+          <h4 class="artifact-card-title">
+            <span class="artifact-toggle-icon" aria-hidden="true" style="display: inline-block; font-size: 0.7em; margin-right: 0.4rem; color: var(--text-tertiary); transition: transform 0.15s;">▼</span>
+            {a.title || 'Untitled artifact'}
+          </h4>
+          <div class="artifact-card-meta">
+            <span class={`artifact-badge ${badge.cls}`}>
+              <span aria-hidden="true">{badge.icon}</span> {badge.label}
             </span>
-          )}
+            {a.visibility === 'instructor' && (
+              <span class="artifact-visibility" title="Shared with instructors only">
+                🔒 Instructor only
+              </span>
+            )}
+          </div>
         </div>
-      </div>
-      <div style="font-size: 0.85rem; color: var(--text-tertiary); margin-bottom: 0.5rem;">
-        Shared by <a href={`/members/${a.userId}`} style="color: var(--text-secondary); text-decoration: none; font-weight: 500;">{a.authorName || 'Anonymous'}</a>
-        {' · '}
-        {new Date(a.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-      </div>
+        <div style="font-size: 0.85rem; color: var(--text-tertiary); margin-top: 0.5rem;">
+          Shared by <a href={`/members/${a.userId}`} data-stop-toggle style="color: var(--text-secondary); text-decoration: none; font-weight: 500;">{a.authorName || 'Anonymous'}</a>
+          {' · '}
+          {new Date(a.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+        </div>
+      </summary>
       {bodyHtml && (
         <div class="artifact-card-body" dangerouslySetInnerHTML={{ __html: bodyHtml }} />
       )}
@@ -81,7 +86,7 @@ const ArtifactCard = ({
           </form>
         </div>
       )}
-    </div>
+    </details>
   )
 }
 
@@ -819,6 +824,35 @@ cohortRoutes.get('/cohort/:slug/week/:num', async (c) => {
               />
             ))}
           </div>
+
+          <script dangerouslySetInnerHTML={{ __html: `
+            (function(){
+              // Persist per-artifact collapsed state in localStorage. Default
+              // open; once a user collapses, it stays collapsed across visits.
+              var cards = document.querySelectorAll('details.artifact-card');
+              cards.forEach(function(card){
+                var id = card.getAttribute('data-artifact-id');
+                if (!id) return;
+                var key = 'lvb-artifact-collapsed-' + id;
+                try {
+                  if (localStorage.getItem(key) === '1') card.open = false;
+                } catch(e) {}
+                card.addEventListener('toggle', function(){
+                  try { localStorage.setItem(key, card.open ? '0' : '1'); } catch(e) {}
+                });
+              });
+              // Author-link inside summary should navigate, not toggle.
+              document.querySelectorAll('.artifact-card-summary [data-stop-toggle]').forEach(function(a){
+                a.addEventListener('click', function(e){ e.stopPropagation(); });
+              });
+              // If the URL hash targets an artifact (e.g. after editing), make
+              // sure it's expanded so the user lands on visible content.
+              if (window.location.hash && window.location.hash.indexOf('#artifact-') === 0) {
+                var target = document.querySelector(window.location.hash);
+                if (target && target.tagName === 'DETAILS') target.open = true;
+              }
+            })();
+          ` }} />
 
           {user && <ArtifactForm lessonId={lesson.id} returnPath={returnPath} editing={editing} />}
         </div>
