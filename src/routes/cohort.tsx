@@ -492,6 +492,26 @@ cohortRoutes.get('/cohort/:slug/week/:num', async (c) => {
   }
 
   const renderedContent = renderMarkdown(lesson.contentMarkdown)
+  const renderedTranscript = lesson.transcriptMarkdown ? renderMarkdown(lesson.transcriptMarkdown) : null
+
+  // Detect YouTube URLs for inline embed; fallback to a plain link otherwise.
+  function youtubeEmbed(url: string): string | null {
+    try {
+      const u = new URL(url)
+      let id: string | null = null
+      if (u.hostname === 'youtu.be') {
+        id = u.pathname.slice(1)
+      } else if (u.hostname.endsWith('youtube.com')) {
+        if (u.pathname === '/watch') id = u.searchParams.get('v')
+        else if (u.pathname.startsWith('/embed/')) id = u.pathname.slice('/embed/'.length)
+        else if (u.pathname.startsWith('/shorts/')) id = u.pathname.slice('/shorts/'.length)
+      }
+      return id && /^[a-zA-Z0-9_-]{6,20}$/.test(id) ? `https://www.youtube.com/embed/${id}` : null
+    } catch {
+      return null
+    }
+  }
+  const ytEmbedUrl = lesson.recordingUrl ? youtubeEmbed(lesson.recordingUrl) : null
 
   // Check if user has completed this lesson
   let isCompleted = false
@@ -583,6 +603,36 @@ cohortRoutes.get('/cohort/:slug/week/:num', async (c) => {
         )}
 
         <div class="lesson-content" dangerouslySetInnerHTML={{ __html: renderedContent }} />
+
+        {(lesson.recordingUrl || renderedTranscript) && (
+          <div style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border);">
+            <h3 style="font-family: var(--font-display); margin-bottom: 1rem;">Session recording</h3>
+            {lesson.recordingUrl && ytEmbedUrl && (
+              <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 10px; background: #000;">
+                <iframe
+                  src={ytEmbedUrl}
+                  style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowfullscreen
+                  title="Session recording"
+                ></iframe>
+              </div>
+            )}
+            {lesson.recordingUrl && !ytEmbedUrl && (
+              <a href={lesson.recordingUrl} target="_blank" rel="noopener" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.65rem 1.1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; text-decoration: none; color: var(--text); font-size: 0.95rem; font-weight: 500;">
+                ▶ Watch recording ↗
+              </a>
+            )}
+            {renderedTranscript && (
+              <details style="margin-top: 1.5rem; padding: 1rem 1.25rem; background: var(--surface); border: 1px solid var(--border); border-radius: 10px;">
+                <summary style="cursor: pointer; font-family: var(--font-display); font-weight: 600; color: var(--text); font-size: 0.95rem;">
+                  Read transcript
+                </summary>
+                <div class="lesson-content" style="margin-top: 1rem; font-size: 0.95rem;" dangerouslySetInnerHTML={{ __html: renderedTranscript }} />
+              </details>
+            )}
+          </div>
+        )}
 
         {user && (
           <div style="margin-top: 2rem; padding: 1.5rem; background: var(--surface); border-radius: 10px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">

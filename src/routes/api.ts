@@ -149,10 +149,18 @@ api.post('/api/admin/lessons/:id', async (c) => {
   const description = String(body.description || '').trim()
   const date = String(body.date || '').trim()
   const contentMarkdown = String(body.content_markdown || '')
+  const recordingUrlRaw = String(body.recording_url || '').trim()
+  const transcriptMarkdown = String(body.transcript_markdown || '').trim()
   const status = String(body.status || 'draft')
 
   if (!cohortId || !weekNumber || !title) {
     return c.redirect(`/admin/lessons/${id}/edit?error=missing_fields`)
+  }
+
+  // Validate recording URL is http(s) if provided.
+  const recordingUrl = recordingUrlRaw || null
+  if (recordingUrl && !/^https?:\/\//i.test(recordingUrl)) {
+    return c.redirect(`/admin/lessons/${id}/edit?error=invalid_recording_url`)
   }
 
   try {
@@ -165,6 +173,8 @@ api.post('/api/admin/lessons/:id', async (c) => {
         description: description || null,
         date: date || null,
         contentMarkdown,
+        recordingUrl,
+        transcriptMarkdown: transcriptMarkdown || null,
         status,
         sortOrder: weekNumber,
         updatedAt: new Date().toISOString(),

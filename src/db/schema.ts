@@ -68,6 +68,8 @@ export const lessons = sqliteTable('lessons', {
   description: text('description'),
   date: text('date'), // ISO date for the session
   contentMarkdown: text('content_markdown').notNull().default(''),
+  recordingUrl: text('recording_url'), // YouTube auto-embeds; any other URL renders as link
+  transcriptMarkdown: text('transcript_markdown'), // collapsible section below the lesson
   status: text('status').notNull().default('draft'), // 'draft' | 'published'
   sortOrder: integer('sort_order').notNull().default(0),
   createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),

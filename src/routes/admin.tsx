@@ -789,6 +789,32 @@ admin.get('/admin/lessons/:id/edit', async (c) => {
           </div>
 
           <div class="form-group">
+            <label for="recording_url">Recording URL (optional)</label>
+            <input
+              type="url"
+              id="recording_url"
+              name="recording_url"
+              value={lesson.recordingUrl || ''}
+              placeholder="https://youtube.com/watch?v=... or https://drive.google.com/..."
+              style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem;"
+            />
+            <p style="margin-top: 0.4rem; font-size: 0.8rem; color: var(--text-tertiary);">
+              YouTube URLs auto-embed. Other URLs render as a "Watch recording" link.
+            </p>
+          </div>
+
+          <div class="form-group">
+            <label for="transcript_markdown">Transcript (optional)</label>
+            <textarea
+              id="transcript_markdown"
+              name="transcript_markdown"
+              rows={10}
+              placeholder="Paste the session transcript here. Markdown supported. Renders in a collapsible section below the lesson."
+              style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.6;"
+            >{lesson.transcriptMarkdown || ''}</textarea>
+          </div>
+
+          <div class="form-group">
             <label for="status">Status</label>
             <select id="status" name="status" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem;">
               <option value="draft" selected={lesson.status === 'draft'}>Draft</option>

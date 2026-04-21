@@ -606,7 +606,7 @@ const TOOLS: ToolDef[] = [
   // ===== ADMIN TOOLS =====
   {
     name: 'admin_upsert_lesson',
-    description: 'ADMIN: create or update a lesson by (cohortSlug, weekNumber). Only cohort slug, week, and at least one field to set are needed.',
+    description: 'ADMIN: create or update a lesson by (cohortSlug, weekNumber). Only cohort slug, week, and at least one field to set are needed. recordingUrl auto-embeds when YouTube; transcriptMarkdown renders in a collapsible section below the lesson.',
     adminOnly: true,
     inputSchema: {
       type: 'object',
@@ -617,6 +617,8 @@ const TOOLS: ToolDef[] = [
         description: { type: 'string' },
         date: { type: 'string', description: 'ISO date (YYYY-MM-DD).' },
         contentMarkdown: { type: 'string' },
+        recordingUrl: { type: 'string', description: 'http(s) URL. YouTube auto-embeds; other URLs render as a "Watch recording" link.' },
+        transcriptMarkdown: { type: 'string', description: 'Full session transcript, markdown supported. Renders in a collapsible section below the lesson content.' },
         status: { type: 'string', enum: ['draft', 'published'] },
       },
       required: ['cohortSlug', 'weekNumber'],
@@ -628,6 +630,12 @@ const TOOLS: ToolDef[] = [
         .from(lessons)
         .where(and(eq(lessons.cohortId, cohort.id), eq(lessons.weekNumber, args.weekNumber)))
         .get()
+      // Validate recording URL shape if provided.
+      if (args.recordingUrl !== undefined && args.recordingUrl !== null && args.recordingUrl !== '') {
+        if (!/^https?:\/\//i.test(args.recordingUrl)) {
+          throw new Error('recordingUrl must start with http:// or https://')
+        }
+      }
       const now = new Date().toISOString()
       if (existing) {
         const updates: Record<string, any> = { updatedAt: now }
@@ -635,6 +643,8 @@ const TOOLS: ToolDef[] = [
         if (args.description !== undefined) updates.description = args.description
         if (args.date !== undefined) updates.date = args.date
         if (args.contentMarkdown !== undefined) updates.contentMarkdown = args.contentMarkdown
+        if (args.recordingUrl !== undefined) updates.recordingUrl = args.recordingUrl || null
+        if (args.transcriptMarkdown !== undefined) updates.transcriptMarkdown = args.transcriptMarkdown || null
         if (args.status !== undefined) updates.status = args.status
         await db.update(lessons).set(updates).where(eq(lessons.id, existing.id))
         return textResult({ action: 'updated', id: existing.id, weekNumber: args.weekNumber })
@@ -647,6 +657,8 @@ const TOOLS: ToolDef[] = [
         description: args.description ?? null,
         date: args.date ?? null,
         contentMarkdown: args.contentMarkdown ?? '',
+        recordingUrl: args.recordingUrl || null,
+        transcriptMarkdown: args.transcriptMarkdown || null,
         status: args.status ?? 'draft',
         sortOrder: args.weekNumber,
         createdAt: now,
