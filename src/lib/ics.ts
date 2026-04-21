@@ -9,6 +9,12 @@ const SESSION_TZID = 'America/Denver'
 const SESSION_VENUE_NAME = 'Regen Hub'
 const SESSION_VENUE_ADDRESS = '1515 Walnut St, 2nd Floor, Boulder, CO 80302'
 
+// Recurring coworking at Regen Hub — Thursdays 1–3pm MT. First occurrence is
+// the first Thursday on/after the cohort's first session date.
+const COWORKING_START_HOUR = 13
+const COWORKING_START_MIN = 0
+const COWORKING_DURATION_MIN = 120
+
 const VTIMEZONE_AMERICA_DENVER = [
   'BEGIN:VTIMEZONE',
   'TZID:America/Denver',
@@ -140,6 +146,44 @@ export function generateCohortICS(input: GenerateCohortICSInput): string {
     if (meetingUrl) {
       lines.push(foldLine(`URL:${escapeText(meetingUrl)}`))
     }
+    lines.push('STATUS:CONFIRMED')
+    lines.push('TRANSP:OPAQUE')
+    lines.push('END:VEVENT')
+  }
+
+  // ===== COWORKING SESSIONS =====
+  // Thursdays 1–3 PM MT at Regen Hub. First event = the first Thursday on or
+  // after firstSessionDate. Same weekly count as main sessions.
+  const [firstY, firstM, firstD] = firstSessionDate.split('-').map(Number)
+  const firstDate = new Date(Date.UTC(firstY, firstM - 1, firstD))
+  // getUTCDay: Sun=0, Mon=1, ... Thu=4
+  const dow = firstDate.getUTCDay()
+  const daysUntilThursday = (4 - dow + 7) % 7
+  const coworkingEndMin = COWORKING_START_HOUR * 60 + COWORKING_START_MIN + COWORKING_DURATION_MIN
+  const coworkingEndHour = Math.floor(coworkingEndMin / 60)
+  const coworkingEndMinOnly = coworkingEndMin % 60
+
+  for (let week = 1; week <= weeks; week++) {
+    const dayOffset = daysUntilThursday + (week - 1) * 7
+    const { year, month, day } = addDays(firstSessionDate, dayOffset)
+    const dtstart = formatLocal(year, month, day, COWORKING_START_HOUR, COWORKING_START_MIN)
+    const dtend = formatLocal(year, month, day, coworkingEndHour, coworkingEndMinOnly)
+    const uid = `lvb-${cohortSlug}-coworking-${week}@learnvibe.build`
+    const location = `${SESSION_VENUE_NAME} — ${SESSION_VENUE_ADDRESS}`
+    const description = [
+      `Open coworking at ${SESSION_VENUE_NAME}. Aaron and Jon are on-site 1–3 PM. Drop in to work on whatever you're building, ask questions, get unstuck, or just be in the room with other folks doing the work.`,
+      `${SESSION_VENUE_NAME}: ${SESSION_VENUE_ADDRESS}`,
+      `Dashboard: https://learnvibe.build/cohort/${cohortSlug}`,
+    ].join('\n\n')
+
+    lines.push('BEGIN:VEVENT')
+    lines.push(`UID:${uid}`)
+    lines.push(`DTSTAMP:${dtstamp}`)
+    lines.push(`DTSTART;TZID=${SESSION_TZID}:${dtstart}`)
+    lines.push(`DTEND;TZID=${SESSION_TZID}:${dtend}`)
+    lines.push(foldLine(`SUMMARY:${escapeText(`LVB Coworking — Week ${week}`)}`))
+    lines.push(foldLine(`DESCRIPTION:${escapeText(description)}`))
+    lines.push(foldLine(`LOCATION:${escapeText(location)}`))
     lines.push('STATUS:CONFIRMED')
     lines.push('TRANSP:OPAQUE')
     lines.push('END:VEVENT')
