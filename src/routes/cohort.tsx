@@ -602,7 +602,37 @@ cohortRoutes.get('/cohort/:slug/week/:num', async (c) => {
           </p>
         )}
 
-        <div class="lesson-content" dangerouslySetInnerHTML={{ __html: renderedContent }} />
+        <details open data-lesson-content-details data-lesson-key={`${slug}-week-${weekNum}`} style="margin-top: 0;">
+          <summary style="cursor: pointer; list-style: none; display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0; font-family: var(--font-mono); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-tertiary); user-select: none;">
+            <span class="lesson-toggle-icon" aria-hidden="true" style="display: inline-block; transition: transform 0.15s; font-size: 0.65rem;">▼</span>
+            <span class="lesson-toggle-label">Lesson</span>
+          </summary>
+          <div class="lesson-content" style="margin-top: 0.5rem;" dangerouslySetInnerHTML={{ __html: renderedContent }} />
+        </details>
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function(){
+            var d = document.querySelector('[data-lesson-content-details]');
+            if (!d) return;
+            var key = 'lvb-lesson-collapsed-' + d.getAttribute('data-lesson-key');
+            var icon = d.querySelector('.lesson-toggle-icon');
+            var label = d.querySelector('.lesson-toggle-label');
+            // Restore prior state (default: open)
+            try {
+              if (localStorage.getItem(key) === '1') {
+                d.open = false;
+              }
+            } catch(e) {}
+            function sync() {
+              if (icon) icon.style.transform = d.open ? 'rotate(0deg)' : 'rotate(-90deg)';
+              if (label) label.textContent = d.open ? 'Lesson' : 'Show lesson';
+            }
+            sync();
+            d.addEventListener('toggle', function(){
+              try { localStorage.setItem(key, d.open ? '0' : '1'); } catch(e) {}
+              sync();
+            });
+          })();
+        ` }} />
 
         {(lesson.recordingUrl || renderedTranscript) && (
           <div style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border);">
