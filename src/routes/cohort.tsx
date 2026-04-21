@@ -607,7 +607,17 @@ cohortRoutes.get('/cohort/:slug/week/:num', async (c) => {
             <span class="lesson-toggle-icon" aria-hidden="true" style="display: inline-block; transition: transform 0.15s; font-size: 0.65rem;">▼</span>
             <span class="lesson-toggle-label">Lesson</span>
           </summary>
-          <div class="lesson-content" style="margin-top: 0.5rem;" dangerouslySetInnerHTML={{ __html: renderedContent }} />
+          <div style="display: flex; justify-content: flex-end; margin-top: 0.5rem;">
+            <button
+              type="button"
+              data-copy-lesson
+              title="Copy the full lesson text to paste into your AI"
+              style="padding: 0.35rem 0.85rem; font-size: 0.8rem; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; color: var(--text-secondary); font-family: inherit;"
+            >
+              Copy lesson
+            </button>
+          </div>
+          <div class="lesson-content" data-lesson-body style="margin-top: 0.5rem;" dangerouslySetInnerHTML={{ __html: renderedContent }} />
         </details>
         <script dangerouslySetInnerHTML={{ __html: `
           (function(){
@@ -631,6 +641,42 @@ cohortRoutes.get('/cohort/:slug/week/:num', async (c) => {
               try { localStorage.setItem(key, d.open ? '0' : '1'); } catch(e) {}
               sync();
             });
+            // Copy-lesson button — same pattern as the transcript copy
+            var btn = d.querySelector('[data-copy-lesson]');
+            var body = d.querySelector('[data-lesson-body]');
+            if (btn && body) {
+              btn.addEventListener('click', function(e){
+                e.preventDefault();
+                // If clicked while collapsed, expand first so innerText is available
+                if (!d.open) d.open = true;
+                var text = body.innerText || body.textContent || '';
+                function done(){
+                  btn.textContent = 'Copied!';
+                  btn.style.color = 'var(--accent)';
+                  setTimeout(function(){
+                    btn.textContent = 'Copy lesson';
+                    btn.style.color = 'var(--text-secondary)';
+                  }, 2000);
+                }
+                function fail(){
+                  btn.textContent = 'Copy failed';
+                  setTimeout(function(){ btn.textContent = 'Copy lesson'; }, 2000);
+                }
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                  navigator.clipboard.writeText(text).then(done).catch(fail);
+                } else {
+                  try {
+                    var ta = document.createElement('textarea');
+                    ta.value = text; ta.setAttribute('readonly','');
+                    ta.style.position='absolute'; ta.style.left='-9999px';
+                    document.body.appendChild(ta); ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    done();
+                  } catch(err) { fail(); }
+                }
+              });
+            }
           })();
         ` }} />
 
