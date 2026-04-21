@@ -628,7 +628,52 @@ cohortRoutes.get('/cohort/:slug/week/:num', async (c) => {
                 <summary style="cursor: pointer; font-family: var(--font-display); font-weight: 600; color: var(--text); font-size: 0.95rem;">
                   Read transcript
                 </summary>
-                <div class="lesson-content" style="margin-top: 1rem; font-size: 0.95rem;" dangerouslySetInnerHTML={{ __html: renderedTranscript }} />
+                <div style="margin-top: 1rem; display: flex; justify-content: flex-end;">
+                  <button
+                    type="button"
+                    data-copy-transcript
+                    style="padding: 0.35rem 0.85rem; font-size: 0.8rem; background: var(--white); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; color: var(--text-secondary); font-family: inherit;"
+                  >
+                    Copy transcript
+                  </button>
+                </div>
+                <div class="lesson-content" data-transcript-body style="margin-top: 0.5rem; font-size: 0.95rem;" dangerouslySetInnerHTML={{ __html: renderedTranscript }} />
+                <script dangerouslySetInnerHTML={{ __html: `
+                  (function(){
+                    var btn = document.querySelector('[data-copy-transcript]');
+                    var body = document.querySelector('[data-transcript-body]');
+                    if (!btn || !body) return;
+                    btn.addEventListener('click', function(){
+                      var text = body.innerText || body.textContent || '';
+                      function done() {
+                        var orig = btn.textContent;
+                        btn.textContent = 'Copied!';
+                        btn.style.color = 'var(--accent)';
+                        setTimeout(function(){
+                          btn.textContent = 'Copy transcript';
+                          btn.style.color = 'var(--text-secondary)';
+                        }, 2000);
+                      }
+                      function fail() {
+                        btn.textContent = 'Copy failed';
+                        setTimeout(function(){ btn.textContent = 'Copy transcript'; }, 2000);
+                      }
+                      if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(text).then(done).catch(fail);
+                      } else {
+                        try {
+                          var ta = document.createElement('textarea');
+                          ta.value = text; ta.setAttribute('readonly', '');
+                          ta.style.position='absolute'; ta.style.left='-9999px';
+                          document.body.appendChild(ta); ta.select();
+                          document.execCommand('copy');
+                          document.body.removeChild(ta);
+                          done();
+                        } catch (e) { fail(); }
+                      }
+                    });
+                  })();
+                ` }} />
               </details>
             )}
           </div>
