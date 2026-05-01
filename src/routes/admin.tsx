@@ -1523,6 +1523,14 @@ admin.get('/admin/email', async (c) => {
   const failed = c.req.query('failed')
   const failedEmailsParam = c.req.query('failed_emails') || ''
   const failedEmails = failedEmailsParam ? failedEmailsParam.split(',').filter(Boolean) : []
+  const errorCode = c.req.query('error') || ''
+  const ERROR_MESSAGES: Record<string, string> = {
+    missing_fields: 'Subject and message are both required.',
+    no_recipients: 'No recipients matched that audience. Pick a different one or check your custom list.',
+    too_many_recipients: 'Custom list exceeds the 100-recipient cap. Trim it down or split the send.',
+    no_prior_broadcast: 'No prior broadcast found in the email log — "Since last broadcast" needs at least one previous broadcast send to compute the diff. Use "Ready for kickoff" instead.',
+  }
+  const errorMessage = errorCode && (ERROR_MESSAGES[errorCode] || `Something went wrong (${errorCode}).`)
 
   const cohortList = await db.select().from(cohorts).orderBy(asc(cohorts.id)).all()
   const emailConfigured = isEmailConfigured(c.env.RESEND_API_KEY)
@@ -1537,6 +1545,12 @@ admin.get('/admin/email', async (c) => {
         {!emailConfigured && (
           <div style="margin-top: 1rem; padding: 1rem; background: #fef3cd; border: 1px solid #ffc107; border-radius: 8px; font-size: 0.9rem; color: #856404;">
             Email is not configured yet. Set the <code>RESEND_API_KEY</code> secret to enable sending.
+          </div>
+        )}
+
+        {errorMessage && (
+          <div style="margin-top: 1rem; padding: 1rem; background: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px; font-size: 0.9rem; color: #991b1b;">
+            {errorMessage}
           </div>
         )}
 
@@ -1569,6 +1583,7 @@ admin.get('/admin/email', async (c) => {
             <label for="audience">Send to</label>
             <select id="audience" name="audience" data-audience-select style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem;">
               <option value="ready_for_kickoff">Ready for kickoff (enrolled + approved-at-$0, excludes folks who owe money)</option>
+              <option value="since_last_broadcast">Since last broadcast (ready-for-kickoff folks who didn't receive the most recent broadcast)</option>
               <option value="all_approved">All approved applicants (not yet enrolled)</option>
               <option value="all_enrolled">All enrolled members</option>
               {cohortList.map(co => (
@@ -1659,6 +1674,32 @@ admin.post('/api/admin/email/broadcast', async (c) => {
   // Render markdown to HTML
   const htmlContent = renderMarkdown(bodyMarkdown)
 
+  // Compute the "ready for kickoff" email set. Used by both the
+  // `ready_for_kickoff` and `since_last_broadcast` audiences.
+  // Enrolled (via app status OR enrollments table) + approved at $0.
+  // Excludes anyone with status='approved' and approved_amount_cents > 0
+  // (i.e. they still owe money) — Aaron handles those 1:1.
+  async function computeReadyForKickoff(): Promise<Set<string>> {
+    const enrolledApps = await db.select().from(applications)
+      .where(eq(applications.status, 'enrolled'))
+      .all()
+    const enrolledUsers = await db.select({ email: users.email })
+      .from(enrollments)
+      .innerJoin(users, eq(enrollments.userId, users.id))
+      .all()
+    const approvedZero = await db.select().from(applications)
+      .where(and(
+        eq(applications.status, 'approved'),
+        eq(applications.approvedAmountCents, 0),
+      ))
+      .all()
+    return new Set([
+      ...enrolledApps.map(a => a.email),
+      ...enrolledUsers.map(u => u.email),
+      ...approvedZero.map(a => a.email),
+    ])
+  }
+
   // Build recipient list based on audience
   let emails: string[] = []
 
@@ -1714,28 +1755,37 @@ admin.post('/api/admin/email/broadcast', async (c) => {
     }
     emails = valid
   } else if (audience === 'ready_for_kickoff') {
-    // Enrolled (via app status OR enrollments table) + approved at $0.
-    // Excludes anyone with status='approved' and approved_amount_cents > 0
-    // (i.e. they still owe money) — Aaron handles those 1:1.
-    const enrolledApps = await db.select().from(applications)
-      .where(eq(applications.status, 'enrolled'))
-      .all()
-    const enrolledUsers = await db.select({ email: users.email })
-      .from(enrollments)
-      .innerJoin(users, eq(enrollments.userId, users.id))
-      .all()
-    const approvedZero = await db.select().from(applications)
+    emails = Array.from(await computeReadyForKickoff())
+  } else if (audience === 'since_last_broadcast') {
+    // Ready-for-kickoff minus anyone who received the most recent broadcast.
+    // "Most recent broadcast" = the row with max(sent_at) where
+    // template='broadcast' and status='sent'. We then pull every recipient of
+    // that broadcast by matching on `subject` (every row of one broadcast
+    // shares one subject). Subject-match also catches manual resends of the
+    // same broadcast (e.g. via admin_send_email).
+    const lastBroadcast = await db.select()
+      .from(emailLog)
       .where(and(
-        eq(applications.status, 'approved'),
-        eq(applications.approvedAmountCents, 0),
+        eq(emailLog.template, 'broadcast'),
+        eq(emailLog.status, 'sent'),
+      ))
+      .orderBy(desc(emailLog.sentAt))
+      .limit(1)
+      .get()
+    if (!lastBroadcast) {
+      return c.redirect('/admin/email?error=no_prior_broadcast')
+    }
+    const recipients = await db.select({ to: emailLog.to })
+      .from(emailLog)
+      .where(and(
+        eq(emailLog.template, 'broadcast'),
+        eq(emailLog.status, 'sent'),
+        eq(emailLog.subject, lastBroadcast.subject),
       ))
       .all()
-    const allEmails = new Set([
-      ...enrolledApps.map(a => a.email),
-      ...enrolledUsers.map(u => u.email),
-      ...approvedZero.map(a => a.email),
-    ])
-    emails = Array.from(allEmails)
+    const alreadySent = new Set(recipients.map(r => r.to.toLowerCase()))
+    const ready = await computeReadyForKickoff()
+    emails = Array.from(ready).filter(e => !alreadySent.has(e.toLowerCase()))
   }
 
   if (emails.length === 0) {
@@ -1744,7 +1794,7 @@ admin.post('/api/admin/email/broadcast', async (c) => {
 
   // Map the admin-facing audience label to the email template's audience hint.
   let broadcastAudience: BroadcastAudience = 'generic'
-  if (audience === 'all_enrolled' || audience.startsWith('cohort_') || audience === 'ready_for_kickoff') broadcastAudience = 'enrolled'
+  if (audience === 'all_enrolled' || audience.startsWith('cohort_') || audience === 'ready_for_kickoff' || audience === 'since_last_broadcast') broadcastAudience = 'enrolled'
   else if (audience === 'all_approved') broadcastAudience = 'approved'
   else if (audience === 'all_applicants') broadcastAudience = 'applicants'
   // 'custom' falls through to 'generic' — admin should pick the most
