@@ -199,8 +199,39 @@ admin.get('/admin/applications', async (c) => {
   const user = c.get('user')!
   const db = getDb(c.env.DB)
 
+  // ===== Filters =====
+  // URL is the source of truth — admin can bookmark common views like
+  // /admin/applications?status=pending&account=missing for "approved-at-$0
+  // folks who still need to sign up", etc.
   const statusFilter = c.req.query('status') || 'all'
   const search = c.req.query('q')?.trim() || ''
+  const cohortFilter = c.req.query('cohort')?.trim() || ''
+  const tierFilter = c.req.query('tier')?.trim() || ''
+  const accountFilter = c.req.query('account')?.trim() || ''
+  const fromFilter = c.req.query('from')?.trim() || ''
+  const toFilter = c.req.query('to')?.trim() || ''
+  const pwycOnly = c.req.query('pwyc') === '1'
+
+  const isValidDate = (s: string) => /^\d{4}-\d{2}-\d{2}$/.test(s)
+
+  // Active-filters summary used to render the "preserve params on chip click"
+  // helper and the "Reset" link.
+  const extraParams: Record<string, string> = {}
+  if (search) extraParams.q = search
+  if (cohortFilter) extraParams.cohort = cohortFilter
+  if (tierFilter) extraParams.tier = tierFilter
+  if (accountFilter) extraParams.account = accountFilter
+  if (isValidDate(fromFilter)) extraParams.from = fromFilter
+  if (isValidDate(toFilter)) extraParams.to = toFilter
+  if (pwycOnly) extraParams.pwyc = '1'
+  function statusChipHref(status: string): string {
+    const params = new URLSearchParams(extraParams)
+    if (status !== 'all') params.set('status', status)
+    const qs = params.toString()
+    return qs ? `/admin/applications?${qs}` : '/admin/applications'
+  }
+  const filtersBeyondStatus = Object.keys(extraParams).length > 0
+  const anyFilterActive = filtersBeyondStatus || statusFilter !== 'all'
 
   let allApps = await db.select().from(applications).orderBy(desc(applications.createdAt)).all()
 
@@ -226,6 +257,15 @@ admin.get('/admin/applications', async (c) => {
     : []
   const enrolledUserIds = new Set(enrollmentRows.map(e => e.userId))
 
+  // Cohort dropdown options pulled from the cohorts table — keeps the filter
+  // current as cohorts are added without a code change.
+  const cohortList = await db.select({ slug: cohorts.slug, title: cohorts.title })
+    .from(cohorts).orderBy(asc(cohorts.id)).all()
+
+  // ===== Apply filters in-memory =====
+  // Existing dataset is small (~30 rows during Cohort 1) and the
+  // account/enrollment computation is already done above. Pushing all of
+  // these to D1 would be more code without a real perf win at this scale.
   if (statusFilter !== 'all') {
     allApps = allApps.filter(a => a.status === statusFilter)
   }
@@ -235,6 +275,28 @@ admin.get('/admin/applications', async (c) => {
       a.name.toLowerCase().includes(q) || a.email.toLowerCase().includes(q) || a.background.toLowerCase().includes(q)
     )
   }
+  if (cohortFilter) {
+    allApps = allApps.filter(a => a.cohortSlug === cohortFilter)
+  }
+  if (tierFilter) {
+    allApps = allApps.filter(a => a.pricingTier === tierFilter)
+  }
+  if (accountFilter === 'missing') {
+    allApps = allApps.filter(a => !userByEmail.has(a.email.toLowerCase()))
+  } else if (accountFilter === 'present') {
+    allApps = allApps.filter(a => userByEmail.has(a.email.toLowerCase()))
+  }
+  if (isValidDate(fromFilter)) {
+    const fromIso = `${fromFilter}T00:00:00.000Z`
+    allApps = allApps.filter(a => a.createdAt >= fromIso)
+  }
+  if (isValidDate(toFilter)) {
+    const toIso = `${toFilter}T23:59:59.999Z`
+    allApps = allApps.filter(a => a.createdAt <= toIso)
+  }
+  if (pwycOnly) {
+    allApps = allApps.filter(a => a.requestedAmountCents != null)
+  }
 
   return c.html(
     <Layout title="Applications" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY} noindex>
@@ -243,24 +305,88 @@ admin.get('/admin/applications', async (c) => {
         <p class="section-label">Applications</p>
         <h2>Applications ({allApps.length})</h2>
 
-        {/* Search */}
+        {/* Search — preserves all other filters as hidden inputs so the
+            search submits inside the active view rather than resetting it. */}
         <form method="get" action="/admin/applications" style="margin-top: 1.5rem;">
           {statusFilter !== 'all' && <input type="hidden" name="status" value={statusFilter} />}
+          {cohortFilter && <input type="hidden" name="cohort" value={cohortFilter} />}
+          {tierFilter && <input type="hidden" name="tier" value={tierFilter} />}
+          {accountFilter && <input type="hidden" name="account" value={accountFilter} />}
+          {isValidDate(fromFilter) && <input type="hidden" name="from" value={fromFilter} />}
+          {isValidDate(toFilter) && <input type="hidden" name="to" value={toFilter} />}
+          {pwycOnly && <input type="hidden" name="pwyc" value="1" />}
           <input type="text" name="q" value={search} placeholder="Search by name, email, or background..."
             style="width: 100%; padding: 0.6rem 1rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.9rem;" />
         </form>
 
-        {/* Status filters */}
-        <div style="margin: 1rem 0; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        {/* Status quick-filter chips. Each chip preserves all other active
+            filters so toggling status doesn't drop the cohort / tier / etc. */}
+        <div style="margin: 1rem 0 0.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
           {['all', 'pending', 'approved', 'enrolled', 'rejected'].map(status => (
             <a
-              href={`/admin/applications${status === 'all' ? '' : `?status=${status}`}${search ? `${status === 'all' ? '?' : '&'}q=${encodeURIComponent(search)}` : ''}`}
+              href={statusChipHref(status)}
               style={`padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.85rem; text-decoration: none; ${statusFilter === status ? 'background: var(--accent); color: white;' : 'background: var(--surface); color: var(--text-secondary);'}`}
             >
               {status.charAt(0).toUpperCase() + status.slice(1)}
             </a>
           ))}
         </div>
+
+        {/* Secondary filter row — bookmarkable views like
+            /admin/applications?account=missing&status=approved. */}
+        <form method="get" action="/admin/applications" style="margin: 0.75rem 0 1rem; padding: 0.85rem 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.6rem 0.85rem; align-items: end;">
+          {/* Preserve status + q on submit so the secondary filter row
+              composes with whatever quick-filter the admin already picked. */}
+          {statusFilter !== 'all' && <input type="hidden" name="status" value={statusFilter} />}
+          {search && <input type="hidden" name="q" value={search} />}
+          <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+            <label for="filter-cohort" style="font-family: var(--font-mono); font-size: 0.68rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Cohort</label>
+            <select id="filter-cohort" name="cohort" style="padding: 0.4rem 0.55rem; border: 1px solid var(--border); border-radius: 5px; font-size: 0.85rem; background: var(--white);">
+              <option value="">All</option>
+              {cohortList.map(co => (
+                <option value={co.slug} selected={cohortFilter === co.slug}>{co.title}</option>
+              ))}
+            </select>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+            <label for="filter-tier" style="font-family: var(--font-mono); font-size: 0.68rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Tier</label>
+            <select id="filter-tier" name="tier" style="padding: 0.4rem 0.55rem; border: 1px solid var(--border); border-radius: 5px; font-size: 0.85rem; background: var(--white);">
+              <option value="">All</option>
+              <option value="pending" selected={tierFilter === 'pending'}>Pending</option>
+              <option value="standard" selected={tierFilter === 'standard'}>Full Price</option>
+              <option value="discounted" selected={tierFilter === 'discounted'}>Discounted</option>
+              <option value="sponsor" selected={tierFilter === 'sponsor'}>Sponsored</option>
+            </select>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+            <label for="filter-account" style="font-family: var(--font-mono); font-size: 0.68rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Account</label>
+            <select id="filter-account" name="account" style="padding: 0.4rem 0.55rem; border: 1px solid var(--border); border-radius: 5px; font-size: 0.85rem; background: var(--white);">
+              <option value="">All</option>
+              <option value="missing" selected={accountFilter === 'missing'}>No account</option>
+              <option value="present" selected={accountFilter === 'present'}>Has account</option>
+            </select>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+            <label for="filter-from" style="font-family: var(--font-mono); font-size: 0.68rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Applied from</label>
+            <input id="filter-from" type="date" name="from" value={fromFilter} style="padding: 0.35rem 0.55rem; border: 1px solid var(--border); border-radius: 5px; font-size: 0.85rem; background: var(--white); font-family: inherit;" />
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+            <label for="filter-to" style="font-family: var(--font-mono); font-size: 0.68rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Applied to</label>
+            <input id="filter-to" type="date" name="to" value={toFilter} style="padding: 0.35rem 0.55rem; border: 1px solid var(--border); border-radius: 5px; font-size: 0.85rem; background: var(--white); font-family: inherit;" />
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem; padding-bottom: 0.1rem;">
+            <label for="filter-pwyc" style="display: flex; align-items: center; gap: 0.35rem; font-size: 0.85rem; color: var(--text-secondary); cursor: pointer;">
+              <input id="filter-pwyc" type="checkbox" name="pwyc" value="1" checked={pwycOnly} />
+              PWYC only
+            </label>
+          </div>
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <button type="submit" style="padding: 0.4rem 0.85rem; background: var(--accent); color: white; border: 0; border-radius: 5px; font-size: 0.85rem; font-weight: 500; cursor: pointer;">Apply</button>
+            {anyFilterActive && (
+              <a href="/admin/applications" style="font-size: 0.8rem; color: var(--text-tertiary); text-decoration: none;">Reset</a>
+            )}
+          </div>
+        </form>
 
         {/* Bulk actions for pending apps */}
         {statusFilter === 'pending' && allApps.length > 0 && (
@@ -285,7 +411,16 @@ admin.get('/admin/applications', async (c) => {
         )}
 
         {allApps.length === 0 ? (
-          <p style="color: var(--text-tertiary); margin-top: 2rem;">No applications found.</p>
+          <div style="margin-top: 2rem; padding: 2rem 1.5rem; text-align: center; color: var(--text-tertiary); background: var(--surface); border: 1px dashed var(--border); border-radius: 8px;">
+            {anyFilterActive ? (
+              <>
+                <p style="margin: 0 0 0.5rem 0;">No applications match these filters.</p>
+                <p style="margin: 0; font-size: 0.85rem;"><a href="/admin/applications" style="color: var(--accent);">Reset filters</a> to see everything.</p>
+              </>
+            ) : (
+              <p style="margin: 0;">No applications yet.</p>
+            )}
+          </div>
         ) : (
           <div style="display: flex; flex-direction: column; gap: 0.75rem;">
             {allApps.map(app => {
