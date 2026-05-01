@@ -433,6 +433,7 @@ admin.get('/admin/applications', async (c) => {
                 && !hasAccount
               const isInconsistent = app.status === 'enrolled' && hasAccount && !hasEnrollment
               return (
+              <div style="display: flex; flex-direction: column; gap: 0.2rem;">
               <a href={`/admin/applications/${app.id}`} class="admin-app-card">
                 <div style="display: flex; justify-content: space-between; align-items: start;">
                   <div>
@@ -482,6 +483,15 @@ admin.get('/admin/applications', async (c) => {
                   {app.cohortSlug && <> · {app.cohortSlug}</>}
                 </span>
               </a>
+              {/* Foot row: secondary action links. Only when an account is
+                  linked do we offer the jump-to-profile shortcut, so admin
+                  doesn't have to bounce through /admin/accounts to find them. */}
+              {userId && (
+                <div style="padding: 0 1.25rem; font-size: 0.78rem; color: var(--text-tertiary); display: flex; gap: 0.6rem; flex-wrap: wrap;">
+                  <a href={`/admin/accounts/${userId}`} style="color: var(--text-tertiary); text-decoration: none;">View linked account &rarr;</a>
+                </div>
+              )}
+              </div>
               )
             })}
           </div>
@@ -763,21 +773,30 @@ admin.get('/admin/lessons', async (c) => {
           </a>
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 2rem;">
-          {allLessons.map(({ lesson, cohort }) => (
-            <a href={`/admin/lessons/${lesson.id}/edit`} style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: var(--surface); border-radius: 8px; text-decoration: none; color: inherit; transition: background 0.2s;" class="admin-app-card">
-              <div>
-                <strong>Week {lesson.weekNumber}: {lesson.title}</strong>
-                <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-tertiary); margin-left: 0.75rem;">
-                  {cohort.slug}
+        {allLessons.length === 0 ? (
+          <div style="margin-top: 2rem; padding: 2.5rem 1.5rem; text-align: center; color: var(--text-tertiary); background: var(--surface); border: 1px dashed var(--border); border-radius: 8px;">
+            <p style="margin: 0 0 0.75rem 0;">No lessons yet.</p>
+            <p style="margin: 0; font-size: 0.85rem;">
+              <a href="/admin/lessons/new" style="color: var(--accent);">Create the first lesson →</a>
+            </p>
+          </div>
+        ) : (
+          <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 2rem;">
+            {allLessons.map(({ lesson, cohort }) => (
+              <a href={`/admin/lessons/${lesson.id}/edit`} style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: var(--surface); border-radius: 8px; text-decoration: none; color: inherit; transition: background 0.2s;" class="admin-app-card">
+                <div>
+                  <strong>Week {lesson.weekNumber}: {lesson.title}</strong>
+                  <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-tertiary); margin-left: 0.75rem;">
+                    {cohort.slug}
+                  </span>
+                </div>
+                <span class={`badge badge-${lesson.status === 'published' ? 'active' : 'pending'}`}>
+                  {lesson.status}
                 </span>
-              </div>
-              <span class={`badge badge-${lesson.status === 'published' ? 'active' : 'pending'}`}>
-                {lesson.status}
-              </span>
-            </a>
-          ))}
-        </div>
+              </a>
+            ))}
+          </div>
+        )}
       </div>
     </Layout>
   )
@@ -995,8 +1014,11 @@ admin.get('/admin/feedback', async (c) => {
         </p>
 
         {allFeedback.length === 0 ? (
-          <div style="margin-top: 3rem; text-align: center; color: var(--text-tertiary);">
-            No feedback yet. Share the form: <a href="/feedback" style="color: var(--accent);">/feedback</a>
+          <div style="margin-top: 2rem; padding: 2.5rem 1.5rem; text-align: center; color: var(--text-tertiary); background: var(--surface); border: 1px dashed var(--border); border-radius: 8px;">
+            <p style="margin: 0 0 0.75rem 0;">No feedback yet.</p>
+            <p style="margin: 0; font-size: 0.85rem;">
+              Share the form: <a href="/feedback" style="color: var(--accent);">/feedback</a>
+            </p>
           </div>
         ) : (
           <div style="margin-top: 2rem; display: flex; flex-direction: column; gap: 1.5rem;">
@@ -1120,6 +1142,18 @@ admin.get('/admin/accounts', async (c) => {
           ))}
         </div>
 
+        {allUsers.length === 0 ? (
+          <div style="margin-top: 1rem; padding: 2.5rem 1.5rem; text-align: center; color: var(--text-tertiary); background: var(--surface); border: 1px dashed var(--border); border-radius: 8px;">
+            {(search || roleFilter !== 'all') ? (
+              <>
+                <p style="margin: 0 0 0.5rem 0;">No accounts match these filters.</p>
+                <p style="margin: 0; font-size: 0.85rem;"><a href="/admin/accounts" style="color: var(--accent);">Reset filters</a> to see everything.</p>
+              </>
+            ) : (
+              <p style="margin: 0;">No accounts yet. Sign-ups via Clerk will appear here once they happen.</p>
+            )}
+          </div>
+        ) : (
         <div style="margin-top: 1rem; overflow-x: auto;">
           <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
             <thead>
@@ -1201,6 +1235,7 @@ admin.get('/admin/accounts', async (c) => {
             </tbody>
           </table>
         </div>
+        )}
       </div>
     </Layout>
   )
