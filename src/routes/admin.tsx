@@ -399,7 +399,8 @@ admin.get('/admin/applications', async (c) => {
                 <option value="discounted">Discounted ($250)</option>
                 <option value="sponsor">Sponsored ($0)</option>
               </select>
-              <button type="submit" name="action" value="approve" style="padding: 0.4rem 1rem; background: #16a34a; color: white; border: none; border-radius: 4px; font-size: 0.85rem; cursor: pointer;">
+              <button type="submit" name="action" value="approve" style="padding: 0.4rem 1rem; background: #16a34a; color: white; border: none; border-radius: 4px; font-size: 0.85rem; cursor: pointer;"
+                onclick={`return confirm('Approve ${allApps.length} application${allApps.length === 1 ? '' : 's'}? This will send approval emails immediately.')`}>
                 Approve All ({allApps.length})
               </button>
               <button type="submit" name="action" value="reject" style="padding: 0.4rem 1rem; background: #dc2626; color: white; border: none; border-radius: 4px; font-size: 0.85rem; cursor: pointer;"
