@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { eq, desc, asc, and, like, or, ne, inArray } from 'drizzle-orm'
+import { eq, desc, asc, and, gte, lte, like, or, ne, inArray } from 'drizzle-orm'
 import { Layout } from '../components/Layout'
 import { getDb } from '../db'
 import { applications, cohorts, lessons, users, enrollments, payments, feedback, emailLog, lessonProgress, projects, discussions, comments, apiKeys, memberships } from '../db/schema'
@@ -1222,8 +1222,6 @@ admin.get('/admin/emails', async (c) => {
   const user = c.get('user')!
   const db = getDb(c.env.DB)
 
-  const logs = await db.select().from(emailLog).orderBy(desc(emailLog.sentAt)).limit(200).all()
-
   const templateLabels: Record<string, string> = {
     application_received: 'App Received',
     application_approved: 'Approved',
@@ -1232,6 +1230,40 @@ admin.get('/admin/emails', async (c) => {
     enrollment_confirmed: 'Enrollment',
     broadcast: 'Broadcast',
   }
+  const statusLabels: Record<string, string> = { sent: 'Sent', failed: 'Failed' }
+  const ROW_LIMIT = 500
+
+  // ===== Filters =====
+  // Read query params and build a drizzle where-clause stack. URL is the
+  // source of truth so admin can bookmark common views (e.g. ?status=failed).
+  // Date inputs are HTML5 yyyy-mm-dd strings; we compare against ISO sent_at
+  // strings, which sort lexicographically. The "to" date is interpreted as
+  // end-of-day so a single-day range works as expected.
+  const fTemplate = (c.req.query('template') || '').trim()
+  const fStatus = (c.req.query('status') || '').trim()
+  const fFrom = (c.req.query('from') || '').trim()
+  const fTo = (c.req.query('to') || '').trim()
+  const fQ = (c.req.query('q') || '').trim()
+
+  const isValidDate = (s: string) => /^\d{4}-\d{2}-\d{2}$/.test(s)
+
+  const conds: any[] = []
+  if (fTemplate && templateLabels[fTemplate]) conds.push(eq(emailLog.template, fTemplate))
+  if (fStatus === 'sent' || fStatus === 'failed') conds.push(eq(emailLog.status, fStatus))
+  if (isValidDate(fFrom)) conds.push(gte(emailLog.sentAt, `${fFrom}T00:00:00.000Z`))
+  if (isValidDate(fTo)) conds.push(lte(emailLog.sentAt, `${fTo}T23:59:59.999Z`))
+  if (fQ) {
+    // %escape the LIKE wildcards the user typed (defensive — just in case).
+    const safe = fQ.replace(/[\\%_]/g, '\\$&').toLowerCase()
+    conds.push(like(emailLog.to, `%${safe}%`))
+  }
+  const filtersActive = conds.length > 0
+
+  const baseQuery = filtersActive
+    ? db.select().from(emailLog).where(and(...conds))
+    : db.select().from(emailLog)
+  const logs = await baseQuery.orderBy(desc(emailLog.sentAt)).limit(ROW_LIMIT).all()
+  const limitHit = logs.length >= ROW_LIMIT
 
   return c.html(
     <Layout title="Email Log" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY} noindex>
@@ -1252,12 +1284,65 @@ admin.get('/admin/emails', async (c) => {
           </div>
         </div>
 
+        {/* Filter form — submits as GET so URL captures the view (bookmarkable). */}
+        <form method="get" action="/admin/emails" style="margin-top: 1.75rem; padding: 1rem 1.25rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.75rem 1rem; align-items: end;">
+          <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+            <label for="filter-template" style="font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Template</label>
+            <select id="filter-template" name="template" style="padding: 0.45rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.9rem; background: var(--white);">
+              <option value="">All</option>
+              {Object.entries(templateLabels).map(([key, label]) => (
+                <option value={key} selected={fTemplate === key}>{label}</option>
+              ))}
+            </select>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+            <label for="filter-status" style="font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Status</label>
+            <select id="filter-status" name="status" style="padding: 0.45rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.9rem; background: var(--white);">
+              <option value="">All</option>
+              <option value="sent" selected={fStatus === 'sent'}>Sent</option>
+              <option value="failed" selected={fStatus === 'failed'}>Failed</option>
+            </select>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+            <label for="filter-from" style="font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">From</label>
+            <input id="filter-from" type="date" name="from" value={fFrom} style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.9rem; background: var(--white); font-family: inherit;" />
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+            <label for="filter-to" style="font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">To</label>
+            <input id="filter-to" type="date" name="to" value={fTo} style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.9rem; background: var(--white); font-family: inherit;" />
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.3rem; grid-column: span 2;">
+            <label for="filter-q" style="font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Recipient contains</label>
+            <input id="filter-q" type="text" name="q" value={fQ} placeholder="e.g. @example.com or jane@" style="padding: 0.45rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.9rem; background: var(--white); font-family: var(--font-mono);" />
+          </div>
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <button type="submit" style="padding: 0.5rem 1rem; background: var(--accent); color: white; border: 0; border-radius: 6px; font-size: 0.9rem; font-weight: 500; cursor: pointer;">Apply</button>
+            {filtersActive && (
+              <a href="/admin/emails" style="font-size: 0.85rem; color: var(--text-tertiary); text-decoration: none;">Reset</a>
+            )}
+          </div>
+        </form>
+
+        <div style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-secondary); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+          <span>
+            {filtersActive ? <strong>{logs.length}</strong> : logs.length} {logs.length === 1 ? 'match' : 'matches'}
+            {filtersActive ? ' for current filters' : ''}{limitHit ? ` (limit ${ROW_LIMIT} reached — narrow filters to see older rows)` : ''}.
+          </span>
+        </div>
+
         {logs.length === 0 ? (
-          <div style="margin-top: 3rem; text-align: center; color: var(--text-tertiary);">
-            <p>No emails logged yet. Emails sent going forward will appear here.</p>
+          <div style="margin-top: 2rem; padding: 2.5rem 1.5rem; text-align: center; color: var(--text-tertiary); background: var(--surface); border: 1px dashed var(--border); border-radius: 8px;">
+            {filtersActive ? (
+              <>
+                <p style="margin: 0 0 0.5rem 0;">No emails match those filters.</p>
+                <p style="margin: 0; font-size: 0.85rem;"><a href="/admin/emails" style="color: var(--accent);">Reset filters</a> to see everything.</p>
+              </>
+            ) : (
+              <p style="margin: 0;">No emails logged yet. Emails sent going forward will appear here.</p>
+            )}
           </div>
         ) : (
-          <div style="margin-top: 2rem; overflow-x: auto;">
+          <div style="margin-top: 1rem; overflow-x: auto;">
             <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
               <thead>
                 <tr style="border-bottom: 2px solid var(--border); text-align: left;">
@@ -1284,9 +1369,9 @@ admin.get('/admin/emails', async (c) => {
                     </td>
                     <td style="padding: 0.75rem 0.5rem;">
                       {log.status === 'sent' ? (
-                        <span style="color: #16a34a; font-size: 0.85rem;">Sent</span>
+                        <span style="color: #16a34a; font-size: 0.85rem;">{statusLabels.sent}</span>
                       ) : (
-                        <span style="color: #dc2626; font-size: 0.85rem;" title={log.error || ''}>Failed</span>
+                        <span style="color: #dc2626; font-size: 0.85rem;" title={log.error || ''}>{statusLabels.failed}</span>
                       )}
                     </td>
                     <td style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-tertiary); white-space: nowrap;">
