@@ -16,50 +16,50 @@ pages.get('/curriculum', (c) => {
     {
       num: 1,
       title: 'Conversation',
-      tagline: 'How we talk with AI',
-      description: 'The foundation of everything that follows. How to orient toward AI with curiosity and clarity. We practice being present, intentional, and articulate — the core moves we\'ll deepen every week.',
+      tagline: 'Three conversations — with yourself, with AI, with each other',
+      description: 'We start here because everything else flows from how we engage. The first move is three conversations: with yourself (journaling alone), with AI (thinking together), and with each other (real humans, real feedback). Naming intention up front, inviting questions before answers, and producing a short artifact that maps what\'s actually alive in what you\'re trying to make.',
       youll_learn: [
         'How to talk to AI as a creative partner, not a search engine',
-        'The "three ways of thinking" — with self, with others, with machines',
-        'How to use your felt sense to guide what you build',
-        'Voice input, rich context, and the kinds of conversations that actually move things forward',
+        'The three relationships — conversation with self, with AI, with each other',
+        'Naming intention, asking for questions before answers, inviting pushback',
+        'How to use your felt sense to guide what you make',
       ],
-      youll_build: 'Your first prop — a landing page as a way of articulating what you\'re trying to make',
-      tools: 'Claude Desktop',
+      youll_build: 'A short written artifact (1–2 pages) mapping what\'s alive in you — what you\'re making, where you feel pulled, where you feel stuck. The starter that everything else builds on.',
+      tools: 'Claude (web or desktop)',
     },
     {
       num: 2,
       title: 'Context',
-      tagline: 'Giving AI what it needs to know',
-      description: 'An AI that doesn\'t know you can only help you in generic ways. This week we learn the art of passing context — who you are, what you\'re working on, how you think — so it can help you effectively and know you more over time.',
+      tagline: 'How AI starts to know you',
+      description: 'A first chat with AI is meeting a brilliant stranger. The shift this week is from one-shot conversations to *having* an AI that actually knows you. We work with the artifact you made in Week 1 — annotate it, update it with AI, then pair up and read each other\'s contexts back. Hearing your context reflected by another person is the fastest way to know whether it\'s actually doing its job.',
       youll_learn: [
-        'CLAUDE.md files — teaching AI about your project and your preferences',
-        'Knowledge architecture — organizing what AI needs to know',
-        'Prompt craft — writing instructions that get the output you want',
-        'Memory, persistence, and the art of being known by an agent',
+        'What context actually is — tokens, the context window, and "is the juice worth the squeeze?"',
+        'The living document — a short written description of you, your work, and how you want to be supported',
+        'Where to keep it — Claude Profile Preferences, a Project\'s custom instructions, or a folder Cowork can read',
+        'Naming conventions in the wild — AGENTS.md, SOUL.md, CLAUDE.md — same idea, different names',
       ],
-      youll_build: 'A personal knowledge base and a CLAUDE.md that makes your AI noticeably more useful',
-      tools: 'Claude Desktop, file system, markdown',
+      youll_build: 'Your living document, wherever you choose to keep it. Use it for at least three real AI conversations and notice what shifts.',
+      tools: 'Claude.ai (Profile Preferences, Projects), Cowork (optional)',
     },
     {
       num: 3,
       title: 'Connectors',
       tagline: 'AI with hands',
-      description: 'AI is powerful in conversation. When you connect it to your tools — calendar, notes, drive, whatever you use — it becomes transformative. MCPs (Model Context Protocol) are how you give AI access to your world.',
+      description: 'AI is powerful in conversation. When you connect it to your tools — calendar, notes, drive, whatever you use — it becomes transformative. The living document you started in Week 2 becomes the context that connectors refer to. This week is about giving AI access to your world so it can act in it, not just chat about it.',
       youll_learn: [
-        'What MCPs are, why they matter, and how to think about them',
-        'Enabling built-in connectors (web search, Google Drive, Notion, and more)',
+        'What MCPs (Model Context Protocol) are, why they matter, and how to think about them',
+        'Enabling built-in connectors — web search, Google Drive, Notion, and more',
         'Safely giving AI access to external systems',
         'Projects in Claude — persistent context for ongoing work',
       ],
       youll_build: 'A Claude Project connected to the tools and data most alive for you',
-      tools: 'Claude Desktop, MCPs / Connectors',
+      tools: 'Claude.ai, Connectors / MCPs',
     },
     {
       num: 4,
       title: 'Craft',
       tagline: 'Making what you need',
-      description: 'Techne is the Greek word for craft — the knowledge of how to make things. This week, we use AI as a creative partner to make something you need. Could be a website, a habit tracker, a small tool. Code is optional — a deeper cut for those who want it.',
+      description: 'Techne is the Greek word for craft — the knowledge of how to make things. This week, we use AI as a creative partner to make something you need. Could be a website, a habit tracker, a small tool. Code is optional — a deeper cut for those who want it, never required.',
       youll_learn: [
         'Claude as creative partner — collaborative making, iteration, and taste',
         'Starting small: the minimum viable version of what you actually need',
@@ -67,7 +67,7 @@ pages.get('/curriculum', (c) => {
         'For those who want the depth: a peek at writing and shipping real code',
       ],
       youll_build: 'A working prototype of something useful in your life',
-      tools: 'Claude Desktop, Claude Code (optional)',
+      tools: 'Claude.ai, Claude Code (optional)',
     },
     {
       num: 5,
@@ -91,7 +91,7 @@ pages.get('/curriculum', (c) => {
       youll_learn: [
         'How to keep the practice going after the cohort ends',
         'The landscape: where AI is heading and how to stay oriented',
-        'The path into Techne / Regen Hub ongoing membership',
+        'The path into the Learn Vibe Build community and ongoing membership',
       ],
       youll_build: 'A demo of what you\'ve made + the relationships that go with you',
       tools: 'Everything you\'ve learned so far',
@@ -111,7 +111,7 @@ pages.get('/curriculum', (c) => {
         <p class="section-label" style="margin-top: 2rem;">The Six C's</p>
         <h2>A practice, not a tools tour.</h2>
         <p class="lead">
-          Six movements of the same practice. We return to the same core moves each week, deepening as we go. No coding experience needed. Code is available as a deeper cut for those who want it.
+          Six movements of the same practice. We return to the same core moves each week, deepening as we go &mdash; spirals, not stairs. No coding experience needed. Code is available as a deeper cut for those who want it.
         </p>
 
         <div style="margin-top: 3rem;">
@@ -148,14 +148,14 @@ pages.get('/curriculum', (c) => {
 
         <div style="text-align: center; padding: 3rem 0;">
           <a href="/apply" style="display: inline-flex; align-items: center; gap: 0.5rem; background: var(--accent); color: white; font-size: 1rem; font-weight: 500; padding: 0.875rem 2rem; border-radius: 8px; text-decoration: none;">
-            Apply for Cohort 1
+            Apply for the next cohort
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </a>
           <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-tertiary);">
-            Mondays 5:30&ndash;7:30pm MT &middot; Starting April 20, 2026 &middot; 6 weeks &middot; $500 &middot; Boulder, CO &amp; Remote
+            Mondays 5:30&ndash;7:30pm MT &middot; 6 weeks &middot; $500 (sliding-scale) &middot; Boulder, CO &amp; Remote
           </p>
           <p style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-tertiary);">
-            Discounted and sponsored spots available &mdash; cost should never be a barrier.
+            Sliding-scale and sponsored spots available &mdash; cost should never be a barrier.
           </p>
         </div>
       </div>
@@ -176,15 +176,15 @@ pages.get('/apply', (c) => {
 
   return c.html(
     <Layout
-      title="Apply for Cohort 1"
-      description="Apply for Learn Vibe Build Cohort 1 — 6 weeks of building with AI as your creative partner."
+      title="Apply"
+      description="Apply for Learn Vibe Build — 6 weeks of building with AI as your creative partner. Cohort 1 is in flight; Cohort 2 is forming."
       user={c.get('user')}
     >
       <div class="page-section">
         <p class="section-label">Apply</p>
-        <h2>Apply for Cohort 1</h2>
+        <h2>Apply for the next cohort</h2>
         <p class="lead">
-          6 weeks of building with AI as your creative partner. Mondays 5:30&ndash;7:30pm MT, starting April 20, 2026 in Boulder, CO &amp; remote. $500. Discounted and sponsored spots available.
+          6 weeks of building with AI as your creative partner. Mondays 5:30&ndash;7:30pm MT, in Boulder, CO &amp; remote. $500 with a sliding-scale option below &mdash; sponsored spots available too. Cohort 1 is in flight now; Cohort 2 dates land soon. We&rsquo;ll be in touch.
         </p>
 
         {error && errorMessages[error] && (
@@ -234,7 +234,7 @@ pages.get('/apply', (c) => {
           <div class="form-group" style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
             <p style="font-weight: 600; font-size: 1rem; margin-bottom: 0.5rem;">Financial</p>
             <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.5; margin-bottom: 1rem;">
-              The cohort is <strong>$500</strong>. We'd rather have you in Cohort 1 at a price that works for you than not at all &mdash; so if something lower feels right, tell us what and we'll honor it.
+              The cohort is <strong>$500</strong>. We'd rather have you in the room at a price that works for you than not at all &mdash; so if something lower feels right, tell us what and we'll honor it.
             </p>
             <div style="display: flex; flex-direction: column; gap: 0.5rem;">
               <label style="display: flex; gap: 0.5rem; align-items: center; padding: 0.6rem 0.85rem; border: 1px solid var(--border); border-radius: 6px; cursor: pointer;">
@@ -271,7 +271,7 @@ pages.get('/apply/success', (c) => {
       <div class="page-section success-message" style="max-width: 600px; margin: 0 auto;">
         <h2>Application received</h2>
         <p class="lead">
-          Thank you for applying to Cohort 1. We'll review your application and get back to you soon — typically within a few days.
+          Thank you for applying. We'll review your application and get back to you soon — typically within a few days.
         </p>
 
         {!user && (
@@ -344,7 +344,7 @@ pages.post('/apply/status', async (c) => {
             We couldn't find an application for <strong>{email}</strong>.
           </p>
           <p style="margin-top: 1.5rem;">
-            <a href="/apply" style="color: var(--accent); font-weight: 500;">Apply for Cohort 1 →</a>
+            <a href="/apply" style="color: var(--accent); font-weight: 500;">Apply for the next cohort →</a>
           </p>
           <p style="margin-top: 1rem;">
             <a href="/apply/status" style="color: var(--text-tertiary);">← Try another email</a>

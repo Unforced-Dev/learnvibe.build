@@ -1,5 +1,8 @@
 import { Hono } from 'hono'
+import { eq } from 'drizzle-orm'
 import { Layout } from '../components/Layout'
+import { getDb } from '../db'
+import { cohorts } from '../db/schema'
 import type { AppContext } from '../types'
 
 const home = new Hono<AppContext>()
@@ -12,8 +15,40 @@ const SmallArrowSvg = () => (
   <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
 )
 
-home.get('/', (c) => {
+// Compute "what week are we in" for a cohort by comparing today to its
+// startDate. Week 1 starts on day 0; week N starts on day (N-1)*7. Returns
+// null when the cohort has no startDate (or it parses as invalid) so the
+// caller can fall back gracefully.
+type CohortPhase = 'upcoming' | 'inflight' | 'completed'
+type CohortProgress = { phase: CohortPhase; currentWeek: number; totalWeeks: number }
+
+function computeCohortProgress(cohort: { startDate: string | null; weeks: number }): CohortProgress | null {
+  if (!cohort.startDate) return null
+  const start = new Date(cohort.startDate + 'T00:00:00')
+  if (isNaN(start.getTime())) return null
+  const dayMs = 1000 * 60 * 60 * 24
+  const daysSince = (Date.now() - start.getTime()) / dayMs
+  const totalWeeks = cohort.weeks
+  if (daysSince < 0) return { phase: 'upcoming', currentWeek: 0, totalWeeks }
+  const week = Math.floor(daysSince / 7) + 1
+  if (week > totalWeeks) return { phase: 'completed', currentWeek: totalWeeks, totalWeeks }
+  return { phase: 'inflight', currentWeek: week, totalWeeks }
+}
+
+home.get('/', async (c) => {
   const user = c.get('user')
+  const db = getDb(c.env.DB)
+  const cohort1 = await db.select().from(cohorts).where(eq(cohorts.slug, 'cohort-1')).get()
+  const progress = cohort1 ? computeCohortProgress(cohort1) : null
+
+  // The hero badge text adapts to where the cohort is in its run. Used in two
+  // places (hero pill + Cohort 1 card badge) so we compute it once.
+  const cohortStatusLabel = (() => {
+    if (!progress) return 'Cohort 1'
+    if (progress.phase === 'inflight') return `Cohort 1 in flight · Week ${progress.currentWeek} of ${progress.totalWeeks}`
+    if (progress.phase === 'completed') return 'Cohort 1 · Complete'
+    return 'Cohort 1 · Coming'
+  })()
 
   return c.html(
     <Layout
@@ -27,11 +62,17 @@ home.get('/', (c) => {
         <h1 class="hero-title">Build your personal <span class="accent">AI assistant</span></h1>
         <p class="hero-subtitle">In 6 weeks, build your own agentic assistant &mdash; one that knows you, has hands in your world, and helps you live and create more effectively. No coding experience needed.</p>
         <p style="margin-top: 1rem; color: var(--text-tertiary); font-style: italic;">A community of practice for AI. We learn and grow together.</p>
-        <a href="/apply" class="hero-cta">
-          Apply for Cohort 1
+
+        <div style="margin-top: 1.5rem; display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.85rem; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.02em; color: var(--text-secondary);">
+          <span style="display: inline-block; width: 0.5rem; height: 0.5rem; border-radius: 999px; background: var(--accent);"></span>
+          {cohortStatusLabel}
+        </div>
+
+        <a href="/apply" class="hero-cta" style="margin-top: 1.25rem;">
+          Apply for the next cohort
           <ArrowSvg />
         </a>
-        <p class="hero-meta">Mondays 5:30&ndash;7:30pm MT<span class="sep">&middot;</span>Starting April 20, 2026<span class="sep">&middot;</span>6 Weeks<span class="sep">&middot;</span>$500<span class="sep">&middot;</span>Boulder, CO &amp; Remote</p>
+        <p class="hero-meta">Mondays 5:30&ndash;7:30pm MT<span class="sep">&middot;</span>6 Weeks<span class="sep">&middot;</span>Boulder, CO &amp; Remote<span class="sep">&middot;</span>$500 (sliding-scale)</p>
         <p style="margin-top: 1rem; font-size: 0.85rem;"><a href="/apply/status" style="color: var(--text-tertiary); text-decoration: none;">Already applied? Check your status &rarr;</a></p>
       </section>
 
@@ -42,28 +83,28 @@ home.get('/', (c) => {
         <section class="hp-section">
           <p class="section-label">The Journey</p>
           <h2>Six weeks, six movements of the same practice.</h2>
-          <p class="lead">We return to the same core moves each week, deepening as we go. Not a tour of tools &mdash; a practice of learning to work with AI from first principles.</p>
+          <p class="lead">We return to the same core moves each week, deepening as we go. Spirals, not stairs &mdash; you don't graduate from one to the next, you keep coming back, deeper each time.</p>
 
           <div class="journey-grid">
             <div class="journey-step">
               <p class="journey-step-num">Week 1</p>
               <h3 class="journey-step-title">Conversation</h3>
-              <p>How we talk with AI. Presence, intention, articulation &mdash; and what kinds of conversations lead to a real working relationship.</p>
+              <p>Three conversations: with yourself, with AI, with each other. Naming intention, asking questions before answers, and hearing what's actually alive in what you're trying to make.</p>
             </div>
             <div class="journey-step">
               <p class="journey-step-num">Week 2</p>
               <h3 class="journey-step-title">Context</h3>
-              <p>Giving AI what it needs to know about you and your work so it can help, and be helpful, more effectively.</p>
+              <p>A first chat with AI is meeting a brilliant stranger. We build a living document about you that any AI can know you through &mdash; and read each other's contexts back to find out what actually transferred.</p>
             </div>
             <div class="journey-step">
               <p class="journey-step-num">Week 3</p>
               <h3 class="journey-step-title">Connectors</h3>
-              <p>AI with hands. Connecting agents to your tools and data &mdash; calendar, notes, drive, and whatever else you need.</p>
+              <p>AI with hands. Connecting agents to your tools and data so they can act in your world &mdash; calendar, notes, drive, your knowledge system &mdash; not just chat about it.</p>
             </div>
             <div class="journey-step">
               <p class="journey-step-num">Week 4</p>
               <h3 class="journey-step-title">Craft</h3>
-              <p>Making what you need with AI as creative partner. Websites, trackers, small tools. Code is the deeper cut for those who want it.</p>
+              <p>Making what you need with AI as creative partner. Websites, trackers, small tools. Code is the deeper cut for those who want it &mdash; optional, never required.</p>
             </div>
             <div class="journey-step">
               <p class="journey-step-num">Week 5</p>
@@ -73,7 +114,7 @@ home.get('/', (c) => {
             <div class="journey-step">
               <p class="journey-step-num">Week 6</p>
               <h3 class="journey-step-title">Community</h3>
-              <p>Demo day, reflection, and the path forward. Stepping into ongoing practice with the people who've been building alongside you.</p>
+              <p>Demo, reflect, and the path forward. Stepping into ongoing practice with the people who've been building alongside you.</p>
             </div>
           </div>
         </section>
@@ -92,17 +133,17 @@ home.get('/', (c) => {
 
       <div class="hp-divider"><hr /></div>
 
-      {/* COHORT 1 */}
+      {/* COHORT 1 (in flight) + COHORT 2 + CU CLASS */}
       <section class="hp-section hp-section-narrow" id="cohort">
-        <p class="section-label">Cohort 1</p>
-        <h2>The next cohort</h2>
-        <p class="lead">13 builders came through our pilot cohort and shipped real projects. Cohort 1 goes deeper &mdash; 6 weeks following the Six C's from conversation to coordinator.</p>
+        <p class="section-label">What's happening</p>
+        <h2>Cohort 1 is in flight. Cohort 2 is forming.</h2>
+        <p class="lead">Around 30 builders are in the room with us right now &mdash; full house Week 1, and the cohort is moving through the Six C's together. The next cohort is forming. Apply now and we'll be in touch as dates come into focus.</p>
 
         <div class="cohort-card">
-          <span class="cohort-badge badge-open">Now Enrolling</span>
+          <span class="cohort-badge badge-open">{progress?.phase === 'inflight' ? `In flight · Week ${progress.currentWeek} of ${progress.totalWeeks}` : progress?.phase === 'completed' ? 'Complete' : 'Cohort 1'}</span>
           <h3>Cohort 1 &mdash; Practice</h3>
-          <p class="cohort-detail">Mondays 5:30&ndash;7:30pm MT &middot; Starting April 20, 2026 &middot; 6 weeks &middot; Boulder, CO &amp; Remote</p>
-          <p>Weekly 2-hour live session with core curriculum and live demonstration. A weekly open circle for sharing what you're making, trying, or noticing. Plus a community platform to share projects, ask questions, and learn from each other.</p>
+          <p class="cohort-detail">Mondays 5:30&ndash;7:30pm MT &middot; 6 weeks &middot; Boulder, CO &amp; Remote &middot; ~30 builders</p>
+          <p>Two-hour live session each Monday with core curriculum and live demonstration. A weekly open circle for sharing what you're making, trying, or noticing. Hybrid coworking on Thursday afternoons at Regen Hub. Plus a community platform to share projects, ask questions, and learn from each other.</p>
 
           <div class="cohort-weeks">
             <div class="cohort-week"><strong>Conversation</strong><span>Week 1</span></div>
@@ -113,25 +154,48 @@ home.get('/', (c) => {
             <div class="cohort-week"><strong>Community</strong><span>Week 6</span></div>
           </div>
 
-          <p style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);"><strong style="font-family: var(--font-mono); font-size: 1.1rem;">$500</strong> <span style="color: var(--text-tertiary);">&mdash; Discounted and sponsored spots available. Cost should never be a barrier &mdash; <a href="mailto:ag@unforced.dev" style="color: var(--accent);">reach out</a>.</span></p>
+          <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+            <a href="/curriculum" style="padding: 0.75rem 1.5rem; background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 8px; text-decoration: none; font-size: 0.95rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.4rem;">
+              Read the curriculum
+              <SmallArrowSvg />
+            </a>
+            {progress?.phase === 'inflight' && user && (
+              <a href="/dashboard" style="padding: 0.75rem 1.5rem; color: var(--text-secondary); font-size: 0.95rem; text-decoration: none; display: inline-flex; align-items: center;">Your dashboard &rarr;</a>
+            )}
+          </div>
+        </div>
+
+        <div class="cohort-card" style="margin-top: 1.5rem;">
+          <span class="cohort-badge" style="background: var(--surface); color: var(--text-secondary); border: 1px solid var(--border);">Coming next</span>
+          <h3>Cohort 2 &mdash; Forming</h3>
+          <p class="cohort-detail">Dates coming soon &middot; same shape, deeper from what we're learning now</p>
+          <p>The next cohort is being shaped from what's surfacing inside Cohort 1 &mdash; pacing, demos, where the practice goes deepest. Apply now and we'll be in touch as the dates land. Cost should never be a barrier; we'll work with you on what makes sense.</p>
+
+          <p style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);"><strong style="font-family: var(--font-mono); font-size: 1.1rem;">$500</strong> <span style="color: var(--text-tertiary);">general admission &mdash; sliding-scale and sponsored spots available. <a href="mailto:ag@unforced.dev" style="color: var(--accent);">Reach out</a> if cost is a question.</span></p>
 
           <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
             <a href="/apply" class="hero-cta" style="font-size: 0.95rem; padding: 0.75rem 1.5rem;">
-              Apply Now
+              Apply for the next cohort
               <SmallArrowSvg />
             </a>
             <a href="/apply/status" style="padding: 0.75rem 1.5rem; color: var(--text-secondary); font-size: 0.95rem; text-decoration: none; display: inline-flex; align-items: center;">Check your status &rarr;</a>
           </div>
         </div>
+
+        <div style="margin-top: 1.5rem; padding: 1.5rem 1.75rem; background: var(--white); border: 1px solid var(--border); border-radius: 10px;">
+          <p class="section-label" style="margin-bottom: 0.4rem;">At CU Boulder &middot; Fall 2026</p>
+          <h3 style="font-family: var(--font-display); font-weight: 600; font-size: 1.15rem; letter-spacing: -0.01em; margin: 0 0 0.5rem;">ATLS 4519 &mdash; Learn Vibe Build</h3>
+          <p style="margin: 0; color: var(--text-secondary); line-height: 1.6;">Aaron is teaching a semester-long version of this work at CU Boulder's ATLAS Institute in Fall 2026 &mdash; same lineage, longer arc. Distinct from the cohort but part of the same practice.</p>
+        </div>
       </section>
 
       <div class="hp-divider"><hr /></div>
 
-      {/* OUTCOMES */}
+      {/* PILOT + COHORT 1 SOCIAL PROOF */}
       <section class="hp-section hp-section-narrow">
-        <p class="section-label">Pilot Cohort</p>
-        <h2>13 builders shipped</h2>
-        <p class="lead">Our pilot cohort ran in January 2026 &mdash; 13 people, 4 weeks, real projects deployed to the internet. Here's what they had to say.</p>
+        <p class="section-label">The lineage</p>
+        <h2>It started with a pilot.</h2>
+        <p class="lead">Cohort 0 ran in January 2026 &mdash; 13 builders, 4 weeks, real projects deployed to the internet. Cohort 1 is now mid-flight, ~30 builders deep, moving through the full 6-week Six C's arc. Here's what folks from the pilot had to say.</p>
 
         <div class="outcomes-grid">
           <div class="outcome-stat">
@@ -139,8 +203,8 @@ home.get('/', (c) => {
             <div class="outcome-label">builders in the pilot</div>
           </div>
           <div class="outcome-stat">
-            <div class="outcome-number">4</div>
-            <div class="outcome-label">weeks, idea to deployed</div>
+            <div class="outcome-number">~30</div>
+            <div class="outcome-label">in Cohort 1, in flight now</div>
           </div>
           <div class="outcome-stat">
             <div class="outcome-number">0</div>
@@ -248,7 +312,7 @@ home.get('/', (c) => {
           </div>
           <div class="faq-item">
             <h3 class="faq-q">Is it in-person or remote?</h3>
-            <p class="faq-a">Both. Weekly sessions happen in-person at <a href="https://regenhub.xyz" style="color: var(--accent); text-decoration: none;">Regen Hub</a> in Boulder, CO and are available remotely. Co-working hours are hybrid.</p>
+            <p class="faq-a">Both. Weekly sessions happen in-person at <a href="https://regenhub.xyz" style="color: var(--accent); text-decoration: none;">Regen Hub</a> in Boulder, CO and are available remotely. Coworking hours on Thursday afternoons are hybrid.</p>
           </div>
           <div class="faq-item">
             <h3 class="faq-q">How much time per week?</h3>
@@ -259,8 +323,12 @@ home.get('/', (c) => {
             <p class="faq-a">That's up to you. Past students have built personal websites, workflow tools, creative platforms, and business apps. By the end, you'll also set up the foundation for your own personal AI assistant &mdash; one that knows you and helps you live and create more effectively.</p>
           </div>
           <div class="faq-item">
+            <h3 class="faq-q">When does the next cohort start?</h3>
+            <p class="faq-a">Cohort 1 is in flight now (April&ndash;May 2026). Cohort 2 dates aren't set yet &mdash; we're shaping it from what's surfacing in Cohort 1. Apply now and we'll be in touch as soon as we know.</p>
+          </div>
+          <div class="faq-item">
             <h3 class="faq-q">What's the pricing?</h3>
-            <p class="faq-a"><strong>$500</strong> general admission. Discounted and sponsored spots are available &mdash; cost should never be a barrier. <a href="mailto:ag@unforced.dev" style="color: var(--accent);">Reach out</a> and we'll work with you.</p>
+            <p class="faq-a"><strong>$500</strong> general admission. The application has a sliding-scale option &mdash; tell us what works for you and we'll honor it. Sponsored spots are available too. Cost should never be a barrier.</p>
           </div>
         </div>
       </section>
@@ -269,9 +337,9 @@ home.get('/', (c) => {
       <section class="cta-section">
         <div class="cta-content">
           <h2>Ready to build an assistant that knows you?</h2>
-          <p>Cohort 1 starts April 20, 2026. Six weeks of practice, together. Spaces are limited.</p>
+          <p>Cohort 2 is forming. Six weeks of practice, together. Apply now and we'll be in touch as dates come into focus.</p>
           <a href="/apply" class="cta-btn">
-            Apply for Cohort 1
+            Apply for the next cohort
             <ArrowSvg />
           </a>
           <p class="cta-aside">Questions? <a href="mailto:ag@unforced.dev">Reach out</a> &mdash; the next step is a conversation.</p>
