@@ -160,7 +160,7 @@ dashboard.get('/dashboard', async (c) => {
                 <div style="margin-top: 2rem; padding: 2rem; background: var(--surface); border-radius: 10px;">
                   <h3 style="font-family: var(--font-display); margin-bottom: 0.5rem;">Application Under Review</h3>
                   <p style="color: var(--text-secondary); line-height: 1.6;">
-                    Your application for Cohort 1 is being reviewed. We'll be in touch soon.
+                    Your application is being reviewed. We'll be in touch soon.
                   </p>
                 </div>
               )
@@ -172,7 +172,7 @@ dashboard.get('/dashboard', async (c) => {
                   You're not enrolled in any cohorts yet.
                 </p>
                 <a href="/apply" style="display: inline-block; margin-top: 1rem; color: var(--accent); font-weight: 500;">
-                  Apply for Cohort 1 →
+                  Apply for the next cohort →
                 </a>
               </div>
             )
