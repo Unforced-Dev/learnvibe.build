@@ -499,6 +499,31 @@ cohortRoutes.get('/cohort/:slug/week/:num', async (c) => {
   const renderedContent = renderMarkdown(lesson.contentMarkdown)
   const renderedTranscript = lesson.transcriptMarkdown ? renderMarkdown(lesson.transcriptMarkdown) : null
 
+  // Build the markdown payload for the "Copy page for AI" button. Students
+  // paste this into Claude / ChatGPT to have a chat about the lesson — see
+  // memory: lvb_context_first_ux. We use the raw source markdown rather than
+  // the rendered innerText so AI gets the structure (headings, lists, code)
+  // intact. Future hook: append a "Your context" section once students can
+  // attach their living document here.
+  const lessonDateLong = lesson.date
+    ? new Date(lesson.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+    : null
+  const aiPayloadParts = [
+    `# Week ${weekNum} — ${lesson.title}`,
+    '',
+    `_Cohort: ${cohort.title}${lessonDateLong ? ` · ${lessonDateLong}` : ''}_`,
+  ]
+  if (lesson.description) aiPayloadParts.push('', `_${lesson.description}_`)
+  if (lesson.recordingUrl) aiPayloadParts.push('', `**Recording:** ${lesson.recordingUrl}`)
+  aiPayloadParts.push('', '---', '', '## Lesson', '', lesson.contentMarkdown || '_(no lesson content)_')
+  if (lesson.transcriptMarkdown) {
+    aiPayloadParts.push('', '---', '', '## Session transcript', '', lesson.transcriptMarkdown)
+  }
+  // URL-encode so multi-line markdown survives the HTML-attribute round-trip
+  // intact (no concerns about newline collapsing, quote escaping, or
+  // JSON-in-script edge cases). Client decodes with decodeURIComponent.
+  const aiPayloadEncoded = encodeURIComponent(aiPayloadParts.join('\n'))
+
   // Detect YouTube URLs for inline embed; fallback to a plain link otherwise.
   function youtubeEmbed(url: string): string | null {
     try {
@@ -602,10 +627,68 @@ cohortRoutes.get('/cohort/:slug/week/:num', async (c) => {
         <h2>{lesson.title}</h2>
         {lesson.description && <p class="lead">{lesson.description}</p>}
         {lesson.date && (
-          <p style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-tertiary); margin-bottom: 2rem;">
-            {new Date(lesson.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+          <p style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-tertiary); margin-bottom: 1.25rem;">
+            {lessonDateLong}
           </p>
         )}
+
+        {/* Copy whole page for AI — see memory: lvb_context_first_ux. Pastes
+            lesson + transcript (raw markdown) into the user's clipboard so
+            they can drop it into Claude / ChatGPT and chat about it. */}
+        <div data-page-payload={aiPayloadEncoded} style="display: none;"></div>
+        <div style="margin-bottom: 2rem; display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+          <button
+            type="button"
+            data-copy-page
+            title="Copy this whole lesson + transcript as markdown — paste into Claude / ChatGPT to have a chat about it"
+            style="padding: 0.5rem 1rem; font-size: 0.85rem; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; color: var(--text); font-family: inherit; font-weight: 500; display: inline-flex; align-items: center; gap: 0.4rem;"
+          >
+            <span aria-hidden="true">📋</span>
+            <span data-copy-page-label>Copy page for AI</span>
+          </button>
+          <span style="font-size: 0.8rem; color: var(--text-tertiary); line-height: 1.4;">Grabs the lesson{renderedTranscript ? ' + transcript' : ''} as markdown — paste into Claude or ChatGPT to chat about it.</span>
+        </div>
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function(){
+            var btn = document.querySelector('[data-copy-page]');
+            var src = document.querySelector('[data-page-payload]');
+            var label = document.querySelector('[data-copy-page-label]');
+            if (!btn || !src || !label) return;
+            var text;
+            try { text = decodeURIComponent(src.getAttribute('data-page-payload') || ''); }
+            catch (e) { text = src.getAttribute('data-page-payload') || ''; }
+            btn.addEventListener('click', function(e){
+              e.preventDefault();
+              function done() {
+                label.textContent = 'Copied!';
+                btn.style.borderColor = 'var(--accent)';
+                btn.style.color = 'var(--accent)';
+                setTimeout(function(){
+                  label.textContent = 'Copy page for AI';
+                  btn.style.borderColor = '';
+                  btn.style.color = '';
+                }, 2000);
+              }
+              function fail() {
+                label.textContent = 'Copy failed';
+                setTimeout(function(){ label.textContent = 'Copy page for AI'; }, 2000);
+              }
+              if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(done).catch(fail);
+              } else {
+                try {
+                  var ta = document.createElement('textarea');
+                  ta.value = text; ta.setAttribute('readonly', '');
+                  ta.style.position = 'absolute'; ta.style.left = '-9999px';
+                  document.body.appendChild(ta); ta.select();
+                  document.execCommand('copy');
+                  document.body.removeChild(ta);
+                  done();
+                } catch (err) { fail(); }
+              }
+            });
+          })();
+        ` }} />
 
         <details open data-lesson-content-details data-lesson-key={`${slug}-week-${weekNum}`} style="margin-top: 0;">
           <summary style="cursor: pointer; list-style: none; display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0; font-family: var(--font-mono); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-tertiary); user-select: none;">
