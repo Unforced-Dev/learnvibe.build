@@ -166,6 +166,7 @@ pages.get('/curriculum', (c) => {
 pages.get('/apply', async (c) => {
   const error = c.req.query('error')
   const db = getDb(c.env.DB)
+  const user = c.get('user')
 
   // Check whether any cohort is currently `enrolling` — if not, render a
   // graceful "applications aren't open" state pointing at the interest
@@ -200,19 +201,52 @@ pages.get('/apply', async (c) => {
     )
   }
 
+  // Auth-required: applying now requires a Clerk account so we can link
+  // applications.user_id from the start. Closes the loop on the
+  // "approved-but-no-account" / "applied with different email than they
+  // signed up with" diagnostic states. Legacy applications keep working
+  // through /apply/status (which queries by email, not user_id).
+  if (!user) {
+    return c.html(
+      <Layout
+        title="Apply — create your account first"
+        description="Applying to Learn Vibe Build starts with creating your account."
+        user={null}
+      >
+        <div class="page-section" style="max-width: 640px; margin: 0 auto;">
+          <p class="section-label">Apply</p>
+          <h2>One step before you apply</h2>
+          <p class="lead">
+            Applying starts with creating a Learn Vibe Build account &mdash; that way your application is linked to you from the moment you submit, and approval lands you in the cohort with no extra steps.
+          </p>
+          <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+            <a href="/sign-up?redirect_url=/apply" style="display: inline-flex; align-items: center; gap: 0.4rem; background: var(--accent); color: white; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 500;">
+              Create account &rarr;
+            </a>
+            <a href="/sign-in?redirect_url=/apply" style="color: var(--text-secondary); text-decoration: none; font-size: 0.95rem;">Already have one? Sign in &rarr;</a>
+          </div>
+          <p style="margin-top: 2rem; font-size: 0.9rem; color: var(--text-secondary); padding-top: 1.5rem; border-top: 1px solid var(--border);">
+            Applied before this change? <a href="/apply/status" style="color: var(--accent);">Check your status &rarr;</a>
+          </p>
+        </div>
+      </Layout>
+    )
+  }
+
   const errorMessages: Record<string, string> = {
     missing_fields: 'Please fill out all required fields.',
     invalid_email: 'Please enter a valid email address.',
     invalid_amount: 'Please enter a contribution between $0 and $500.',
     too_long: 'One or more fields are too long. Please shorten and try again.',
     server_error: 'Something went wrong. Please try again.',
+    already_applied: 'You\'ve already submitted an application — see status below.',
   }
 
   return c.html(
     <Layout
       title="Apply"
       description="Apply for Learn Vibe Build — 6 weeks of building with AI as your creative partner. Cohort 1 is in flight; Cohort 2 is forming."
-      user={c.get('user')}
+      user={user}
     >
       <div class="page-section">
         <p class="section-label">Apply</p>
@@ -227,15 +261,23 @@ pages.get('/apply', async (c) => {
           </div>
         )}
 
+        {/* Account info — applying with the signed-in user's email. We
+            disable the email field so applicant can't submit a different
+            address than their account, which was the source of half the
+            "no account / orphan enrollment" diagnostic states. */}
+        <div style="margin: 1.5rem 0; padding: 0.85rem 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+          <span>
+            <span style="font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em; margin-right: 0.5rem;">Applying as</span>
+            <strong>{user.name || user.email}</strong>
+            {user.name && <span style="color: var(--text-tertiary); margin-left: 0.4rem; font-family: var(--font-mono); font-size: 0.85rem;">&lt;{user.email}&gt;</span>}
+          </span>
+          <a href="/sign-out" style="font-size: 0.8rem; color: var(--text-tertiary); text-decoration: none;">Switch account</a>
+        </div>
+
         <form method="post" action="/api/applications" class="apply-form">
           <div class="form-group">
             <label for="name">Full name</label>
-            <input type="text" id="name" name="name" required autocomplete="name" />
-          </div>
-
-          <div class="form-group">
-            <label for="email">Email</label>
-            <input type="email" id="email" name="email" required autocomplete="email" />
+            <input type="text" id="name" name="name" required autocomplete="name" value={user.name || ''} />
           </div>
 
           <div class="form-group">
@@ -308,20 +350,8 @@ pages.get('/apply/success', (c) => {
           Thank you for applying. We'll review your application and get back to you soon — typically within a few days.
         </p>
 
-        {!user && (
-          <div style="margin-top: 2rem; padding: 1.5rem; background: var(--surface); border: 1px solid var(--accent); border-radius: 10px;">
-            <h3 style="font-family: var(--font-display); margin: 0 0 0.5rem 0; color: var(--text);">One more thing — create your account</h3>
-            <p style="margin: 0 0 1rem 0; color: var(--text-secondary); line-height: 1.6;">
-              Applying didn't create an account for you. Create one now (using <strong>the same email you applied with</strong>) so your enrollment links automatically when we approve you.
-            </p>
-            <a href="/sign-up" style="display: inline-block; background: var(--accent); color: white; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 500;">
-              Create Account →
-            </a>
-          </div>
-        )}
-
         <p style="margin-top: 1.5rem; color: var(--text-secondary);">
-          You can check your application status anytime at <a href="/apply/status" style="color: var(--accent);">/apply/status</a>
+          You can check your application status anytime from <a href="/dashboard" style="color: var(--accent);">your dashboard</a>.
         </p>
         <p style="margin-top: 2rem;">
           <a href="/">← Back to homepage</a>
