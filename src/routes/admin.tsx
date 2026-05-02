@@ -2,10 +2,11 @@ import { Hono } from 'hono'
 import { eq, desc, asc, and, gte, lte, like, or, ne, inArray } from 'drizzle-orm'
 import { Layout } from '../components/Layout'
 import { getDb } from '../db'
-import { applications, cohorts, lessons, users, enrollments, payments, feedback, emailLog, lessonProgress, projects, discussions, comments, apiKeys, memberships } from '../db/schema'
+import { applications, cohorts, lessons, users, enrollments, payments, feedback, emailLog, emailTemplates, lessonProgress, projects, discussions, comments, apiKeys, memberships } from '../db/schema'
 import { isAdmin, isClerkConfigured, generateToken } from '../lib/auth'
 import { formatCents, getAmountForTier, getTierLabel, getApplicationAmount, getApplicationLabel } from '../lib/stripe'
-import { sendBroadcast, sendApplicationApproved, sendApplicationRejected, sendApplicationPriceChanged, sendEmail, isEmailConfigured, type BroadcastAudience, applicationReceivedEmail, applicationApprovedEmail, applicationRejectedEmail, applicationPriceChangedEmail, enrollmentConfirmedEmail, cohortBroadcastEmail } from '../lib/email'
+import { sendBroadcast, sendApplicationApproved, sendApplicationRejected, sendApplicationPriceChanged, sendEmail, isEmailConfigured, type BroadcastAudience, cohortBroadcastEmail } from '../lib/email'
+import { renderEmailTemplate, renderEmailTemplateFromSource, DEFAULT_TEMPLATES, TEMPLATE_KEYS, TEMPLATE_LABELS } from '../lib/email-templates'
 import { enrollUserAndNotify, findUserByEmail } from '../lib/enrollment'
 import { isStripeConfigured, getStripe } from '../lib/stripe'
 import { renderMarkdown } from '../lib/markdown'
@@ -1446,8 +1447,11 @@ admin.get('/admin/emails', async (c) => {
             <h2>Email Log</h2>
           </div>
           <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <a href="/admin/email/templates" style="display: inline-block; background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 0.55rem 1.1rem; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.9rem;">
+              Templates
+            </a>
             <a href="/admin/email/preview" style="display: inline-block; background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 0.55rem 1.1rem; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.9rem;">
-              Preview Templates
+              Preview
             </a>
             <a href="/admin/email" style="display: inline-block; background: var(--accent); color: white; padding: 0.6rem 1.25rem; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.9rem;">
               Send Email
@@ -1522,11 +1526,12 @@ admin.get('/admin/emails', async (c) => {
                   <th style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Type</th>
                   <th style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Status</th>
                   <th style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Sent</th>
+                  <th style="padding: 0.75rem 0.5rem;"></th>
                 </tr>
               </thead>
               <tbody>
                 {logs.map(log => (
-                  <tr style="border-bottom: 1px solid var(--border);">
+                  <tr data-row-href={`/admin/emails/${log.id}`} style="border-bottom: 1px solid var(--border); cursor: pointer;" class="email-log-row">
                     <td style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-secondary); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                       {log.to}
                     </td>
@@ -1550,10 +1555,21 @@ admin.get('/admin/emails', async (c) => {
                       {' '}
                       {new Date(log.sentAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
                     </td>
+                    <td style="padding: 0.75rem 0.5rem; font-size: 0.85rem;">
+                      <a href={`/admin/emails/${log.id}`} style="color: var(--accent); text-decoration: none;" onclick="event.stopPropagation();">View →</a>
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            <script dangerouslySetInnerHTML={{ __html: `
+              document.querySelectorAll('.email-log-row').forEach(function(tr){
+                tr.addEventListener('click', function(){
+                  var href = tr.getAttribute('data-row-href');
+                  if (href) window.location = href;
+                });
+              });
+            ` }} />
           </div>
         )}
       </div>
@@ -1562,97 +1578,82 @@ admin.get('/admin/emails', async (c) => {
 })
 
 // ===== EMAIL TEMPLATE PREVIEWS =====
-// Lets admin see what each auto-email looks like with sample data.
-// Answers "I don't know what emails applicants are actually getting."
+// Renders each auto-email through renderEmailTemplate() so the preview
+// reflects the DB-stored copy when admin has edited a template, falling
+// back to the hardcoded default otherwise. Sample vars are interpolated
+// so admin sees a realistic render.
 
 type PreviewCase = {
   key: string
   label: string
   description: string
-  render: () => { subject: string; html: string }
+  /** Sample variable values for the {{var}} substitution. */
+  vars: Record<string, string>
 }
+
+const SAMPLE_PAYMENT_URL = 'https://learnvibe.build/payment/checkout/123?t=sample'
 
 const EMAIL_PREVIEW_CASES: PreviewCase[] = [
   {
     key: 'application_received',
     label: 'Application received',
     description: 'Sent immediately when someone submits the apply form.',
-    render: () => applicationReceivedEmail('Jane Doe'),
+    vars: { firstName: 'Jane' },
   },
   {
     key: 'application_approved',
     label: 'Approved — paid tier',
     description: 'Sent when admin approves an applicant at a non-zero price.',
-    render: () => applicationApprovedEmail(
-      'Jane Doe',
-      'https://learnvibe.build/payment/checkout/123?t=sample',
-      'Full Price',
-      '$500',
-      false,
-    ),
+    vars: { firstName: 'Jane', tierLabel: 'Full Price', amountFormatted: '$500', paymentUrl: SAMPLE_PAYMENT_URL },
   },
   {
     key: 'application_approved_sponsored',
     label: 'Approved — sponsored ($0)',
     description: 'Sent when admin approves an applicant at $0 AND the applicant has no account yet. (If account exists, they get the enrollment_confirmed email instead.)',
-    render: () => applicationApprovedEmail(
-      'Jane Doe',
-      'https://learnvibe.build/payment/checkout/123?t=sample',
-      'Sponsored',
-      '$0',
-      true,
-    ),
+    vars: { firstName: 'Jane', paymentUrl: SAMPLE_PAYMENT_URL },
   },
   {
     key: 'application_rejected',
     label: 'Rejected',
     description: 'Sent when admin rejects an application.',
-    render: () => applicationRejectedEmail('Jane Doe'),
+    vars: { firstName: 'Jane' },
   },
   {
-    key: 'application_price_changed_paid',
+    key: 'application_price_changed',
     label: 'Price changed — paid tier',
-    description: 'Sent when admin updates an approved applicant\'s price to a new non-zero amount.',
-    render: () => applicationPriceChangedEmail(
-      'Jane Doe', '$500', '$250', 'Discounted',
-      'https://learnvibe.build/payment/checkout/123?t=sample', false,
-    ),
+    description: "Sent when admin updates an approved applicant's price to a new non-zero amount.",
+    vars: { firstName: 'Jane', tierLabel: 'Discounted', oldAmountFormatted: '$500', newAmountFormatted: '$250', paymentUrl: SAMPLE_PAYMENT_URL },
   },
   {
     key: 'application_price_changed_sponsored',
     label: 'Price changed — now sponsored ($0)',
     description: 'Sent when admin moves an approved applicant to sponsored.',
-    render: () => applicationPriceChangedEmail(
-      'Jane Doe', '$500', '$0', 'Sponsored',
-      'https://learnvibe.build/payment/checkout/123?t=sample', true,
-    ),
+    vars: { firstName: 'Jane', paymentUrl: SAMPLE_PAYMENT_URL },
   },
   {
     key: 'enrollment_confirmed_no_account',
     label: 'Enrollment confirmed — no account yet',
     description: 'Sent after successful Stripe payment when the user has not yet signed up. CTA: create account.',
-    render: () => enrollmentConfirmedEmail('Jane Doe', 'Cohort 1: Practice', false),
+    vars: { firstName: 'Jane', cohortTitle: 'Cohort 1: Practice' },
   },
   {
     key: 'enrollment_confirmed_has_account',
     label: 'Enrollment confirmed — account exists',
     description: 'Sent after sponsored auto-enroll or Stripe payment when the user already has an account. CTA: go to dashboard.',
-    render: () => enrollmentConfirmedEmail('Jane Doe', 'Cohort 1: Practice', true),
-  },
-  {
-    key: 'broadcast_sample',
-    label: 'Broadcast (sample)',
-    description: 'Wrapper used for all admin-composed broadcast emails. Body comes from what you type in the composer.',
-    render: () => cohortBroadcastEmail(
-      'Sample subject',
-      '<p>This is the body of a broadcast — admin-composed markdown renders here. The wrapper, footer, and branding are constant.</p>',
-      'enrolled',
-    ),
+    vars: { firstName: 'Jane', cohortTitle: 'Cohort 1: Practice' },
   },
 ]
 
 admin.get('/admin/email/preview', async (c) => {
   const user = c.get('user')!
+  // Render every preview case server-side so the subject we show matches
+  // exactly what would be sent (including DB-stored edits).
+  const previewRenders = await Promise.all(
+    EMAIL_PREVIEW_CASES.map(async (caseDef) => {
+      const { subject } = await renderEmailTemplate(c.env.DB, caseDef.key, caseDef.vars)
+      return { caseDef, subject }
+    }),
+  )
   return c.html(
     <Layout title="Email Previews" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY} noindex>
       <div class="page-section" style="max-width: 900px; margin: 0 auto;">
@@ -1666,17 +1667,22 @@ admin.get('/admin/email/preview', async (c) => {
         </p>
 
         <div style="display: grid; gap: 1rem;">
-          {EMAIL_PREVIEW_CASES.map((p) => {
-            const tpl = p.render()
-            return (
-              <div style="padding: 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: 12px;">
-                <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap;">
-                  <div>
-                    <h3 style="font-family: var(--font-display); font-size: 1.1rem; margin: 0 0 0.25rem 0;">
-                      {p.label}
-                    </h3>
-                    <p style="font-size: 0.85rem; color: var(--text-tertiary); margin: 0;">{p.description}</p>
-                  </div>
+          {previewRenders.map(({ caseDef: p, subject }) => (
+            <div style="padding: 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: 12px;">
+              <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap;">
+                <div>
+                  <h3 style="font-family: var(--font-display); font-size: 1.1rem; margin: 0 0 0.25rem 0;">
+                    {p.label}
+                  </h3>
+                  <p style="font-size: 0.85rem; color: var(--text-tertiary); margin: 0;">{p.description}</p>
+                </div>
+                <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                  <a
+                    href={`/admin/email/templates/${p.key}/edit`}
+                    style="padding: 0.4rem 0.85rem; background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 6px; text-decoration: none; font-size: 0.85rem; font-weight: 500; white-space: nowrap;"
+                  >
+                    Edit
+                  </a>
                   <a
                     href={`/admin/email/preview/${p.key}`}
                     target="_blank"
@@ -1685,19 +1691,18 @@ admin.get('/admin/email/preview', async (c) => {
                     Open render ↗
                   </a>
                 </div>
-                <div style="margin-top: 1rem; padding: 0.75rem 1rem; background: var(--white); border: 1px solid var(--border); border-radius: 6px; font-size: 0.9rem;">
-                  <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-tertiary); margin-bottom: 0.3rem;">SUBJECT</div>
-                  <div style="color: var(--text);">{tpl.subject}</div>
-                </div>
               </div>
-            )
-          })}
+              <div style="margin-top: 1rem; padding: 0.75rem 1rem; background: var(--white); border: 1px solid var(--border); border-radius: 6px; font-size: 0.9rem;">
+                <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-tertiary); margin-bottom: 0.3rem;">SUBJECT</div>
+                <div style="color: var(--text);">{subject}</div>
+              </div>
+            </div>
+          ))}
         </div>
 
-        <div style="margin-top: 3rem; padding: 1.25rem 1.5rem; background: var(--accent-soft); border: 1px solid #fdd1bb; border-radius: 10px;">
-          <p style="margin: 0; font-size: 0.9rem; color: #9a3d12;">
-            <strong>Heads up:</strong> these templates are currently defined in code (<code style="background: var(--surface); padding: 0.1rem 0.35rem; border-radius: 4px;">src/lib/email.ts</code>).
-            Editing them requires a code change + deploy. Admin-editable templates are on the backlog.
+        <div style="margin-top: 2.5rem; padding: 1.25rem 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: 10px;">
+          <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">
+            Templates render through DB-stored copy when edited (<a href="/admin/email/templates" style="color: var(--accent);">manage templates</a>), or fall back to the hardcoded defaults.
           </p>
         </div>
       </div>
@@ -1711,8 +1716,380 @@ admin.get('/admin/email/preview/:key', async (c) => {
   if (!preview) {
     return c.text('Preview not found', 404)
   }
-  const tpl = preview.render()
+  const tpl = await renderEmailTemplate(c.env.DB, preview.key, preview.vars)
   return c.html(tpl.html)
+})
+
+// ===== EMAIL LOG ENTRY DETAIL =====
+// Click a row on /admin/emails → see the rendered body + a resend button.
+// Pre-existing rows logged before the body_html column was added show a
+// "body not stored for this row" notice rather than a stale render.
+admin.get('/admin/emails/:id', async (c) => {
+  const user = c.get('user')!
+  const db = getDb(c.env.DB)
+  const id = parseInt(c.req.param('id'), 10)
+  if (!Number.isFinite(id)) return c.text('Invalid id', 400)
+  const row = await db.select().from(emailLog).where(eq(emailLog.id, id)).get()
+  if (!row) return c.text('Email log entry not found', 404)
+  const success = c.req.query('success')
+  const errorCode = c.req.query('error') || ''
+  const ERROR_MESSAGES: Record<string, string> = {
+    no_body: 'This row has no stored body — it was logged before the body_html column existed. Resend not possible.',
+    not_configured: 'Email is not configured (RESEND_API_KEY missing).',
+    send_failed: 'Resend failed. Check the new log entry for the error.',
+  }
+  const errorMessage = errorCode && (ERROR_MESSAGES[errorCode] || `Something went wrong (${errorCode}).`)
+
+  const sentDate = new Date(row.sentAt).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })
+  return c.html(
+    <Layout title={`Email — ${row.subject}`} user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY} noindex>
+      <div class="page-section" style="max-width: 900px; margin: 0 auto;">
+        <a href="/admin/emails" class="back-link">← Email Log</a>
+        <p class="section-label">Email log</p>
+        <h2 style="word-wrap: break-word;">{row.subject}</h2>
+
+        {success === 'resent' && (
+          <div style="margin-top: 1rem; padding: 0.85rem 1rem; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; font-size: 0.9rem; color: #155724;">
+            ✓ Resent. A new entry has been logged in <a href="/admin/emails" style="color: #155724; text-decoration: underline;">the email log</a>.
+          </div>
+        )}
+        {errorMessage && (
+          <div style="margin-top: 1rem; padding: 0.85rem 1rem; background: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px; font-size: 0.9rem; color: #991b1b;">
+            {errorMessage}
+          </div>
+        )}
+
+        <div style="margin-top: 1.25rem; padding: 1rem 1.25rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; display: grid; grid-template-columns: max-content 1fr; gap: 0.4rem 1.25rem; font-size: 0.9rem;">
+          <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em;">To</span>
+          <span style="font-family: var(--font-mono);">{row.to}</span>
+          <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em;">Template</span>
+          <span>{TEMPLATE_LABELS[row.template] || row.template}</span>
+          <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em;">Status</span>
+          <span style={`color: ${row.status === 'sent' ? '#16a34a' : '#dc2626'};`}>
+            {row.status === 'sent' ? 'Sent' : 'Failed'}
+            {row.error && <span style="color: var(--text-tertiary); margin-left: 0.5rem; font-size: 0.85rem;">— {row.error}</span>}
+          </span>
+          <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em;">Sent at</span>
+          <span style="font-family: var(--font-mono); font-size: 0.85rem;">{sentDate}</span>
+        </div>
+
+        <div style="margin-top: 1.25rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
+          <form method="post" action={`/api/admin/emails/${row.id}/resend`} style="margin: 0;">
+            <button
+              type="submit"
+              disabled={!row.bodyHtml}
+              title={!row.bodyHtml ? 'Cannot resend — body not stored for this entry' : 'Re-fire this exact email to the same recipient'}
+              style={`padding: 0.55rem 1.1rem; background: ${row.bodyHtml ? 'var(--accent)' : 'var(--surface)'}; color: ${row.bodyHtml ? 'white' : 'var(--text-tertiary)'}; border: 1px solid ${row.bodyHtml ? 'var(--accent)' : 'var(--border)'}; border-radius: 6px; font-size: 0.9rem; font-weight: 500; cursor: ${row.bodyHtml ? 'pointer' : 'not-allowed'};`}
+              onclick={`return confirm('Resend this email to ${row.to}?')`}
+            >
+              Resend to {row.to}
+            </button>
+          </form>
+        </div>
+
+        <h3 style="margin-top: 2.5rem; font-family: var(--font-display); font-weight: 600; font-size: 1.1rem;">Rendered body</h3>
+        {row.bodyHtml ? (
+          <iframe
+            srcdoc={row.bodyHtml}
+            sandbox="allow-same-origin"
+            title="Rendered email"
+            style="width: 100%; min-height: 700px; margin-top: 0.75rem; border: 1px solid var(--border); border-radius: 8px; background: white;"
+          ></iframe>
+        ) : (
+          <p style="margin-top: 0.75rem; padding: 1rem 1.25rem; background: var(--surface); border: 1px dashed var(--border); border-radius: 8px; color: var(--text-tertiary); font-size: 0.9rem;">
+            Body not stored for this row — it was logged before the <code>body_html</code> column existed. New emails capture the full rendered body so future detail views show it here.
+          </p>
+        )}
+      </div>
+    </Layout>
+  )
+})
+
+admin.post('/api/admin/emails/:id/resend', async (c) => {
+  const db = getDb(c.env.DB)
+  const id = parseInt(c.req.param('id'), 10)
+  if (!Number.isFinite(id)) return c.text('Invalid id', 400)
+  const row = await db.select().from(emailLog).where(eq(emailLog.id, id)).get()
+  if (!row) return c.redirect(`/admin/emails`)
+  if (!row.bodyHtml) return c.redirect(`/admin/emails/${id}?error=no_body`)
+  if (!isEmailConfigured(c.env.RESEND_API_KEY)) return c.redirect(`/admin/emails/${id}?error=not_configured`)
+  // Re-fire the EXACT body we previously sent — no re-rendering, no
+  // template lookup. Logs a new email_log row via sendEmail's normal path.
+  const result = await sendEmail({
+    apiKey: c.env.RESEND_API_KEY,
+    from: c.env.EMAIL_FROM,
+    replyTo: c.env.EMAIL_REPLY_TO,
+    to: row.to,
+    subject: row.subject,
+    html: row.bodyHtml,
+    db: c.env.DB,
+    template: row.template,
+  })
+  if (!result.success) return c.redirect(`/admin/emails/${id}?error=send_failed`)
+  return c.redirect(`/admin/emails/${id}?success=resent`)
+})
+
+// ===== EMAIL TEMPLATE EDITOR =====
+// /admin/email/templates lists every template (DB row + a "default" badge
+// when active=0 falls back to hardcoded). Each opens an edit form with a
+// live preview. Saves are full-replace (no versioning yet — see #24's
+// "out of scope" list).
+
+admin.get('/admin/email/templates', async (c) => {
+  const user = c.get('user')!
+  const db = getDb(c.env.DB)
+  const rows = await db.select().from(emailTemplates).all()
+  const byKey = new Map(rows.map(r => [r.key, r]))
+
+  return c.html(
+    <Layout title="Email Templates" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY} noindex>
+      <div class="page-section" style="max-width: 900px; margin: 0 auto;">
+        <a href="/admin/emails" class="back-link">← Email Log</a>
+        <p class="section-label">Emails</p>
+        <h2>Email Templates</h2>
+        <p class="lead" style="margin-top: 0.5rem; margin-bottom: 2rem; color: var(--text-secondary); font-size: 0.95rem;">
+          Edit the auto-emails the system sends. Each template falls back to the hardcoded default if you mark it inactive or its DB row is deleted.
+          <a href="/admin/email/preview" style="color: var(--accent); margin-left: 0.5rem;">See sample renders →</a>
+        </p>
+
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+          {TEMPLATE_KEYS.map(key => {
+            const row = byKey.get(key as string)
+            const label = TEMPLATE_LABELS[key as string] || key
+            const isActive = row?.active === 1
+            const editedAt = row?.updatedAt
+            return (
+              <a href={`/admin/email/templates/${key}/edit`} class="admin-app-card">
+                <div style="display: flex; justify-content: space-between; align-items: start; gap: 1rem;">
+                  <div>
+                    <strong>{label}</strong>
+                    <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-tertiary); margin-top: 0.2rem;">{key}</div>
+                  </div>
+                  <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                    {!row && (
+                      <span title="No DB row — falling back to hardcoded default. The seed migration creates rows for all templates; this state means the row was deleted or the migration didn't run." style="font-size: 0.7rem; background: var(--surface); color: var(--text-tertiary); border: 1px solid var(--border); border-radius: 999px; padding: 0.15rem 0.55rem; font-weight: 500;">
+                        Default (no DB row)
+                      </span>
+                    )}
+                    {row && !isActive && (
+                      <span style="font-size: 0.7rem; background: #fef9c3; color: #854d0e; border: 1px solid #fde047; border-radius: 999px; padding: 0.15rem 0.55rem; font-weight: 500;">Inactive (using default)</span>
+                    )}
+                    {row && isActive && (
+                      <span style="font-size: 0.7rem; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; border-radius: 999px; padding: 0.15rem 0.55rem; font-weight: 500;">Active</span>
+                    )}
+                  </div>
+                </div>
+                {row && (
+                  <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">
+                    <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-tertiary);">Subject:</span> {row.subject}
+                  </div>
+                )}
+                {editedAt && (
+                  <div style="margin-top: 0.4rem; font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-tertiary);">
+                    Updated {new Date(editedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </div>
+                )}
+              </a>
+            )
+          })}
+        </div>
+      </div>
+    </Layout>
+  )
+})
+
+admin.get('/admin/email/templates/:key/edit', async (c) => {
+  const user = c.get('user')!
+  const db = getDb(c.env.DB)
+  const key = c.req.param('key')
+  if (!TEMPLATE_KEYS.includes(key as any)) return c.text('Unknown template key', 404)
+  const fallback = DEFAULT_TEMPLATES[key]
+  const row = await db.select().from(emailTemplates).where(eq(emailTemplates.key, key)).get()
+  // Show the DB row if present; otherwise show the hardcoded default
+  // pre-loaded into the form so a "save" creates a fresh DB row matching
+  // the default. Either path lets admin start editing immediately.
+  const subject = row?.subject ?? fallback.subject
+  const bodyMarkdown = row?.bodyMarkdown ?? fallback.bodyMarkdown
+  const isActive = row ? row.active === 1 : true
+  const variables: string[] = row
+    ? (() => { try { return JSON.parse(row.variablesJson) } catch { return fallback.variables } })()
+    : fallback.variables
+
+  const success = c.req.query('saved') === '1'
+  const reset = c.req.query('reset') === '1'
+
+  return c.html(
+    <Layout title={`Edit template: ${TEMPLATE_LABELS[key] || key}`} user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY} noindex>
+      <div class="page-section" style="max-width: 1100px; margin: 0 auto;">
+        <a href="/admin/email/templates" class="back-link">← All templates</a>
+        <p class="section-label">Edit template</p>
+        <h2>{TEMPLATE_LABELS[key] || key}</h2>
+        <p style="margin-top: 0.25rem; font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-tertiary);">{key}</p>
+
+        {success && (
+          <div style="margin-top: 1rem; padding: 0.75rem 1rem; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; font-size: 0.9rem; color: #155724;">
+            ✓ Saved. The next email of this type will use the updated copy.
+          </div>
+        )}
+        {reset && (
+          <div style="margin-top: 1rem; padding: 0.75rem 1rem; background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; font-size: 0.9rem; color: #92400e;">
+            Reset to hardcoded default — DB row is now inactive, sends will use the default until you save again.
+          </div>
+        )}
+
+        <div style="margin-top: 1.5rem; padding: 0.85rem 1.1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; font-size: 0.85rem; color: var(--text-secondary);">
+          <strong style="color: var(--text);">Variables you can use:</strong>{' '}
+          {variables.length === 0 ? <em style="color: var(--text-tertiary);">none</em> : variables.map((v, i) => (
+            <>
+              <code style="background: var(--white); border: 1px solid var(--border); padding: 0.1rem 0.35rem; border-radius: 4px; font-size: 0.85rem;">{`{{${v}}}`}</code>
+              {i < variables.length - 1 ? ', ' : ''}
+            </>
+          ))}
+          <p style="margin: 0.5rem 0 0 0; font-size: 0.85rem; color: var(--text-tertiary);">
+            Body accepts markdown OR inline HTML. Existing class hooks: <code>email-cta</code> (button), <code>email-highlight</code> (warm box), <code>email-divider</code> (rule), <code>email-muted</code> (footer text).
+          </p>
+        </div>
+
+        <form method="post" action={`/api/admin/email/templates/${key}`} style="margin-top: 1.5rem;" data-tpl-form>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; align-items: start;" class="tpl-edit-grid">
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+              <div>
+                <label for="subject" style="display: block; font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em; margin-bottom: 0.35rem;">Subject</label>
+                <input
+                  id="subject" name="subject" type="text" required
+                  value={subject}
+                  data-tpl-subject
+                  style="width: 100%; padding: 0.55rem 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.95rem;"
+                />
+              </div>
+              <div>
+                <label for="body_markdown" style="display: block; font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em; margin-bottom: 0.35rem;">Body (markdown / HTML)</label>
+                <textarea
+                  id="body_markdown" name="body_markdown" rows={22} required
+                  data-tpl-body
+                  style="width: 100%; padding: 0.6rem 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.55;"
+                >{bodyMarkdown}</textarea>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.4rem; padding: 0.6rem 0.85rem; background: var(--surface); border: 1px solid var(--border); border-radius: 6px;">
+                <input type="checkbox" id="active" name="active" value="1" checked={isActive} />
+                <label for="active" style="font-size: 0.9rem; cursor: pointer;">Active — uncheck to fall back to the hardcoded default</label>
+              </div>
+              <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                <button type="submit" style="padding: 0.55rem 1.25rem; background: var(--accent); color: white; border: 0; border-radius: 6px; font-size: 0.95rem; font-weight: 500; cursor: pointer;">Save</button>
+                {row && (
+                  <form method="post" action={`/api/admin/email/templates/${key}/reset`} style="display: inline;" onsubmit="return confirm('Reset to hardcoded default? Your edits will be discarded.')">
+                    <button type="submit" style="padding: 0.5rem 1rem; background: var(--surface); border: 1px solid var(--border); color: var(--text-secondary); border-radius: 6px; font-size: 0.9rem; cursor: pointer;">Reset to default</button>
+                  </form>
+                )}
+                <a href={`/admin/email/preview/${key}`} target="_blank" style="font-size: 0.85rem; color: var(--accent);">Open render in new tab ↗</a>
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              <div style="font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Live preview</div>
+              <iframe
+                data-tpl-preview
+                title="Live preview"
+                sandbox="allow-same-origin"
+                style="width: 100%; min-height: 600px; border: 1px solid var(--border); border-radius: 8px; background: white;"
+              ></iframe>
+              <p style="font-size: 0.78rem; color: var(--text-tertiary); margin: 0;">Preview re-renders ~600ms after you stop typing. Sample variables are filled in automatically.</p>
+            </div>
+          </div>
+        </form>
+
+        <style dangerouslySetInnerHTML={{ __html: `
+          @media (max-width: 850px) { .tpl-edit-grid { grid-template-columns: 1fr !important; } }
+        ` }} />
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function(){
+            var subjectEl = document.querySelector('[data-tpl-subject]');
+            var bodyEl = document.querySelector('[data-tpl-body]');
+            var iframe = document.querySelector('[data-tpl-preview]');
+            if (!subjectEl || !bodyEl || !iframe) return;
+            var debounce;
+            function refresh() {
+              var fd = new FormData();
+              fd.append('subject', subjectEl.value);
+              fd.append('body_markdown', bodyEl.value);
+              fetch(${JSON.stringify(`/api/admin/email/templates/${key}/render`)}, { method: 'POST', body: fd })
+                .then(function(r){ return r.text(); })
+                .then(function(html){ iframe.srcdoc = html; })
+                .catch(function(e){ console.error('preview fetch failed', e); });
+            }
+            function schedule() {
+              clearTimeout(debounce);
+              debounce = setTimeout(refresh, 600);
+            }
+            subjectEl.addEventListener('input', schedule);
+            bodyEl.addEventListener('input', schedule);
+            // Initial render
+            refresh();
+          })();
+        ` }} />
+      </div>
+    </Layout>
+  )
+})
+
+admin.post('/api/admin/email/templates/:key', async (c) => {
+  const user = c.get('user')!
+  const db = getDb(c.env.DB)
+  const key = c.req.param('key')
+  if (!TEMPLATE_KEYS.includes(key as any)) return c.text('Unknown template key', 404)
+  const body = await c.req.parseBody()
+  const subject = String(body.subject || '').trim()
+  const bodyMarkdown = String(body.body_markdown || '').trim()
+  const active = body.active === '1' ? 1 : 0
+  if (!subject || !bodyMarkdown) {
+    return c.redirect(`/admin/email/templates/${key}/edit?error=missing_fields`)
+  }
+  const variables = DEFAULT_TEMPLATES[key]?.variables ?? []
+  const variablesJson = JSON.stringify(variables)
+  const now = new Date().toISOString()
+  const existing = await db.select().from(emailTemplates).where(eq(emailTemplates.key, key)).get()
+  if (existing) {
+    await db.update(emailTemplates).set({
+      subject, bodyMarkdown, active, variablesJson,
+      updatedAt: now, updatedByUserId: user.id,
+    }).where(eq(emailTemplates.key, key))
+  } else {
+    await db.insert(emailTemplates).values({
+      key, subject, bodyMarkdown, active, variablesJson,
+      updatedAt: now, updatedByUserId: user.id,
+    })
+  }
+  return c.redirect(`/admin/email/templates/${key}/edit?saved=1`)
+})
+
+admin.post('/api/admin/email/templates/:key/reset', async (c) => {
+  const db = getDb(c.env.DB)
+  const key = c.req.param('key')
+  if (!TEMPLATE_KEYS.includes(key as any)) return c.text('Unknown template key', 404)
+  // "Reset" means: set active=0 so the renderer falls back to the
+  // hardcoded default. We don't delete the row — admin's previous edits
+  // are preserved and they can re-activate later if they want.
+  await db.update(emailTemplates)
+    .set({ active: 0, updatedAt: new Date().toISOString() })
+    .where(eq(emailTemplates.key, key))
+  return c.redirect(`/admin/email/templates/${key}/edit?reset=1`)
+})
+
+admin.post('/api/admin/email/templates/:key/render', async (c) => {
+  // Live-preview endpoint — renders an arbitrary subject+body without
+  // touching the DB. Used by the edit form's iframe.
+  const key = c.req.param('key')
+  if (!TEMPLATE_KEYS.includes(key as any)) return c.text('Unknown template key', 404)
+  const body = await c.req.parseBody()
+  const subject = String(body.subject || '')
+  const bodyMarkdown = String(body.body_markdown || '')
+  const fallback = DEFAULT_TEMPLATES[key]
+  // Use the same sample vars as the preview cases — keeps the live preview
+  // visually consistent with /admin/email/preview/:key.
+  const sampleCase = EMAIL_PREVIEW_CASES.find(p => p.key === key)
+  const vars = sampleCase?.vars ?? Object.fromEntries(fallback.variables.map(v => [v, `{{${v}}}`]))
+  const { html } = renderEmailTemplateFromSource({ subject, bodyMarkdown }, vars)
+  return c.html(html)
 })
 
 // ===== COMPOSE INDIVIDUAL EMAIL =====

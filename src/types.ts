@@ -9,6 +9,7 @@ export type Bindings = {
   STRIPE_WEBHOOK_SECRET: string
   RESEND_API_KEY: string
   EMAIL_FROM: string // e.g. "Learn Vibe Build <hello@learnvibe.build>"
+  EMAIL_REPLY_TO?: string // optional override for the Reply-To header
 }
 
 export type Variables = {
