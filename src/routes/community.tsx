@@ -26,8 +26,8 @@ communityRoutes.get('/community', async (c) => {
           <p style="margin-top: 1rem; color: var(--text-secondary); line-height: 1.7;">
             Community features are available to enrolled cohort members. Apply to join a cohort to get access.
           </p>
-          <a href="/apply" style="display: inline-block; margin-top: 2rem; background: var(--accent); color: white; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 500;">
-            Apply for the next cohort
+          <a href="/interest" style="display: inline-block; margin-top: 2rem; background: var(--accent); color: white; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 500;">
+            Join the interest list
           </a>
         </div>
       </Layout>,

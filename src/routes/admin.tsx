@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { eq, desc, asc, and, gte, lte, like, or, ne, inArray } from 'drizzle-orm'
 import { Layout } from '../components/Layout'
 import { getDb } from '../db'
-import { applications, cohorts, lessons, users, enrollments, payments, feedback, emailLog, emailTemplates, lessonProgress, projects, discussions, comments, apiKeys, memberships } from '../db/schema'
+import { applications, cohorts, lessons, users, enrollments, payments, feedback, emailLog, emailTemplates, interests, lessonProgress, projects, discussions, comments, apiKeys, memberships } from '../db/schema'
 import { isAdmin, isClerkConfigured, generateToken } from '../lib/auth'
 import { formatCents, getAmountForTier, getTierLabel, getApplicationAmount, getApplicationLabel } from '../lib/stripe'
 import { sendBroadcast, sendApplicationApproved, sendApplicationRejected, sendApplicationPriceChanged, sendEmail, isEmailConfigured, type BroadcastAudience, cohortBroadcastEmail } from '../lib/email'
@@ -742,6 +742,172 @@ admin.get('/admin/applications/:id', async (c) => {
           });
         });
       ` }} />
+    </Layout>
+  )
+})
+
+// ===== INTEREST LIST =====
+// Soft signups when applications aren't open. URL params for filters
+// follow the same pattern as /admin/applications + /admin/emails so
+// common views are bookmarkable.
+admin.get('/admin/interests', async (c) => {
+  const user = c.get('user')!
+  const db = getDb(c.env.DB)
+
+  const fInterest = (c.req.query('interest') || '').trim()
+  const fFrom = (c.req.query('from') || '').trim()
+  const fTo = (c.req.query('to') || '').trim()
+  const fQ = (c.req.query('q') || '').trim()
+  const fAudience = (c.req.query('audience') || '').trim() // 'synced' | 'pending'
+  const isValidDate = (s: string) => /^\d{4}-\d{2}-\d{2}$/.test(s)
+
+  let rows = await db.select().from(interests).orderBy(desc(interests.createdAt)).all()
+  let allRowsCount = rows.length
+
+  if (fInterest) {
+    rows = rows.filter(r => {
+      try { return (JSON.parse(r.interestsJson) as string[]).includes(fInterest) } catch { return false }
+    })
+  }
+  if (fAudience === 'synced') rows = rows.filter(r => !!r.resendContactId)
+  if (fAudience === 'pending') rows = rows.filter(r => !r.resendContactId)
+  if (isValidDate(fFrom)) {
+    const fromIso = `${fFrom}T00:00:00.000Z`
+    rows = rows.filter(r => r.createdAt >= fromIso)
+  }
+  if (isValidDate(fTo)) {
+    const toIso = `${fTo}T23:59:59.999Z`
+    rows = rows.filter(r => r.createdAt <= toIso)
+  }
+  if (fQ) {
+    const q = fQ.toLowerCase()
+    rows = rows.filter(r =>
+      r.email.toLowerCase().includes(q) ||
+      (r.name || '').toLowerCase().includes(q),
+    )
+  }
+
+  const filtersActive = !!(fInterest || fAudience || isValidDate(fFrom) || isValidDate(fTo) || fQ)
+  const interestLabels: Record<string, string> = {
+    next_cohort: 'Next cohort',
+    alumni: 'Alumni',
+    cu_class: 'CU class',
+    events: 'Events',
+  }
+
+  return c.html(
+    <Layout title="Interest List" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY} noindex>
+      <div class="page-section" style="max-width: 1000px; margin: 0 auto;">
+        <a href="/admin" class="back-link">← Admin</a>
+        <p class="section-label">Interests</p>
+        <h2>Interest List ({rows.length}{filtersActive ? ` of ${allRowsCount}` : ''})</h2>
+        <p style="margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.95rem;">
+          Soft signups from <code style="background: var(--surface); padding: 0.1rem 0.35rem; border-radius: 4px;">/interest</code>. The "Synced" filter shows whether a Resend audience contact id was recorded — failed syncs land as "Pending" and can be resynced later.
+        </p>
+
+        {/* Filter form */}
+        <form method="get" action="/admin/interests" style="margin-top: 1.25rem; padding: 0.85rem 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.6rem 0.85rem; align-items: end;">
+          <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+            <label for="filter-interest" style="font-family: var(--font-mono); font-size: 0.68rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Interest</label>
+            <select id="filter-interest" name="interest" style="padding: 0.4rem 0.55rem; border: 1px solid var(--border); border-radius: 5px; font-size: 0.85rem; background: var(--white);">
+              <option value="">Any</option>
+              {Object.entries(interestLabels).map(([key, label]) => (
+                <option value={key} selected={fInterest === key}>{label}</option>
+              ))}
+            </select>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+            <label for="filter-audience" style="font-family: var(--font-mono); font-size: 0.68rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Audience sync</label>
+            <select id="filter-audience" name="audience" style="padding: 0.4rem 0.55rem; border: 1px solid var(--border); border-radius: 5px; font-size: 0.85rem; background: var(--white);">
+              <option value="">All</option>
+              <option value="synced" selected={fAudience === 'synced'}>Synced</option>
+              <option value="pending" selected={fAudience === 'pending'}>Pending</option>
+            </select>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+            <label for="filter-from" style="font-family: var(--font-mono); font-size: 0.68rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">From</label>
+            <input id="filter-from" type="date" name="from" value={fFrom} style="padding: 0.35rem 0.55rem; border: 1px solid var(--border); border-radius: 5px; font-size: 0.85rem; background: var(--white); font-family: inherit;" />
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+            <label for="filter-to" style="font-family: var(--font-mono); font-size: 0.68rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">To</label>
+            <input id="filter-to" type="date" name="to" value={fTo} style="padding: 0.35rem 0.55rem; border: 1px solid var(--border); border-radius: 5px; font-size: 0.85rem; background: var(--white); font-family: inherit;" />
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.25rem; grid-column: span 2;">
+            <label for="filter-q" style="font-family: var(--font-mono); font-size: 0.68rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Email or name contains</label>
+            <input id="filter-q" type="text" name="q" value={fQ} placeholder="e.g. @example.com" style="padding: 0.4rem 0.55rem; border: 1px solid var(--border); border-radius: 5px; font-size: 0.85rem; background: var(--white); font-family: var(--font-mono);" />
+          </div>
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <button type="submit" style="padding: 0.4rem 0.85rem; background: var(--accent); color: white; border: 0; border-radius: 5px; font-size: 0.85rem; font-weight: 500; cursor: pointer;">Apply</button>
+            {filtersActive && (
+              <a href="/admin/interests" style="font-size: 0.8rem; color: var(--text-tertiary); text-decoration: none;">Reset</a>
+            )}
+          </div>
+        </form>
+
+        {rows.length === 0 ? (
+          <div style="margin-top: 2rem; padding: 2.5rem 1.5rem; text-align: center; color: var(--text-tertiary); background: var(--surface); border: 1px dashed var(--border); border-radius: 8px;">
+            {filtersActive ? (
+              <>
+                <p style="margin: 0 0 0.5rem 0;">No interests match these filters.</p>
+                <p style="margin: 0; font-size: 0.85rem;"><a href="/admin/interests" style="color: var(--accent);">Reset filters</a> to see everything.</p>
+              </>
+            ) : (
+              <p style="margin: 0;">No interest signups yet. Form is at <a href="/interest" style="color: var(--accent);">/interest</a>.</p>
+            )}
+          </div>
+        ) : (
+          <div style="margin-top: 1rem; overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+              <thead>
+                <tr style="border-bottom: 2px solid var(--border); text-align: left;">
+                  <th style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Email</th>
+                  <th style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Name</th>
+                  <th style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Interests</th>
+                  <th style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Source</th>
+                  <th style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Synced</th>
+                  <th style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Joined</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map(r => {
+                  let tags: string[] = []
+                  try { tags = JSON.parse(r.interestsJson) } catch { tags = [] }
+                  return (
+                    <tr style="border-bottom: 1px solid var(--border);">
+                      <td style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-secondary); max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        {r.email}
+                      </td>
+                      <td style="padding: 0.75rem 0.5rem;">{r.name || <span style="color: var(--text-tertiary);">—</span>}</td>
+                      <td style="padding: 0.75rem 0.5rem; max-width: 280px;">
+                        <div style="display: flex; gap: 0.3rem; flex-wrap: wrap;">
+                          {tags.length === 0 ? <span style="color: var(--text-tertiary); font-size: 0.85rem;">—</span> : tags.map(t => (
+                            <span style="font-size: 0.7rem; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 0.15rem 0.55rem; white-space: nowrap;">
+                              {interestLabels[t] || t}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                      <td style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-tertiary);">
+                        {r.sourcePath || '—'}
+                      </td>
+                      <td style="padding: 0.75rem 0.5rem;">
+                        {r.resendContactId ? (
+                          <span title={r.resendContactId} style="color: #16a34a; font-size: 0.85rem;">✓</span>
+                        ) : (
+                          <span title="No Resend contact id stored — audience-add was skipped or failed" style="color: #dc2626; font-size: 0.85rem;">Pending</span>
+                        )}
+                      </td>
+                      <td style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-tertiary); white-space: nowrap;">
+                        {new Date(r.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </Layout>
   )
 })

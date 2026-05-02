@@ -20,6 +20,7 @@ import discussionRoutes from './routes/discussions'
 import apiV1 from './routes/api-v1'
 import mcp from './routes/mcp'
 import oauth from './routes/oauth'
+import interest from './routes/interest'
 
 const app = new Hono<AppContext>()
 
@@ -100,5 +101,8 @@ app.route('/', cohortRoutes)
 
 // JSX page routes (apply form, etc.)
 app.route('/', pages)
+
+// Interest list (Cohort 2 signup) — public form + POST handler
+app.route('/', interest)
 
 export default app

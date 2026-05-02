@@ -171,8 +171,8 @@ dashboard.get('/dashboard', async (c) => {
                 <p style="color: var(--text-secondary);">
                   You're not enrolled in any cohorts yet.
                 </p>
-                <a href="/apply" style="display: inline-block; margin-top: 1rem; color: var(--accent); font-weight: 500;">
-                  Apply for the next cohort →
+                <a href="/interest" style="display: inline-block; margin-top: 1rem; color: var(--accent); font-weight: 500;">
+                  Join the interest list →
                 </a>
               </div>
             )

@@ -68,8 +68,8 @@ home.get('/', async (c) => {
           {cohortStatusLabel}
         </div>
 
-        <a href="/apply" class="hero-cta" style="margin-top: 1.25rem;">
-          Apply for the next cohort
+        <a href="/interest" class="hero-cta" style="margin-top: 1.25rem;">
+          Join the interest list
           <ArrowSvg />
         </a>
         <p class="hero-meta">Mondays 5:30&ndash;7:30pm MT<span class="sep">&middot;</span>6 Weeks<span class="sep">&middot;</span>Boulder, CO &amp; Remote<span class="sep">&middot;</span>$500 (sliding-scale)</p>
@@ -169,13 +169,13 @@ home.get('/', async (c) => {
           <span class="cohort-badge" style="background: var(--surface); color: var(--text-secondary); border: 1px solid var(--border);">Coming next</span>
           <h3>Cohort 2 &mdash; Forming</h3>
           <p class="cohort-detail">Dates coming soon &middot; same shape, deeper from what we're learning now</p>
-          <p>The next cohort is being shaped from what's surfacing inside Cohort 1 &mdash; pacing, demos, where the practice goes deepest. Apply now and we'll be in touch as the dates land. Cost should never be a barrier; we'll work with you on what makes sense.</p>
+          <p>The next cohort is being shaped from what's surfacing inside Cohort 1 &mdash; pacing, demos, where the practice goes deepest. Drop your email and we'll be in touch as the dates land. Cost should never be a barrier; we'll work with you on what makes sense.</p>
 
-          <p style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);"><strong style="font-family: var(--font-mono); font-size: 1.1rem;">$500</strong> <span style="color: var(--text-tertiary);">general admission &mdash; sliding-scale and sponsored spots available. <a href="mailto:ag@unforced.dev" style="color: var(--accent);">Reach out</a> if cost is a question.</span></p>
+          <p style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);"><strong style="font-family: var(--font-mono); font-size: 1.1rem;">$500</strong> <span style="color: var(--text-tertiary);">general admission (Cohort 1 pricing) &mdash; sliding-scale and sponsored spots available. <a href="mailto:ag@unforced.dev" style="color: var(--accent);">Reach out</a> if cost is a question.</span></p>
 
           <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
-            <a href="/apply" class="hero-cta" style="font-size: 0.95rem; padding: 0.75rem 1.5rem;">
-              Apply for the next cohort
+            <a href="/interest" class="hero-cta" style="font-size: 0.95rem; padding: 0.75rem 1.5rem;">
+              Join the interest list
               <SmallArrowSvg />
             </a>
             <a href="/apply/status" style="padding: 0.75rem 1.5rem; color: var(--text-secondary); font-size: 0.95rem; text-decoration: none; display: inline-flex; align-items: center;">Check your status &rarr;</a>
@@ -337,9 +337,9 @@ home.get('/', async (c) => {
       <section class="cta-section">
         <div class="cta-content">
           <h2>Ready to build an assistant that knows you?</h2>
-          <p>Cohort 2 is forming. Six weeks of practice, together. Apply now and we'll be in touch as dates come into focus.</p>
-          <a href="/apply" class="cta-btn">
-            Apply for the next cohort
+          <p>Cohort 2 is forming. Six weeks of practice, together. Drop your email and we'll be in touch as dates come into focus.</p>
+          <a href="/interest" class="cta-btn">
+            Join the interest list
             <ArrowSvg />
           </a>
           <p class="cta-aside">Questions? <a href="mailto:ag@unforced.dev">Reach out</a> &mdash; the next step is a conversation.</p>

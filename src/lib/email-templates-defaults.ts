@@ -111,6 +111,21 @@ export const DEFAULT_TEMPLATES: Record<string, EmailTemplateDefault> = {
 <p class="email-muted">Already have an account? <a href="https://learnvibe.build/dashboard" style="color: #e8612a; text-decoration: none;">Go to your dashboard</a>.</p>`,
   },
 
+  interest_received: {
+    subject: 'On the list — Learn Vibe Build',
+    variables: ['firstName', 'interestSummary'],
+    bodyMarkdown: `<h2>Hey {{firstName}} —</h2>
+<p>Thanks for joining the Learn Vibe Build interest list. We've added you to {{interestSummary}}.</p>
+<p>Cohort 1 is in flight right now, and Cohort 2 is forming as we learn from this run. We'll be in touch as the dates and shape come into focus.</p>
+<div class="email-highlight">
+  <p style="margin: 0 0 0.5rem 0;"><strong>While you wait:</strong></p>
+  <p style="margin: 0;">If you've got something you're trying to make with AI right now, reply to this email and tell us about it. We love hearing what people are working on, and the cohort design is shaped by what we learn from those conversations.</p>
+</div>
+<a href="https://learnvibe.build" class="email-cta">Visit the site</a>
+<hr class="email-divider">
+<p class="email-muted">You're on the list because you signed up at learnvibe.build. We'll keep these messages thoughtful and infrequent. Reply anytime — questions, ideas, pushback, all welcome.</p>`,
+  },
+
   enrollment_confirmed_has_account: {
     subject: "You're enrolled in {{cohortTitle}} — Learn Vibe Build",
     variables: ['firstName', 'cohortTitle'],
@@ -135,6 +150,7 @@ export const TEMPLATE_KEYS: ReadonlyArray<keyof typeof DEFAULT_TEMPLATES> = [
   'application_price_changed_sponsored',
   'enrollment_confirmed_no_account',
   'enrollment_confirmed_has_account',
+  'interest_received',
 ]
 
 /** Human-readable labels for each template key — used by admin UI. */
@@ -147,6 +163,7 @@ export const TEMPLATE_LABELS: Record<string, string> = {
   application_price_changed_sponsored: 'Price changed — now sponsored',
   enrollment_confirmed_no_account: 'Enrollment confirmed — no account yet',
   enrollment_confirmed_has_account: 'Enrollment confirmed — account exists',
+  interest_received: 'Interest list — confirmation',
   // Logged template keys that don't have an editable template here — used
   // for label-only purposes on the email log table.
   broadcast: 'Broadcast',
