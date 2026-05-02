@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { eq } from 'drizzle-orm'
 import { Layout } from '../components/Layout'
 import { getDb } from '../db'
-import { applications } from '../db/schema'
+import { applications, cohorts } from '../db/schema'
 import { formatCents, getApplicationAmount, getApplicationLabel } from '../lib/stripe'
 import type { AppContext } from '../types'
 
@@ -147,8 +147,8 @@ pages.get('/curriculum', (c) => {
         </div>
 
         <div style="text-align: center; padding: 3rem 0;">
-          <a href="/apply" style="display: inline-flex; align-items: center; gap: 0.5rem; background: var(--accent); color: white; font-size: 1rem; font-weight: 500; padding: 0.875rem 2rem; border-radius: 8px; text-decoration: none;">
-            Apply for the next cohort
+          <a href="/interest" style="display: inline-flex; align-items: center; gap: 0.5rem; background: var(--accent); color: white; font-size: 1rem; font-weight: 500; padding: 0.875rem 2rem; border-radius: 8px; text-decoration: none;">
+            Join the interest list
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </a>
           <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-tertiary);">
@@ -163,8 +163,42 @@ pages.get('/curriculum', (c) => {
   )
 })
 
-pages.get('/apply', (c) => {
+pages.get('/apply', async (c) => {
   const error = c.req.query('error')
+  const db = getDb(c.env.DB)
+
+  // Check whether any cohort is currently `enrolling` — if not, render a
+  // graceful "applications aren't open" state pointing at the interest
+  // list instead of the form. This way the route still serves a useful
+  // page when Cohort 1 closes and Cohort 2 isn't ready to take apps yet.
+  const enrollingCohort = await db.select().from(cohorts).where(eq(cohorts.status, 'enrolling')).get()
+
+  if (!enrollingCohort) {
+    return c.html(
+      <Layout
+        title="Applications closed for now — Learn Vibe Build"
+        description="Applications aren't open right now. Join the interest list to be notified when the next cohort opens."
+        user={c.get('user')}
+      >
+        <div class="page-section" style="max-width: 640px; margin: 0 auto;">
+          <p class="section-label">Apply</p>
+          <h2>Applications aren't open right now</h2>
+          <p class="lead">
+            Cohort 1 is finishing up, and Cohort 2 dates aren't set yet. Drop your email on the interest list and we'll be in touch as the next cohort takes shape.
+          </p>
+          <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+            <a href="/interest" style="display: inline-flex; align-items: center; gap: 0.4rem; background: var(--accent); color: white; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 500;">
+              Join the interest list →
+            </a>
+            <a href="/" style="color: var(--text-secondary); text-decoration: none; font-size: 0.95rem;">← Back to homepage</a>
+          </div>
+          <p style="margin-top: 2rem; font-size: 0.9rem; color: var(--text-secondary); padding-top: 1.5rem; border-top: 1px solid var(--border);">
+            Already applied? <a href="/apply/status" style="color: var(--accent);">Check your status →</a>
+          </p>
+        </div>
+      </Layout>
+    )
+  }
 
   const errorMessages: Record<string, string> = {
     missing_fields: 'Please fill out all required fields.',
@@ -344,7 +378,7 @@ pages.post('/apply/status', async (c) => {
             We couldn't find an application for <strong>{email}</strong>.
           </p>
           <p style="margin-top: 1.5rem;">
-            <a href="/apply" style="color: var(--accent); font-weight: 500;">Apply for the next cohort →</a>
+            <a href="/interest" style="color: var(--accent); font-weight: 500;">Join the interest list →</a>
           </p>
           <p style="margin-top: 1rem;">
             <a href="/apply/status" style="color: var(--text-tertiary);">← Try another email</a>

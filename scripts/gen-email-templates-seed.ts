@@ -1,17 +1,50 @@
-// One-shot generator for the email_templates seed SQL.
-// Writes to drizzle/migrations/0017_email_templates_and_log_body.sql.
-// Run with: npx tsx scripts/gen-email-templates-seed.ts
+// One-shot generator for email_templates seed SQL.
+//
+// Usage:
+//   npx tsx scripts/gen-email-templates-seed.ts                  # writes 0017
+//   npx tsx scripts/gen-email-templates-seed.ts --inserts-only key1 key2 …
+//     ↳ writes ONLY the INSERT statements for the given keys to stdout,
+//       no schema DDL. Useful for new migrations that want to seed a
+//       freshly-added template (e.g. 0018 adds interest_received).
 //
 // Why a generator: hand-escaping multi-line HTML strings inside SQL is error-
 // prone (every apostrophe must double). This script reads the canonical
-// templates from src/lib/email-templates-defaults.ts and emits a consistent
-// migration file, so the SQL stays in sync with the TS source-of-truth.
+// templates from src/lib/email-templates-defaults.ts and emits consistent
+// SQL, so the seed stays in sync with the TS source-of-truth.
 
 import { writeFileSync } from 'node:fs'
 import { DEFAULT_TEMPLATES, TEMPLATE_KEYS } from '../src/lib/email-templates-defaults'
 
 function sqlString(s: string): string {
   return `'${s.replace(/'/g, "''")}'`
+}
+
+function insertFor(key: string): string {
+  const tpl = DEFAULT_TEMPLATES[key]
+  if (!tpl) throw new Error(`unknown template key: ${key}`)
+  const variables = JSON.stringify(tpl.variables)
+  return `INSERT OR IGNORE INTO \`email_templates\` (\`key\`, \`subject\`, \`body_markdown\`, \`variables_json\`, \`updated_at\`, \`active\`) VALUES (
+  ${sqlString(key)},
+  ${sqlString(tpl.subject)},
+  ${sqlString(tpl.bodyMarkdown)},
+  ${sqlString(variables)},
+  (datetime('now')),
+  1
+);`
+}
+
+// --- CLI ---
+const args = process.argv.slice(2)
+const insertsOnlyIdx = args.indexOf('--inserts-only')
+if (insertsOnlyIdx !== -1) {
+  const requested = args.slice(insertsOnlyIdx + 1)
+  if (requested.length === 0) {
+    console.error('--inserts-only requires at least one key')
+    process.exit(1)
+  }
+  const out = requested.map(insertFor).join('\n--> statement-breakpoint\n') + '\n'
+  process.stdout.write(out)
+  process.exit(0)
 }
 
 const header = `-- Migration 0017 — email_templates table + body_html on email_log
@@ -41,20 +74,23 @@ CREATE TABLE \`email_templates\` (
 CREATE UNIQUE INDEX \`email_templates_key_unique\` ON \`email_templates\` (\`key\`);
 --> statement-breakpoint`
 
-const seedStatements = TEMPLATE_KEYS.map(key => {
-  const tpl = DEFAULT_TEMPLATES[key]
-  const variables = JSON.stringify(tpl.variables)
-  return `INSERT OR IGNORE INTO \`email_templates\` (\`key\`, \`subject\`, \`body_markdown\`, \`variables_json\`, \`updated_at\`, \`active\`) VALUES (
-  ${sqlString(key)},
-  ${sqlString(tpl.subject)},
-  ${sqlString(tpl.bodyMarkdown)},
-  ${sqlString(variables)},
-  (datetime('now')),
-  1
-);`
-}).join('\n--> statement-breakpoint\n')
+// Default-mode: emit the original 0017 migration with all seeded templates.
+// (Don't include keys added in later migrations — those are seeded by their
+// own migration files. Currently this means: only the keys present in the
+// initial 0017 ship.)
+const INITIAL_KEYS = [
+  'application_received',
+  'application_approved',
+  'application_approved_sponsored',
+  'application_rejected',
+  'application_price_changed',
+  'application_price_changed_sponsored',
+  'enrollment_confirmed_no_account',
+  'enrollment_confirmed_has_account',
+] as const
+const seedStatements = INITIAL_KEYS.map(insertFor).join('\n--> statement-breakpoint\n')
 
 const out = `${header}\n${seedStatements}\n`
 const path = 'drizzle/migrations/0017_email_templates_and_log_body.sql'
 writeFileSync(path, out)
-console.error(`wrote ${path} (${out.length} bytes, ${TEMPLATE_KEYS.length} seed rows)`)
+console.error(`wrote ${path} (${out.length} bytes, ${INITIAL_KEYS.length} seed rows)`)

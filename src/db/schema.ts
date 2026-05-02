@@ -195,6 +195,31 @@ export const emailLog = sqliteTable('email_log', {
   sentAt: text('sent_at').notNull().$defaultFn(() => new Date().toISOString()),
 })
 
+// ===== INTEREST LIST =====
+// Soft signups when applications aren't open. Captures email + (optional)
+// name + a list of which threads of LVB the person wants to be looped in
+// on (next cohort, alumni community, CU class, vibecoding events). Synced
+// to a Resend audience so we can broadcast updates as Cohort 2 takes
+// shape. See issue #35.
+export const interests = sqliteTable('interests', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  email: text('email').notNull(),
+  name: text('name'),
+  /** Path the signup came from — '/', '/apply', '/community', etc. Useful
+   *  for "where do these people land first?" admin questions. */
+  sourcePath: text('source_path'),
+  /** JSON array of interest tags. Subset of:
+   *    'next_cohort' | 'alumni' | 'cu_class' | 'events'
+   *  Stored as JSON so the set can grow without a schema migration. */
+  interestsJson: text('interests_json').notNull().default('[]'),
+  /** Resend Audiences contact id, returned from the audience-add call.
+   *  Stored so admin can later sync (remove on unsubscribe, retry adds
+   *  that failed). NULL when the audience-add hasn't happened yet or
+   *  failed silently. */
+  resendContactId: text('resend_contact_id'),
+  createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
+})
+
 // ===== EMAIL TEMPLATES =====
 // Admin-editable templates persisted in D1. sendEmail() routes through
 // renderEmailTemplate() which reads by `key`, falls back to a hardcoded
