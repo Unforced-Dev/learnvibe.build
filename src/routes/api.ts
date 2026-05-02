@@ -11,10 +11,23 @@ const api = new Hono<AppContext>()
 
 // ===== PUBLIC: Application submission =====
 api.post('/api/applications', async (c) => {
+  // Auth-required as of #25 — applying creates an applications row linked
+  // to the signed-in user from the start. Anonymous submissions are
+  // rejected (the GET /apply handler routes unauthed visitors through
+  // /sign-up?redirect_url=/apply, so this is mostly a defensive guard).
+  const user = c.get('user')
+  if (!user) {
+    return c.redirect('/sign-up?redirect_url=/apply')
+  }
+
   const body = await c.req.parseBody()
 
-  const name = String(body.name || '').trim()
-  const email = String(body.email || '').trim()
+  const name = String(body.name || '').trim() || user.name || ''
+  // Email comes from the authenticated session, NOT from the form. The
+  // form doesn't even render an email input anymore (see pages.tsx). This
+  // closes the "applied with one email, signed up with another" diagnostic
+  // state by construction.
+  const email = user.email.trim().toLowerCase()
   const background = String(body.background || '').trim()
   const projectInterest = String(body.project_interest || '').trim()
   const referralSource = String(body.referral_source || '').trim()
@@ -27,7 +40,8 @@ api.post('/api/applications', async (c) => {
     return c.redirect('/apply?error=missing_fields')
   }
 
-  // Basic RFC-5322-adjacent check — catches "@." and common typos.
+  // Basic RFC-5322-adjacent check — catches "@." and common typos. Should
+  // never fail since email comes from Clerk, but defensive.
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return c.redirect('/apply?error=invalid_email')
   }
@@ -73,6 +87,7 @@ api.post('/api/applications', async (c) => {
     await db.insert(applications).values({
       name,
       email: email.toLowerCase(),
+      userId: user.id,
       background,
       projectInterest,
       referralSource,
