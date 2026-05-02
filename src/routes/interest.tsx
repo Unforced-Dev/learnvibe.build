@@ -5,7 +5,7 @@ import { getDb } from '../db'
 import { interests } from '../db/schema'
 import { sendEmail, isEmailConfigured } from '../lib/email'
 import { renderEmailTemplate } from '../lib/email-templates'
-import { addToInterestAudience } from '../lib/resend-audience'
+import { addToAudience } from '../lib/resend-audience'
 import type { AppContext } from '../types'
 
 const interest = new Hono<AppContext>()
@@ -150,12 +150,16 @@ interest.post('/api/interests', async (c) => {
   const existing = await db.select().from(interests).where(eq(interests.email, email)).get()
 
   // Best-effort audience sync. Don't block the user on Resend latency or
-  // failures; the DB row is the source of truth.
+  // failures; the DB row is the source of truth. The audience id is plumbed
+  // through env config — set RESEND_AUDIENCE_INTEREST in wrangler.toml to
+  // the audience id created in the Resend dashboard. When unset, the row
+  // is still recorded with resend_contact_id=null and admin can resync
+  // later.
   const firstName = name?.split(' ')[0]
-  const audienceResult = await addToInterestAudience(c.env.RESEND_API_KEY, {
-    email,
-    firstName,
-  })
+  const audienceId = c.env.RESEND_AUDIENCE_INTEREST || ''
+  const audienceResult = audienceId
+    ? await addToAudience(c.env, email, name, audienceId)
+    : { contactId: null }
 
   try {
     await db.insert(interests).values({
