@@ -188,7 +188,36 @@ export const emailLog = sqliteTable('email_log', {
   template: text('template').notNull(), // e.g. 'application_received', 'application_approved', 'broadcast'
   status: text('status').notNull().default('sent'), // 'sent' | 'failed'
   error: text('error'), // error message if failed
+  /** Rendered HTML of the email body (post-substitution + post-emailWrapper).
+   *  Stored so admin can view what actually went out, and so failed sends can
+   *  be re-fired identically. NULL on rows logged before this column existed. */
+  bodyHtml: text('body_html'),
   sentAt: text('sent_at').notNull().$defaultFn(() => new Date().toISOString()),
+})
+
+// ===== EMAIL TEMPLATES =====
+// Admin-editable templates persisted in D1. sendEmail() routes through
+// renderEmailTemplate() which reads by `key`, falls back to a hardcoded
+// default when the row is missing or `active=0`. Behavior is unchanged at
+// deploy time (the migration seeds rows matching the previous hardcoded
+// HTML), but Aaron can edit copy without code + deploy.
+export const emailTemplates = sqliteTable('email_templates', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  /** Stable key matching the existing `template:` arg passed to sendEmail. */
+  key: text('key').notNull().unique(),
+  subject: text('subject').notNull(),
+  /** Body source — markdown or inline HTML. Substituted with vars at send
+   *  time, then rendered through `marked`, then wrapped in emailWrapper(). */
+  bodyMarkdown: text('body_markdown').notNull(),
+  /** JSON array of variable names this template references — used by the
+   *  edit UI to surface which vars are available. Informational only. */
+  variablesJson: text('variables_json').notNull().default('[]'),
+  updatedAt: text('updated_at').notNull().$defaultFn(() => new Date().toISOString()),
+  /** Audit trail — which admin last edited this template. Nullable since
+   *  seeded rows have no editor. */
+  updatedByUserId: integer('updated_by_user_id'),
+  /** 1 = use this DB row; 0 = bypass and fall back to the hardcoded default. */
+  active: integer('active').notNull().default(1),
 })
 
 // ===== OAUTH CLIENTS (third-party apps registered via DCR, e.g. Claude) =====
