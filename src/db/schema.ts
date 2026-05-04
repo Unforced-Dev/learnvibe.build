@@ -69,7 +69,13 @@ export const lessons = sqliteTable('lessons', {
   date: text('date'), // ISO date for the session
   contentMarkdown: text('content_markdown').notNull().default(''),
   recordingUrl: text('recording_url'), // YouTube auto-embeds; any other URL renders as link
-  transcriptMarkdown: text('transcript_markdown'), // collapsible section below the lesson
+  transcriptMarkdown: text('transcript_markdown'), // collapsible section below the lesson; full session transcript (~70-100K chars when present)
+  /** Short admin-written summary of the transcript (1-2 paragraphs).
+   *  Surfaced by default on get_lesson; the full transcriptMarkdown is
+   *  only returned by get_lesson_transcript. Aaron writes these via
+   *  admin_upsert_lesson (often by piping the transcript through Claude
+   *  and saving back). NULL until summarized. See #45+. */
+  transcriptSummary: text('transcript_summary'),
   status: text('status').notNull().default('draft'), // 'draft' | 'published'
   sortOrder: integer('sort_order').notNull().default(0),
   createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
