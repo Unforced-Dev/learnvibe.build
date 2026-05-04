@@ -249,13 +249,14 @@ const TOOLS: ToolDef[] = [
           status: l.status,
           completed: completed.has(l.id),
           hasTranscript: !!l.transcriptMarkdown,
+          hasTranscriptSummary: !!l.transcriptSummary,
         })),
       })
     },
   },
   {
     name: 'get_lesson',
-    description: 'Read the full content of a single lesson — title, description, date, lesson markdown, recording URL, and session transcript markdown (when present). cohortSlug defaults to your active enrolled cohort if omitted; weekNumber is required. Use this after list_lessons to pull deep content for one week.',
+    description: 'Read a lesson — title, description, date, lesson plan markdown, and a short transcript summary (when present). The full session transcript is intentionally NOT in this response (it can be 30-100K chars per week and bloats context); reach for get_lesson_transcript when you need verbatim quotes or specific moments. cohortSlug defaults to your active enrolled cohort if omitted; weekNumber is required.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -287,8 +288,51 @@ const TOOLS: ToolDef[] = [
         date: lesson.date,
         status: lesson.status,
         contentMarkdown: lesson.contentMarkdown,
-        // Surface the recording + cleaned transcript when present — this is
-        // what makes the lesson into living context (not just plan).
+        recordingUrl: lesson.recordingUrl,
+        // Default-surface a short summary, NOT the full transcript. Full
+        // verbatim transcript is available via get_lesson_transcript when
+        // a caller actually needs it. transcriptSummary is admin-written
+        // (often by piping the transcript through Claude).
+        transcriptSummary: lesson.transcriptSummary,
+        hasTranscript: !!lesson.transcriptMarkdown,
+        hasTranscriptSummary: !!lesson.transcriptSummary,
+      })
+    },
+  },
+  {
+    name: 'get_lesson_transcript',
+    description: 'Read the full verbatim session transcript for a lesson. Heavy — the entire session conversation, typically 30-100K chars when present. Prefer get_lesson for the short summary; reach for this only when you need verbatim quotes, specific moments, or detailed context the summary loses. Returns null when no transcript exists for that week. cohortSlug defaults to your active enrolled cohort.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        cohortSlug: { type: 'string', description: 'Cohort slug. Optional — defaults to your active enrolled cohort.' },
+        weekNumber: { type: 'integer', minimum: 1, description: 'Week number (1-indexed). Required.' },
+      },
+      required: ['weekNumber'],
+    },
+    handler: async (args, user, db) => {
+      const slug = args.cohortSlug || (await resolveActiveCohortSlug(db, user.id))
+      if (!slug) throw new Error("No cohortSlug provided and you're not enrolled in any cohort. Pass cohortSlug explicitly.")
+      const cohort = await db.select().from(cohorts).where(eq(cohorts.slug, slug)).get()
+      if (!cohort) throw new Error(`Cohort '${slug}' not found`)
+      const admin = isAdmin(user)
+      const lesson = await db.select({
+        weekNumber: lessons.weekNumber,
+        recordingUrl: lessons.recordingUrl,
+        transcriptMarkdown: lessons.transcriptMarkdown,
+        status: lessons.status,
+      })
+        .from(lessons)
+        .where(and(
+          eq(lessons.cohortId, cohort.id),
+          eq(lessons.weekNumber, args.weekNumber),
+          ...(admin ? [] : [eq(lessons.status, 'published')]),
+        ))
+        .get()
+      if (!lesson) throw new Error(`Lesson Week ${args.weekNumber} not found in ${slug}`)
+      return textResult({
+        cohortSlug: cohort.slug,
+        weekNumber: lesson.weekNumber,
         recordingUrl: lesson.recordingUrl,
         transcriptMarkdown: lesson.transcriptMarkdown,
       })
@@ -702,7 +746,7 @@ const TOOLS: ToolDef[] = [
   // ===== ADMIN TOOLS =====
   {
     name: 'admin_upsert_lesson',
-    description: 'ADMIN: create or update a lesson by (cohortSlug, weekNumber). Only cohort slug, week, and at least one field to set are needed. recordingUrl auto-embeds when YouTube; transcriptMarkdown renders in a collapsible section below the lesson.',
+    description: 'ADMIN: create or update a lesson by (cohortSlug, weekNumber). Only cohort slug, week, and at least one field to set are needed. recordingUrl auto-embeds when YouTube; transcriptMarkdown renders in a collapsible section below the lesson; transcriptSummary is the short admin-written summary that get_lesson surfaces by default for student queries.',
     adminOnly: true,
     inputSchema: {
       type: 'object',
@@ -715,6 +759,7 @@ const TOOLS: ToolDef[] = [
         contentMarkdown: { type: 'string' },
         recordingUrl: { type: 'string', description: 'http(s) URL. YouTube auto-embeds; other URLs render as a "Watch recording" link.' },
         transcriptMarkdown: { type: 'string', description: 'Full session transcript, markdown supported. Renders in a collapsible section below the lesson content.' },
+        transcriptSummary: { type: 'string', description: 'Short summary of the transcript (1-2 paragraphs). Surfaced by default on get_lesson; cheap to ship to students. Typically generated by piping the full transcript through Claude with a "summarize" prompt.' },
         status: { type: 'string', enum: ['draft', 'published'] },
       },
       required: ['cohortSlug', 'weekNumber'],
@@ -741,6 +786,7 @@ const TOOLS: ToolDef[] = [
         if (args.contentMarkdown !== undefined) updates.contentMarkdown = args.contentMarkdown
         if (args.recordingUrl !== undefined) updates.recordingUrl = args.recordingUrl || null
         if (args.transcriptMarkdown !== undefined) updates.transcriptMarkdown = args.transcriptMarkdown || null
+        if (args.transcriptSummary !== undefined) updates.transcriptSummary = args.transcriptSummary || null
         if (args.status !== undefined) updates.status = args.status
         await db.update(lessons).set(updates).where(eq(lessons.id, existing.id))
         return textResult({ action: 'updated', id: existing.id, weekNumber: args.weekNumber })
@@ -755,6 +801,7 @@ const TOOLS: ToolDef[] = [
         contentMarkdown: args.contentMarkdown ?? '',
         recordingUrl: args.recordingUrl || null,
         transcriptMarkdown: args.transcriptMarkdown || null,
+        transcriptSummary: args.transcriptSummary || null,
         status: args.status ?? 'draft',
         sortOrder: args.weekNumber,
         createdAt: now,
