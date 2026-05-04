@@ -72,6 +72,30 @@ interface ToolDef {
   handler: ToolHandler
 }
 
+/** Resolve the user's "active cohort" — preferred default for tools that
+ *  take a cohortSlug. Logic: prefer a single non-dropped enrollment;
+ *  break ties by latest cohort id. Returns null when the user has no
+ *  enrollments (e.g. interest-list signups, admins not in any cohort).
+ *  Tools that fall through to this should error clearly when null,
+ *  asking the caller to pass cohortSlug explicitly. */
+async function resolveActiveCohortSlug(
+  db: ReturnType<typeof getDb>,
+  userId: number,
+): Promise<string | null> {
+  const rows = await db
+    .select({ slug: cohorts.slug, status: enrollments.status, cohortId: cohorts.id })
+    .from(enrollments)
+    .innerJoin(cohorts, eq(enrollments.cohortId, cohorts.id))
+    .where(eq(enrollments.userId, userId))
+    .all()
+  if (rows.length === 0) return null
+  const live = rows.filter(r => r.status !== 'dropped')
+  const candidates = live.length > 0 ? live : rows
+  // Latest cohortId wins for stable behavior in multi-cohort cases.
+  candidates.sort((a, b) => b.cohortId - a.cohortId)
+  return candidates[0].slug
+}
+
 const TOOLS: ToolDef[] = [
   {
     name: 'get_my_profile',
@@ -104,6 +128,63 @@ const TOOLS: ToolDef[] = [
     },
   },
   {
+    name: 'update_my_profile',
+    description: "Update fields on your own LVB profile. Pass only the fields you want to change — others stay as they are. Useful for filling out your profile (name, bio, location, website, github) without leaving your AI conversation. Email and role are read-only here (email is managed by your Clerk account; role is admin-only). Returns the updated profile.",
+    inputSchema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string', description: 'Your display name.' },
+        bio: { type: 'string', description: 'Short bio. Markdown-light is fine.' },
+        location: { type: 'string', description: 'City / region.' },
+        website: { type: 'string', description: 'Personal site or portfolio URL.' },
+        github: { type: 'string', description: 'GitHub username OR full URL.' },
+      },
+      additionalProperties: false,
+    },
+    handler: async (args, user, db) => {
+      // Build the update payload from the fields that were actually sent.
+      // Empty string is treated as "clear this field" → null. Undefined =
+      // don't touch. This lets callers ask Claude things like "remove my
+      // bio" and have it pass bio: '' explicitly.
+      const updates: Record<string, string | null> = {}
+      const fields: Array<keyof typeof args & ('name' | 'bio' | 'location' | 'website' | 'github')> = [
+        'name', 'bio', 'location', 'website', 'github',
+      ]
+      for (const f of fields) {
+        if (Object.prototype.hasOwnProperty.call(args, f)) {
+          const v = args[f]
+          if (typeof v !== 'string') {
+            throw new Error(`${f} must be a string (got ${typeof v})`)
+          }
+          // Light bounds — defensive only.
+          if (v.length > 2000) {
+            throw new Error(`${f} is too long (max 2000 chars)`)
+          }
+          updates[f] = v.trim() === '' ? null : v.trim()
+        }
+      }
+      if (Object.keys(updates).length === 0) {
+        throw new Error('No fields to update — pass at least one of: name, bio, location, website, github.')
+      }
+      updates.updatedAt = new Date().toISOString()
+
+      await db.update(users).set(updates).where(eq(users.id, user.id))
+      const updated = await db.select().from(users).where(eq(users.id, user.id)).get()
+      if (!updated) throw new Error('Profile not found after update')
+      return textResult({
+        id: updated.id,
+        email: updated.email,
+        name: updated.name,
+        role: updated.role,
+        bio: updated.bio,
+        location: updated.location,
+        website: updated.website,
+        github: updated.github,
+        updatedFields: Object.keys(updates).filter(k => k !== 'updatedAt'),
+      })
+    },
+  },
+  {
     name: 'list_cohorts',
     description: 'List all cohorts (past, current, upcoming).',
     inputSchema: { type: 'object', properties: {}, additionalProperties: false },
@@ -132,15 +213,18 @@ const TOOLS: ToolDef[] = [
   },
   {
     name: 'list_lessons',
-    description: 'List published lessons for a cohort, with your completion status. Returns drafts too if you are an admin.',
+    description: 'List lessons for a cohort, with each lesson\'s title, description, date, and your completion status. If cohortSlug is omitted, defaults to your active enrolled cohort (most students only have one). Drafts are returned for admins; published-only for students. Common follow-up: get_lesson(weekNumber=N) to read the full content + transcript for a specific week.',
     inputSchema: {
       type: 'object',
-      properties: { cohortSlug: { type: 'string' } },
-      required: ['cohortSlug'],
+      properties: {
+        cohortSlug: { type: 'string', description: 'Cohort slug like "cohort-1". Optional — defaults to your active enrolled cohort.' },
+      },
     },
     handler: async (args, user, db) => {
-      const cohort = await db.select().from(cohorts).where(eq(cohorts.slug, args.cohortSlug)).get()
-      if (!cohort) throw new Error(`Cohort '${args.cohortSlug}' not found`)
+      const slug = args.cohortSlug || (await resolveActiveCohortSlug(db, user.id))
+      if (!slug) throw new Error("No cohortSlug provided and you're not enrolled in any cohort. Pass cohortSlug explicitly (try list_cohorts to see available options).")
+      const cohort = await db.select().from(cohorts).where(eq(cohorts.slug, slug)).get()
+      if (!cohort) throw new Error(`Cohort '${slug}' not found`)
       const admin = isAdmin(user)
       const rows = await db.select()
         .from(lessons)
@@ -154,30 +238,37 @@ const TOOLS: ToolDef[] = [
         .where(and(eq(lessonProgress.userId, user.id), eq(lessonProgress.cohortId, cohort.id)))
         .all()
       const completed = new Set(progress.map(p => p.lessonId))
-      return textResult(rows.map(l => ({
-        weekNumber: l.weekNumber,
-        title: l.title,
-        description: l.description,
-        date: l.date,
-        status: l.status,
-        completed: completed.has(l.id),
-      })))
+      return textResult({
+        cohortSlug: cohort.slug,
+        cohortTitle: cohort.title,
+        lessons: rows.map(l => ({
+          weekNumber: l.weekNumber,
+          title: l.title,
+          description: l.description,
+          date: l.date,
+          status: l.status,
+          completed: completed.has(l.id),
+          hasTranscript: !!l.transcriptMarkdown,
+        })),
+      })
     },
   },
   {
     name: 'get_lesson',
-    description: 'Get full markdown content for a lesson by cohort slug and week number.',
+    description: 'Read the full content of a single lesson — title, description, date, lesson markdown, recording URL, and session transcript markdown (when present). cohortSlug defaults to your active enrolled cohort if omitted; weekNumber is required. Use this after list_lessons to pull deep content for one week.',
     inputSchema: {
       type: 'object',
       properties: {
-        cohortSlug: { type: 'string' },
-        weekNumber: { type: 'integer', minimum: 1 },
+        cohortSlug: { type: 'string', description: 'Cohort slug like "cohort-1". Optional — defaults to your active enrolled cohort.' },
+        weekNumber: { type: 'integer', minimum: 1, description: 'Week number (1-indexed). Required.' },
       },
-      required: ['cohortSlug', 'weekNumber'],
+      required: ['weekNumber'],
     },
     handler: async (args, user, db) => {
-      const cohort = await db.select().from(cohorts).where(eq(cohorts.slug, args.cohortSlug)).get()
-      if (!cohort) throw new Error(`Cohort '${args.cohortSlug}' not found`)
+      const slug = args.cohortSlug || (await resolveActiveCohortSlug(db, user.id))
+      if (!slug) throw new Error("No cohortSlug provided and you're not enrolled in any cohort. Pass cohortSlug explicitly (try list_cohorts to see available options).")
+      const cohort = await db.select().from(cohorts).where(eq(cohorts.slug, slug)).get()
+      if (!cohort) throw new Error(`Cohort '${slug}' not found`)
       const admin = isAdmin(user)
       const lesson = await db.select()
         .from(lessons)
@@ -187,14 +278,19 @@ const TOOLS: ToolDef[] = [
           ...(admin ? [] : [eq(lessons.status, 'published')]),
         ))
         .get()
-      if (!lesson) throw new Error(`Lesson Week ${args.weekNumber} not found in ${args.cohortSlug}`)
+      if (!lesson) throw new Error(`Lesson Week ${args.weekNumber} not found in ${slug}`)
       return textResult({
+        cohortSlug: cohort.slug,
         weekNumber: lesson.weekNumber,
         title: lesson.title,
         description: lesson.description,
         date: lesson.date,
         status: lesson.status,
         contentMarkdown: lesson.contentMarkdown,
+        // Surface the recording + cleaned transcript when present — this is
+        // what makes the lesson into living context (not just plan).
+        recordingUrl: lesson.recordingUrl,
+        transcriptMarkdown: lesson.transcriptMarkdown,
       })
     },
   },
