@@ -41,14 +41,13 @@ export function getApplicationAmount(app: { pricingTier: string; approvedAmountC
 }
 
 /**
- * Human-readable label for an application's approved price.
- * Uses the tier label if the amount matches the tier, otherwise "Custom".
+ * Human-readable label for an application's approved price. Returns the
+ * tier label (e.g. "Full Price", "Sponsored"). Callers display the actual
+ * dollar amount alongside via formatCents(approvedAmountCents) so a custom
+ * approval amount surfaces naturally in the UI without a separate label.
  */
-export function getApplicationLabel(app: { pricingTier: string; approvedAmountCents?: number | null }): string {
-  if (app.approvedAmountCents == null) return getTierLabel(app.pricingTier)
-  const tierAmount = getAmountForTier(app.pricingTier)
-  if (app.approvedAmountCents === tierAmount) return getTierLabel(app.pricingTier)
-  return 'Custom'
+export function getApplicationLabel(app: { pricingTier: string }): string {
+  return getTierLabel(app.pricingTier)
 }
 
 export function getTierLabel(tier: string): string {

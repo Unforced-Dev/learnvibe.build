@@ -59,6 +59,14 @@ admin.get('/admin', async (c) => {
   const user = c.get('user')!
   const db = getDb(c.env.DB)
 
+  // Flash messages (surfaced via query params from POST handlers that
+  // redirect back here — e.g. the meeting-url save form).
+  const meetingUrlSaved = c.req.query('meeting_url_saved') === '1'
+  const errorCode = c.req.query('error') || ''
+  const errorMessage = errorCode === 'invalid_meeting_url'
+    ? 'That URL didn\'t look right — make sure it starts with http:// or https://.'
+    : ''
+
   const [allApps, allLessons, cohortList, feedbackList, allUsers, allEmails, allPayments, allEnrollments] = await Promise.all([
     db.select().from(applications).all(),
     db.select().from(lessons).all(),
@@ -156,8 +164,18 @@ admin.get('/admin', async (c) => {
           </div>
         </div>
 
-        <div style="margin-top: 2.5rem;">
+        <div id="cohort" style="margin-top: 2.5rem;">
           <h3 style="font-family: var(--font-display); margin-bottom: 1rem;">Cohorts</h3>
+          {meetingUrlSaved && (
+            <div style="margin-bottom: 1rem; padding: 0.65rem 1rem; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 6px; font-size: 0.9rem; color: #155724;">
+              ✓ Live session link saved.
+            </div>
+          )}
+          {errorMessage && (
+            <div style="margin-bottom: 1rem; padding: 0.65rem 1rem; background: #fef2f2; border: 1px solid #fca5a5; border-radius: 6px; font-size: 0.9rem; color: #991b1b;">
+              {errorMessage}
+            </div>
+          )}
           {cohortList.map(cohort => {
             const cohortEnrollments = allEnrollments.filter(e => e.cohortId === cohort.id)
             return (
@@ -459,8 +477,8 @@ admin.get('/admin/applications', async (c) => {
                           ✓ {formatCents(app.requestedAmountCents)}
                         </span>
                       ) : (
-                        <span style="font-size: 0.75rem; background: #fef9c3; color: #854d0e; border: 1px solid #fde047; border-radius: 999px; padding: 0.15rem 0.55rem; font-weight: 500;">
-                          💭 {formatCents(app.requestedAmountCents)}
+                        <span title="Pay-what-you-can — applicant proposed this amount" style="font-size: 0.75rem; background: #fef9c3; color: #854d0e; border: 1px solid #fde047; border-radius: 999px; padding: 0.15rem 0.55rem; font-weight: 500;">
+                          PWYC: {formatCents(app.requestedAmountCents)}
                         </span>
                       )
                     )}
@@ -564,7 +582,7 @@ admin.get('/admin/applications/:id', async (c) => {
             ) : (
               <div class="admin-detail-section" style="background: #fef9c3; border: 1px solid #fde047; border-radius: 8px; padding: 1rem 1.25rem;">
                 <h3 style="font-family: var(--font-display); color: #854d0e; margin: 0 0 0.35rem 0;">
-                  💭 Self-selected contribution: {formatCents(app.requestedAmountCents)}
+                  Self-selected contribution: {formatCents(app.requestedAmountCents)}
                 </h3>
                 {app.requestedAmountReason ? (
                   <p style="margin: 0.5rem 0 0 0; color: #713f12; font-size: 0.95rem; white-space: pre-wrap;">{app.requestedAmountReason}</p>
@@ -2769,7 +2787,10 @@ admin.post('/api/admin/cohorts/:id/meeting-url', async (c) => {
   }
 
   await db.update(cohorts).set({ meetingUrl }).where(eq(cohorts.id, id))
-  return c.redirect('/admin')
+  // Anchor the redirect at the cohort card so admin lands back where the
+  // form lives, not at the top of the page. Flash param surfaces a "saved"
+  // banner above the cohort list (handled in the GET /admin renderer).
+  return c.redirect('/admin?meeting_url_saved=1#cohort')
 })
 
 // ===== API: CREATE LESSON =====
