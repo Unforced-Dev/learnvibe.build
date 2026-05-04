@@ -1256,6 +1256,18 @@ admin.get('/admin/accounts', async (c) => {
   const search = c.req.query('q')?.trim() || ''
   const roleFilter = c.req.query('role') || 'all'
 
+  // Build chip URLs that preserve all other active filters when role
+  // toggles. Mirrors the statusChipHref helper on /admin/applications —
+  // URLSearchParams handles the ?/& accounting so we don't have to.
+  const extraParams: Record<string, string> = {}
+  if (search) extraParams.q = search
+  function roleChipHref(role: string): string {
+    const params = new URLSearchParams(extraParams)
+    if (role !== 'all') params.set('role', role)
+    const qs = params.toString()
+    return qs ? `/admin/accounts?${qs}` : '/admin/accounts'
+  }
+
   let allUsers = await db.select().from(users).orderBy(desc(users.createdAt)).all()
 
   if (roleFilter !== 'all') {
@@ -1302,7 +1314,7 @@ admin.get('/admin/accounts', async (c) => {
         <div style="margin: 1rem 0; display: flex; gap: 0.5rem; flex-wrap: wrap;">
           {['all', 'student', 'admin', 'facilitator', 'alumni'].map(role => (
             <a
-              href={`/admin/accounts${role === 'all' ? '' : `?role=${role}`}${search ? `${role === 'all' ? '?' : '&'}q=${encodeURIComponent(search)}` : ''}`}
+              href={roleChipHref(role)}
               style={`padding: 0.4rem 0.75rem; border-radius: 20px; font-size: 0.85rem; text-decoration: none; ${roleFilter === role ? 'background: var(--accent); color: white;' : 'background: var(--surface); color: var(--text-secondary);'}`}
             >
               {role.charAt(0).toUpperCase() + role.slice(1)}
