@@ -10,107 +10,49 @@ import type { AppContext } from '../types'
 
 const interest = new Hono<AppContext>()
 
-// ===== INTEREST CHECKBOX OPTIONS =====
-// Source of truth for the four signup buckets. Changing labels here
-// updates the form, the success page, and the admin list view.
-const INTEREST_OPTIONS: { value: string; label: string; description: string }[] = [
-  {
-    value: 'next_cohort',
-    label: 'Next cohort',
-    description: 'Updates as Cohort 2 takes shape — dates, application opening, anything material.',
-  },
-  {
-    value: 'alumni',
-    label: 'Alumni community',
-    description: 'For Cohort 0 and Cohort 1 builders — ongoing community, project shares, future gatherings.',
-  },
-  {
-    value: 'cu_class',
-    label: 'CU Boulder class (Fall 2026)',
-    description: 'ATLS 4519 — Aaron is teaching a semester-long version of this work at CU Boulder ATLAS.',
-  },
-  {
-    value: 'events',
-    label: 'Vibecoding events',
-    description: 'One-off events at Regen Hub and around Boulder — workshops, demos, gatherings.',
-  },
-]
-
-const VALID_INTEREST_VALUES = new Set(INTEREST_OPTIONS.map(o => o.value))
-
-function summarizeInterests(values: string[]): string {
-  const labels = values
-    .map(v => INTEREST_OPTIONS.find(o => o.value === v)?.label)
-    .filter(Boolean) as string[]
-  if (labels.length === 0) return 'the general updates list'
-  if (labels.length === 1) return labels[0]
-  if (labels.length === 2) return `${labels[0]} and ${labels[1]}`
-  return `${labels.slice(0, -1).join(', ')}, and ${labels[labels.length - 1]}`
-}
-
 // ===== /interest — public form =====
+// Email-only by design. We used to collect name + a 4-checkbox interest
+// segmentation, but the friction wasn't pulling its weight. The schema
+// keeps `name` and `interests_json` columns nullable / default-empty so
+// future segmentation can come back without a migration.
 interest.get('/interest', (c) => {
   const user = c.get('user')
   const error = c.req.query('error')
   const errorMessages: Record<string, string> = {
     missing_email: 'An email is required.',
     invalid_email: 'That email doesn\'t look right — give it another go.',
-    no_interests: 'Pick at least one thing you\'re interested in.',
     server_error: 'Something went wrong on our end. Please try again.',
   }
   return c.html(
     <Layout
       title="Join the interest list — Learn Vibe Build"
-      description="Drop your email to hear about Cohort 2, alumni community, the CU Boulder class, and vibecoding events."
+      description="Drop your email to hear about Cohort 2 and what's next."
       user={user}
     >
-      <div class="page-section" style="max-width: 640px; margin: 0 auto;">
+      <div class="page-section" style="max-width: 520px; margin: 0 auto;">
         <a href="/" style="font-size: 0.85rem; color: var(--text-tertiary); text-decoration: none;">&larr; Home</a>
 
         <p class="section-label" style="margin-top: 1.5rem;">Interest list</p>
         <h2>Stay in the loop</h2>
         <p class="lead">
-          Cohort 1 is in flight; Cohort 2 is forming. Drop your email and pick what you'd like to hear about. We'll keep these messages thoughtful and infrequent.
+          Cohort 1 is in flight; Cohort 2 is forming. Drop your email and we'll be in touch — thoughtful and infrequent.
         </p>
 
         {error && errorMessages[error] && (
           <div class="form-error" style="margin-top: 1rem;">{errorMessages[error]}</div>
         )}
 
-        <form method="post" action="/api/interests" class="apply-form" style="margin-top: 1.5rem;">
-          <div class="form-group">
-            <label for="email">Email</label>
-            <input type="email" id="email" name="email" required autocomplete="email" />
-          </div>
-
-          <div class="form-group">
-            <label for="name">Your name <span style="color: var(--text-tertiary); font-weight: 400;">(optional)</span></label>
-            <input type="text" id="name" name="name" autocomplete="name" />
-          </div>
-
-          <div class="form-group" style="margin-top: 1.5rem;">
-            <p style="font-weight: 600; font-size: 1rem; margin-bottom: 0.4rem;">What would you like to hear about?</p>
-            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.85rem;">Pick any combination — you can update later.</p>
-            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-              {INTEREST_OPTIONS.map(opt => (
-                <label style="display: flex; gap: 0.6rem; align-items: flex-start; padding: 0.7rem 0.85rem; border: 1px solid var(--border); border-radius: 6px; cursor: pointer;">
-                  <input
-                    type="checkbox"
-                    name="interests"
-                    value={opt.value}
-                    checked={opt.value === 'next_cohort'}
-                    style="margin-top: 0.25rem;"
-                  />
-                  <span>
-                    <strong style="display: block;">{opt.label}</strong>
-                    <span style="display: block; font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.15rem; line-height: 1.45;">{opt.description}</span>
-                  </span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <button type="submit" class="apply-btn" style="margin-top: 1.5rem;">Join the list</button>
+        <form method="post" action="/api/interests" style="margin-top: 1.5rem; display: flex; gap: 0.5rem; align-items: stretch; flex-wrap: wrap;">
+          <input
+            type="email"
+            id="email"
+            name="email"
+            required
+            autocomplete="email"
+            placeholder="you@example.com"
+            style="flex: 1; min-width: 220px; padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; font-family: inherit;"
+          />
+          <button type="submit" class="apply-btn" style="margin: 0; padding: 0.75rem 1.5rem; white-space: nowrap;">Join the list</button>
         </form>
       </div>
     </Layout>
@@ -120,20 +62,13 @@ interest.get('/interest', (c) => {
 // ===== POST /api/interests — submit form =====
 interest.post('/api/interests', async (c) => {
   const db = getDb(c.env.DB)
-  const body = await c.req.parseBody({ all: true })
+  const body = await c.req.parseBody()
 
   const email = String(body.email || '').trim().toLowerCase()
+  // `name` field is no longer in the public form. We still accept it on
+  // POST in case a future surface (admin-side, API, etc.) wants to pass
+  // one — but we don't require or expose it. Defaults null otherwise.
   const name = String(body.name || '').trim() || null
-  // Hono's `parseBody({ all: true })` returns a single value when the
-  // checkbox group has 1 selection and an array when there are 2+. Coerce
-  // to array uniformly.
-  const rawInterests = body.interests
-  const selectedInterests: string[] = Array.isArray(rawInterests)
-    ? rawInterests.map(String)
-    : rawInterests
-      ? [String(rawInterests)]
-      : []
-  const validInterests = selectedInterests.filter(v => VALID_INTEREST_VALUES.has(v))
   const referer = c.req.header('Referer') || ''
   const sourcePath = (() => {
     try { return new URL(referer).pathname || null } catch { return null }
@@ -141,21 +76,13 @@ interest.post('/api/interests', async (c) => {
 
   if (!email) return c.redirect('/interest?error=missing_email')
   if (!email.includes('@') || email.length > 254) return c.redirect('/interest?error=invalid_email')
-  if (validInterests.length === 0) return c.redirect('/interest?error=no_interests')
 
-  // Check for an existing row so we can skip the confirmation email on
-  // re-submits. Insert is unconditional — the table has no UNIQUE on
-  // email, so re-signups land as new rows (preserves all signal: when
-  // they came back, what changed in their interests).
+  // Skip the confirmation email on re-submits — preserves all signal in
+  // the DB (when they came back) without re-mailing them.
   const existing = await db.select().from(interests).where(eq(interests.email, email)).get()
 
-  // Best-effort audience sync. Don't block the user on Resend latency or
-  // failures; the DB row is the source of truth. The audience id is plumbed
-  // through env config — set RESEND_AUDIENCE_INTEREST in wrangler.toml to
-  // the audience id created in the Resend dashboard. When unset, the row
-  // is still recorded with resend_contact_id=null and admin can resync
-  // later.
-  const firstName = name?.split(' ')[0]
+  // Best-effort audience sync. Fails silently; admin can resync via the
+  // resend_contact_id column on /admin/interests.
   const audienceId = c.env.RESEND_AUDIENCE_INTEREST || ''
   const audienceResult = audienceId
     ? await addToAudience(c.env, email, name, audienceId)
@@ -166,7 +93,9 @@ interest.post('/api/interests', async (c) => {
       email,
       name,
       sourcePath,
-      interestsJson: JSON.stringify(validInterests),
+      // interests_json defaults to '[]'; we no longer collect tags via the
+      // public form. Schema unchanged so old rows keep their data.
+      interestsJson: '[]',
       resendContactId: audienceResult.contactId,
     })
   } catch (e) {
@@ -174,15 +103,9 @@ interest.post('/api/interests', async (c) => {
     return c.redirect('/interest?error=server_error')
   }
 
-  // Send the confirmation email only on first signup. Repeats get a quiet
-  // "your interests have been updated" experience without re-mailing them.
   if (!existing && isEmailConfigured(c.env.RESEND_API_KEY)) {
-    const interestSummary = summarizeInterests(validInterests)
     try {
-      const tpl = await renderEmailTemplate(c.env.DB, 'interest_received', {
-        firstName: firstName || 'there',
-        interestSummary,
-      })
+      const tpl = await renderEmailTemplate(c.env.DB, 'interest_received', {})
       await sendEmail({
         apiKey: c.env.RESEND_API_KEY,
         from: c.env.EMAIL_FROM,
@@ -195,8 +118,8 @@ interest.post('/api/interests', async (c) => {
       })
     } catch (e) {
       console.error('[interests] confirmation email failed:', e)
-      // Don't fail the user-facing flow on email-send error — the signup
-      // is recorded, admin can resend manually from /admin/emails.
+      // Don't fail the user-facing flow — admin can resend manually
+      // from /admin/emails.
     }
   }
 
@@ -220,5 +143,4 @@ interest.get('/interest/success', (c) => {
   )
 })
 
-export { INTEREST_OPTIONS }
 export default interest

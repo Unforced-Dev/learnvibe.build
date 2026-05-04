@@ -109,10 +109,9 @@ export const DEFAULT_TEMPLATES: Record<string, EmailTemplateDefault> = {
 
   interest_received: {
     subject: 'On the list — Learn Vibe Build',
-    variables: ['firstName', 'interestSummary'],
-    bodyMarkdown: `<h2>Hey {{firstName}} —</h2>
-<p>Thanks for joining the Learn Vibe Build interest list. We've added you to {{interestSummary}}.</p>
-<p>Cohort 1 is in flight right now, and Cohort 2 is forming as we learn from this run. We'll be in touch as the dates and shape come into focus.</p>
+    variables: [],
+    bodyMarkdown: `<h2>Thanks for joining the list —</h2>
+<p>You're on the Learn Vibe Build interest list. Cohort 1 is in flight right now, and Cohort 2 is forming as we learn from this run. We'll be in touch as the dates and shape come into focus.</p>
 <div class="email-highlight">
   <p style="margin: 0 0 0.5rem 0;"><strong>While you wait:</strong></p>
   <p style="margin: 0;">If you've got something you're trying to make with AI right now, reply to this email and tell us about it. We love hearing what people are working on, and the cohort design is shaped by what we learn from those conversations.</p>
