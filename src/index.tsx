@@ -86,7 +86,8 @@ app.route('/', settingsRoutes)
 app.route('/', projectRoutes)
 app.route('/', discussionRoutes)
 
-// SSR homepage (replaces static public/index.html)
+// SSR homepage — handles `/` directly. (There used to be a static
+// public/index.html that GitHub Pages served separately; both are gone.)
 app.route('/', home)
 
 // Redirects from old static URLs to dynamic routes

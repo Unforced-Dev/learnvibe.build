@@ -71,7 +71,6 @@ All routes mount off the root Hono app in this order:
 - `src/lib/access.ts` — canAccessCohort() for content gating
 - `src/components/Layout.tsx` — Auth-aware HTML layout wrapper
 - `src/styles/design-system.ts` — CSS custom properties and styles
-- `public/index.html` — Static homepage (not SSR)
 - `public/slides/vibecoding-101.html` — Slide deck for university class
 
 ## Current State (as of April 2026)
