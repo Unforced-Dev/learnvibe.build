@@ -111,6 +111,15 @@ All routes mount off the root Hono app in this order:
 - **From:** `Learn Vibe Build <hello@mail.unforced.dev>`
 - **Reply-to:** `ag@unforced.dev` (configurable via `EMAIL_REPLY_TO` in wrangler.toml)
 
+## Funnel model (interest → signup → application → enrollment)
+
+Interest signups are the **first step of the funnel**, not a silo. The `interests` table has a nullable `user_id` FK to `users`, populated bidirectionally:
+
+- **POST /api/interests** (signup-then-interest path) — at insert time, looks up `users.email`; if a match exists, sets `interests.user_id` on the new row.
+- **`syncUser` in `src/lib/auth.ts`** (interest-then-signup path) — after upserting the user, back-links any unlinked `interests` row matching the email to the new `user.id`. Best-effort, non-fatal.
+
+Migration `0021_interests_link_to_users.sql` added the column + backfilled existing rows by email. Admin sees the link on `/admin/interests` (✓ Linked badge → user profile) and can filter via `?account=linked|unlinked`. The dashboard shows a small "Thanks for joining the list on …" banner when the signed-in user has a linked interest row. The homepage hero swaps the email signup form for a "welcome back" treatment when the visitor is already authed.
+
 ## D1 Data
 - Cohort 1 (slug: `cohort-1`, status: `enrolling`, $500, 6 weeks). Live-session link is admin-editable on the /admin dashboard.
 - Pilot (Cohort 0): Was the original January 2026 cohort, 13 builders, sponsored by Gitcoin

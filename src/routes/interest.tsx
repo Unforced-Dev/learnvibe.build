@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { eq } from 'drizzle-orm'
 import { Layout } from '../components/Layout'
 import { getDb } from '../db'
-import { interests } from '../db/schema'
+import { interests, users } from '../db/schema'
 import { sendEmail, isEmailConfigured } from '../lib/email'
 import { renderEmailTemplate } from '../lib/email-templates'
 import { addToAudience } from '../lib/resend-audience'
@@ -81,6 +81,14 @@ interest.post('/api/interests', async (c) => {
   // the DB (when they came back) without re-mailing them.
   const existing = await db.select().from(interests).where(eq(interests.email, email)).get()
 
+  // Link to user if one already exists for this email (signup-then-
+  // interest path). syncUser handles the inverse (interest-then-signup)
+  // by linking unlinked rows when a new account is created. See #44.
+  const existingUser = await db.select({ id: users.id }).from(users)
+    .where(eq(users.email, email))
+    .get()
+  const linkedUserId = existingUser?.id ?? null
+
   // Best-effort audience sync. Fails silently; admin can resync via the
   // resend_contact_id column on /admin/interests.
   const audienceId = c.env.RESEND_AUDIENCE_INTEREST || ''
@@ -97,6 +105,7 @@ interest.post('/api/interests', async (c) => {
       // public form. Schema unchanged so old rows keep their data.
       interestsJson: '[]',
       resendContactId: audienceResult.contactId,
+      userId: linkedUserId,
     })
   } catch (e) {
     console.error('[interests] insert failed:', e)
@@ -127,14 +136,40 @@ interest.post('/api/interests', async (c) => {
 })
 
 // ===== /interest/success =====
+// Funnel continuity (#44): if the user is signed in, surface concrete
+// next steps — apply (when a cohort is enrolling) and the dashboard. If
+// signed out, offer a subtle "go deeper now" link to sign-up alongside
+// the thank-you copy. Don't push, just leave the door open.
 interest.get('/interest/success', (c) => {
+  const user = c.get('user')
   return c.html(
-    <Layout title="On the list — Learn Vibe Build" user={c.get('user')}>
+    <Layout title="On the list — Learn Vibe Build" user={user}>
       <div class="page-section success-message" style="max-width: 600px; margin: 0 auto;">
         <h2>You're on the list</h2>
         <p class="lead">
           We'll be in touch as Cohort 2 takes shape. In the meantime, feel free to <a href="mailto:ag@unforced.dev" style="color: var(--accent);">reply with whatever's alive in you</a> around AI right now — questions, ideas, things you're trying to make.
         </p>
+
+        {user ? (
+          <div style="margin-top: 2rem; padding: 1.25rem 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: 10px;">
+            <p style="margin: 0 0 0.85rem 0; font-size: 0.95rem;">
+              <strong>Want to take the next step?</strong>
+            </p>
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+              <a href="/apply" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.6rem 1.1rem; background: var(--accent); color: white; border-radius: 6px; text-decoration: none; font-size: 0.9rem; font-weight: 500;">
+                Apply &rarr;
+              </a>
+              <a href="/dashboard" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.6rem 1.1rem; background: var(--white); border: 1px solid var(--border); color: var(--text); border-radius: 6px; text-decoration: none; font-size: 0.9rem; font-weight: 500;">
+                Dashboard &rarr;
+              </a>
+            </div>
+          </div>
+        ) : (
+          <p style="margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-secondary);">
+            Want to go deeper now? <a href="/sign-up" style="color: var(--accent);">Create an account &rarr;</a>
+          </p>
+        )}
+
         <p style="margin-top: 2rem;">
           <a href="/">← Back to homepage</a>
         </p>

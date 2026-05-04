@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { eq, and, desc } from 'drizzle-orm'
 import { Layout } from '../components/Layout'
 import { getDb } from '../db'
-import { enrollments, cohorts, applications, lessons, lessonProgress, projects } from '../db/schema'
+import { enrollments, cohorts, applications, lessons, lessonProgress, projects, interests } from '../db/schema'
 import { isClerkConfigured } from '../lib/auth'
 import { formatCents, getApplicationAmount } from '../lib/stripe'
 import { getRecentActivity } from '../lib/activity'
@@ -64,11 +64,31 @@ dashboard.get('/dashboard', async (c) => {
         .orderBy(desc(projects.createdAt)).limit(3).all()
     : []
 
+  // Linked interest row (if any) — surfaced as a small banner so the user
+  // sees the funnel continuity. See #44. Picks the earliest signup as the
+  // canonical "joined the list on" date even if there are duplicates.
+  const interestRow = await db.select({ createdAt: interests.createdAt })
+    .from(interests)
+    .where(eq(interests.userId, user.id))
+    .orderBy(interests.createdAt)
+    .get()
+
   return c.html(
     <Layout title="Dashboard" user={user} clerkPubKey={c.env.CLERK_PUBLISHABLE_KEY}>
       <div class="page-section" style="max-width: 800px; margin: 0 auto;">
         <p class="section-label">Dashboard</p>
         <h2>Welcome back{user.name ? `, ${user.name.split(' ')[0]}` : ''}</h2>
+
+        {interestRow && (
+          <div style="margin-top: 1rem; padding: 0.7rem 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; color: var(--text-secondary);">
+            <span aria-hidden="true" style="margin-right: 0.4rem;">✓</span>
+            Thanks for joining the interest list on{' '}
+            <strong style="color: var(--text);">
+              {new Date(interestRow.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            </strong>
+            .
+          </div>
+        )}
 
         {userEnrollments.length > 0 ? (
           <>

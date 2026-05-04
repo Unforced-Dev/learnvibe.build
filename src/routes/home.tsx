@@ -68,25 +68,41 @@ home.get('/', async (c) => {
           {cohortStatusLabel}
         </div>
 
-        {/* Inline email signup — single field, single button, posts straight
-            to /api/interests. Replaces the previous link-out CTA so the
-            barrier to joining is one form interaction, not a page jump. */}
-        <form method="post" action="/api/interests" style="margin-top: 1.5rem; display: flex; gap: 0.5rem; align-items: stretch; max-width: 460px; margin-left: auto; margin-right: auto;">
-          <input
-            type="email"
-            name="email"
-            required
-            autocomplete="email"
-            placeholder="you@example.com"
-            style="flex: 1; padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; font-family: inherit;"
-          />
-          <button type="submit" class="hero-cta" style="margin-top: 0; padding: 0.75rem 1.5rem; white-space: nowrap; border: 0; cursor: pointer;">
-            Join the list
-            <ArrowSvg />
-          </button>
-        </form>
+        {/* Auth-aware hero CTA — see #44 funnel continuity.
+            Signed-in visitors don't need the join-the-list pitch (they're
+            already in our system); show a friendly continuity treatment
+            pointing at their dashboard. Signed-out visitors see the
+            inline email-only signup posting to /api/interests. */}
+        {user ? (
+          <div style="margin-top: 1.5rem; max-width: 460px; margin-left: auto; margin-right: auto;">
+            <p style="margin: 0 0 0.85rem 0; color: var(--text-secondary); font-size: 1rem;">
+              Welcome back{user.name ? `, ${user.name.split(' ')[0]}` : ''}. You're already in.
+            </p>
+            <a href="/dashboard" class="hero-cta" style="margin-top: 0;">
+              Go to your dashboard
+              <ArrowSvg />
+            </a>
+          </div>
+        ) : (
+          <form method="post" action="/api/interests" style="margin-top: 1.5rem; display: flex; gap: 0.5rem; align-items: stretch; max-width: 460px; margin-left: auto; margin-right: auto;">
+            <input
+              type="email"
+              name="email"
+              required
+              autocomplete="email"
+              placeholder="you@example.com"
+              style="flex: 1; padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; font-family: inherit;"
+            />
+            <button type="submit" class="hero-cta" style="margin-top: 0; padding: 0.75rem 1.5rem; white-space: nowrap; border: 0; cursor: pointer;">
+              Join the list
+              <ArrowSvg />
+            </button>
+          </form>
+        )}
         <p class="hero-meta">Mondays 5:30&ndash;7:30pm MT<span class="sep">&middot;</span>6 Weeks<span class="sep">&middot;</span>Boulder, CO &amp; Remote<span class="sep">&middot;</span>$500 (sliding-scale)</p>
-        <p style="margin-top: 1rem; font-size: 0.85rem;"><a href="/apply/status" style="color: var(--text-tertiary); text-decoration: none;">Already applied? Check your status &rarr;</a></p>
+        {!user && (
+          <p style="margin-top: 1rem; font-size: 0.85rem;"><a href="/apply/status" style="color: var(--text-tertiary); text-decoration: none;">Already applied? Check your status &rarr;</a></p>
+        )}
       </section>
 
       <div class="hp-divider"><hr /></div>

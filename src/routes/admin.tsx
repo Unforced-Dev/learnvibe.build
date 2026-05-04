@@ -777,6 +777,7 @@ admin.get('/admin/interests', async (c) => {
   const fTo = (c.req.query('to') || '').trim()
   const fQ = (c.req.query('q') || '').trim()
   const fAudience = (c.req.query('audience') || '').trim() // 'synced' | 'pending'
+  const fAccount = (c.req.query('account') || '').trim()  // 'linked' | 'unlinked'
   const isValidDate = (s: string) => /^\d{4}-\d{2}-\d{2}$/.test(s)
 
   let rows = await db.select().from(interests).orderBy(desc(interests.createdAt)).all()
@@ -789,6 +790,8 @@ admin.get('/admin/interests', async (c) => {
   }
   if (fAudience === 'synced') rows = rows.filter(r => !!r.resendContactId)
   if (fAudience === 'pending') rows = rows.filter(r => !r.resendContactId)
+  if (fAccount === 'linked') rows = rows.filter(r => !!r.userId)
+  if (fAccount === 'unlinked') rows = rows.filter(r => !r.userId)
   if (isValidDate(fFrom)) {
     const fromIso = `${fFrom}T00:00:00.000Z`
     rows = rows.filter(r => r.createdAt >= fromIso)
@@ -805,7 +808,7 @@ admin.get('/admin/interests', async (c) => {
     )
   }
 
-  const filtersActive = !!(fInterest || fAudience || isValidDate(fFrom) || isValidDate(fTo) || fQ)
+  const filtersActive = !!(fInterest || fAudience || fAccount || isValidDate(fFrom) || isValidDate(fTo) || fQ)
   const interestLabels: Record<string, string> = {
     next_cohort: 'Next cohort',
     alumni: 'Alumni',
@@ -840,6 +843,14 @@ admin.get('/admin/interests', async (c) => {
               <option value="">All</option>
               <option value="synced" selected={fAudience === 'synced'}>Synced</option>
               <option value="pending" selected={fAudience === 'pending'}>Pending</option>
+            </select>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+            <label for="filter-account" style="font-family: var(--font-mono); font-size: 0.68rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Account</label>
+            <select id="filter-account" name="account" style="padding: 0.4rem 0.55rem; border: 1px solid var(--border); border-radius: 5px; font-size: 0.85rem; background: var(--white);">
+              <option value="">All</option>
+              <option value="linked" selected={fAccount === 'linked'}>Linked</option>
+              <option value="unlinked" selected={fAccount === 'unlinked'}>Unlinked</option>
             </select>
           </div>
           <div style="display: flex; flex-direction: column; gap: 0.25rem;">
@@ -880,6 +891,7 @@ admin.get('/admin/interests', async (c) => {
                 <tr style="border-bottom: 2px solid var(--border); text-align: left;">
                   <th style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Email</th>
                   <th style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Name</th>
+                  <th style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Account</th>
                   <th style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Interests</th>
                   <th style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Source</th>
                   <th style="padding: 0.75rem 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em;">Synced</th>
@@ -896,6 +908,15 @@ admin.get('/admin/interests', async (c) => {
                         {r.email}
                       </td>
                       <td style="padding: 0.75rem 0.5rem;">{r.name || <span style="color: var(--text-tertiary);">—</span>}</td>
+                      <td style="padding: 0.75rem 0.5rem;">
+                        {r.userId ? (
+                          <a href={`/admin/accounts/${r.userId}`} title="Linked to a Clerk user account — click to view" style="font-size: 0.7rem; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; border-radius: 999px; padding: 0.15rem 0.6rem; font-weight: 500; text-decoration: none; display: inline-block;">
+                            ✓ Linked
+                          </a>
+                        ) : (
+                          <span style="color: var(--text-tertiary); font-size: 0.85rem;">—</span>
+                        )}
+                      </td>
                       <td style="padding: 0.75rem 0.5rem; max-width: 280px;">
                         <div style="display: flex; gap: 0.3rem; flex-wrap: wrap;">
                           {tags.length === 0 ? <span style="color: var(--text-tertiary); font-size: 0.85rem;">—</span> : tags.map(t => (

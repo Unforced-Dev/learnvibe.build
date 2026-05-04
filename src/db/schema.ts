@@ -196,11 +196,11 @@ export const emailLog = sqliteTable('email_log', {
 })
 
 // ===== INTEREST LIST =====
-// Soft signups when applications aren't open. Captures email + (optional)
-// name + a list of which threads of LVB the person wants to be looped in
-// on (next cohort, alumni community, CU class, vibecoding events). Synced
-// to a Resend audience so we can broadcast updates as Cohort 2 takes
-// shape. See issue #35.
+// Soft signups when applications aren't open. Captures email + optional
+// name + (legacy) interest tags. Linked to users.id when a matching
+// account exists, so admin can see the full funnel — interest →
+// signup → application → enrollment — as one identity. See issues
+// #35 (creation) and #44 (link to users + funnel continuity).
 export const interests = sqliteTable('interests', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   email: text('email').notNull(),
@@ -210,13 +210,23 @@ export const interests = sqliteTable('interests', {
   sourcePath: text('source_path'),
   /** JSON array of interest tags. Subset of:
    *    'next_cohort' | 'alumni' | 'cu_class' | 'events'
-   *  Stored as JSON so the set can grow without a schema migration. */
+   *  Stored as JSON so the set can grow without a schema migration.
+   *  As of #43 the public form no longer collects tags; new rows have
+   *  '[]' but old rows preserve their data. */
   interestsJson: text('interests_json').notNull().default('[]'),
   /** Resend Audiences contact id, returned from the audience-add call.
    *  Stored so admin can later sync (remove on unsubscribe, retry adds
    *  that failed). NULL when the audience-add hasn't happened yet or
    *  failed silently. */
   resendContactId: text('resend_contact_id'),
+  /** Linked Clerk user account, if one exists for this email. Populated
+   *  bidirectionally:
+   *    - At interest insert time, if a matching user already exists.
+   *    - At Clerk user sync time (syncUser), if a matching interest
+   *      row exists with NULL user_id.
+   *  Treats interest as the first step of the funnel rather than a
+   *  silo. See #44. */
+  userId: integer('user_id').references(() => users.id),
   createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
 })
 
