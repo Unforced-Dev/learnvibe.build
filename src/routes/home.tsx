@@ -68,10 +68,23 @@ home.get('/', async (c) => {
           {cohortStatusLabel}
         </div>
 
-        <a href="/interest" class="hero-cta" style="margin-top: 1.25rem;">
-          Join the interest list
-          <ArrowSvg />
-        </a>
+        {/* Inline email signup — single field, single button, posts straight
+            to /api/interests. Replaces the previous link-out CTA so the
+            barrier to joining is one form interaction, not a page jump. */}
+        <form method="post" action="/api/interests" style="margin-top: 1.5rem; display: flex; gap: 0.5rem; align-items: stretch; max-width: 460px; margin-left: auto; margin-right: auto;">
+          <input
+            type="email"
+            name="email"
+            required
+            autocomplete="email"
+            placeholder="you@example.com"
+            style="flex: 1; padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; font-family: inherit;"
+          />
+          <button type="submit" class="hero-cta" style="margin-top: 0; padding: 0.75rem 1.5rem; white-space: nowrap; border: 0; cursor: pointer;">
+            Join the list
+            <ArrowSvg />
+          </button>
+        </form>
         <p class="hero-meta">Mondays 5:30&ndash;7:30pm MT<span class="sep">&middot;</span>6 Weeks<span class="sep">&middot;</span>Boulder, CO &amp; Remote<span class="sep">&middot;</span>$500 (sliding-scale)</p>
         <p style="margin-top: 1rem; font-size: 0.85rem;"><a href="/apply/status" style="color: var(--text-tertiary); text-decoration: none;">Already applied? Check your status &rarr;</a></p>
       </section>
@@ -173,13 +186,23 @@ home.get('/', async (c) => {
 
           <p style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);"><strong style="font-family: var(--font-mono); font-size: 1.1rem;">$500</strong> <span style="color: var(--text-tertiary);">general admission (Cohort 1 pricing) &mdash; sliding-scale and sponsored spots available. <a href="mailto:ag@unforced.dev" style="color: var(--accent);">Reach out</a> if cost is a question.</span></p>
 
-          <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
-            <a href="/interest" class="hero-cta" style="font-size: 0.95rem; padding: 0.75rem 1.5rem;">
-              Join the interest list
+          <form method="post" action="/api/interests" style="margin-top: 1.5rem; display: flex; gap: 0.5rem; align-items: stretch; max-width: 460px; flex-wrap: wrap;">
+            <input
+              type="email"
+              name="email"
+              required
+              autocomplete="email"
+              placeholder="you@example.com"
+              style="flex: 1; min-width: 220px; padding: 0.7rem 1rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; font-family: inherit;"
+            />
+            <button type="submit" class="hero-cta" style="margin-top: 0; font-size: 0.95rem; padding: 0.7rem 1.4rem; white-space: nowrap; border: 0; cursor: pointer;">
+              Join the list
               <SmallArrowSvg />
-            </a>
-            <a href="/apply/status" style="padding: 0.75rem 1.5rem; color: var(--text-secondary); font-size: 0.95rem; text-decoration: none; display: inline-flex; align-items: center;">Check your status &rarr;</a>
-          </div>
+            </button>
+          </form>
+          <p style="margin-top: 0.85rem; font-size: 0.85rem; color: var(--text-tertiary);">
+            <a href="/apply/status" style="color: var(--text-tertiary); text-decoration: none;">Already applied? Check your status &rarr;</a>
+          </p>
         </div>
 
         <div style="margin-top: 1.5rem; padding: 1.5rem 1.75rem; background: var(--white); border: 1px solid var(--border); border-radius: 10px;">
@@ -338,10 +361,20 @@ home.get('/', async (c) => {
         <div class="cta-content">
           <h2>Ready to build an assistant that knows you?</h2>
           <p>Cohort 2 is forming. Six weeks of practice, together. Drop your email and we'll be in touch as dates come into focus.</p>
-          <a href="/interest" class="cta-btn">
-            Join the interest list
-            <ArrowSvg />
-          </a>
+          <form method="post" action="/api/interests" style="margin: 1.5rem auto 0; display: flex; gap: 0.5rem; align-items: stretch; max-width: 460px; flex-wrap: wrap;">
+            <input
+              type="email"
+              name="email"
+              required
+              autocomplete="email"
+              placeholder="you@example.com"
+              style="flex: 1; min-width: 220px; padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; font-family: inherit;"
+            />
+            <button type="submit" class="cta-btn" style="margin: 0; padding: 0.75rem 1.5rem; white-space: nowrap; border: 0; cursor: pointer;">
+              Join the list
+              <ArrowSvg />
+            </button>
+          </form>
           <p class="cta-aside">Questions? <a href="mailto:ag@unforced.dev">Reach out</a> &mdash; the next step is a conversation.</p>
         </div>
       </section>
