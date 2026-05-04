@@ -1,8 +1,8 @@
 import { Context } from 'hono'
 import { getAuth } from '@hono/clerk-auth'
-import { eq, and, ne } from 'drizzle-orm'
+import { eq, and, ne, isNull, sql } from 'drizzle-orm'
 import { getDb } from '../db'
-import { users, enrollments, memberships } from '../db/schema'
+import { users, enrollments, memberships, interests } from '../db/schema'
 import type { AppContext } from '../types'
 
 export type AuthUser = {
@@ -125,6 +125,22 @@ export async function syncUser(
   } catch (e) {
     // Non-fatal — log and continue. The Clerk webhook also fires this.
     console.error('autoEnrollOnSignup failed (non-fatal):', e)
+  }
+
+  // Best-effort: link any unlinked interests row matching this email to
+  // the new user. Treats interest-list signup as the first step of the
+  // funnel (interest → signup → application → enrollment) — see #44.
+  // Failure is non-fatal; admin can resync via direct D1 update.
+  try {
+    await db
+      .update(interests)
+      .set({ userId: newUser.id })
+      .where(and(
+        eq(sql<string>`LOWER(${interests.email})`, newUser.email.toLowerCase()),
+        isNull(interests.userId),
+      ))
+  } catch (e) {
+    console.error('interests-link on signup failed (non-fatal):', e)
   }
 
   return { ...newUser, isEnrolled: false }
